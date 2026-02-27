@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { authMiddleware, adminMiddleware } from "../middleware/auth.ts";
 import { db } from "../db/connection.ts";
+import { createPreviousMonthSnapshot } from "../lib/monthly-snapshot.ts";
 import { isAdminRole, isAssignableRole } from "../lib/roles.ts";
 import { AdminPage } from "../views/pages/AdminPage.tsx";
 import type { Env, User } from "../types.ts";
@@ -74,6 +75,17 @@ admin.post("/users/:id/delete", (c) => {
   // ON DELETE CASCADE handles sessions, progress_entries, progress_log
   db.prepare("DELETE FROM users WHERE id = ?").run(userId);
   return c.redirect("/admin?success=Member removed successfully.");
+});
+
+admin.post("/snapshots/run", (c) => {
+  const result = createPreviousMonthSnapshot();
+  const period = `${result.year}-${String(result.month).padStart(2, "0")}`;
+
+  if (result.status === "skipped") {
+    return c.redirect(`/admin?success=Snapshot skipped for ${period}. ${result.reason || ""}`);
+  }
+
+  return c.redirect(`/admin?success=Snapshot created for ${period} with ${result.rowsInserted} rows.`);
 });
 
 export { admin as adminRoutes };

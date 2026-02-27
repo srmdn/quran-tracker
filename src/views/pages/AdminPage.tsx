@@ -31,6 +31,25 @@ export const AdminPage: FC<{
           </div>
         )}
 
+        <div class="w-full bg-white border border-border-light rounded-xl p-6 shadow-sm mb-8">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div>
+              <h2 class="text-text-main text-lg font-bold">Monthly Snapshot Job</h2>
+              <p class="text-text-secondary text-sm">
+                Runs previous month activity snapshot (idempotent, safe to re-run).
+              </p>
+            </div>
+            <form method="POST" action="/admin/snapshots/run">
+              <button
+                type="submit"
+                class="px-4 py-2.5 bg-primary text-white rounded-lg font-bold text-sm hover:bg-primary-dark transition-colors shadow-sm"
+              >
+                Run Previous Month Snapshot
+              </button>
+            </form>
+          </div>
+        </div>
+
         {/* Pending approvals */}
         {pendingUsers.length > 0 && (
           <div class="w-full bg-white border border-amber-200 rounded-xl overflow-hidden shadow-sm mb-8">

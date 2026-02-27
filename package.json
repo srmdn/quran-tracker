@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "bun run src/index.tsx",
-    "start": "bun run src/index.tsx"
+    "start": "bun run src/index.tsx",
+    "snapshot:monthly": "bun run src/jobs/monthly-snapshot.ts"
   },
   "devDependencies": {
     "@types/bun": "latest"

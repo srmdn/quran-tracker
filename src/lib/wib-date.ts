@@ -38,6 +38,12 @@ export function getWibYearMonth(now = new Date()): { year: number; month: number
   return { year: year!, month: month! };
 }
 
+export function getPreviousWibYearMonth(now = new Date()): { year: number; month: number } {
+  const { year, month } = getWibYearMonth(now);
+  if (month === 1) return { year: year - 1, month: 12 };
+  return { year, month: month - 1 };
+}
+
 export function getWibMonthRange(year: number, month: number): { from: string; to: string } {
   if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) {
     throw new Error("Invalid month range. Use year=YYYY and month=1..12.");
