@@ -26,6 +26,10 @@ export function isAdminRole(role: string): boolean {
   return ADMIN_ROLES.includes(role as (typeof ADMIN_ROLES)[number]);
 }
 
+export function isSuperAdminRole(role: string): boolean {
+  return role === "super_admin";
+}
+
 export function isActiveMemberRole(role: string): boolean {
   return ACTIVE_MEMBER_ROLES.includes(role as (typeof ACTIVE_MEMBER_ROLES)[number]);
 }

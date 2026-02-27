@@ -53,6 +53,21 @@ export function upsertUser(params: {
     return { ...existing, name: params.name, avatar_url: params.avatarUrl };
   }
 
+  // If a manual account exists for this email, bind it to this Google identity.
+  const existingByEmail = db
+    .prepare("SELECT * FROM users WHERE email = ?")
+    .get(params.email) as User | null;
+
+  if (existingByEmail) {
+    db.prepare(
+      "UPDATE users SET google_id = ?, name = ?, avatar_url = ?, updated_at = datetime('now') WHERE id = ?"
+    ).run(params.googleId, params.name, params.avatarUrl, existingByEmail.id);
+
+    return db
+      .prepare("SELECT * FROM users WHERE id = ?")
+      .get(existingByEmail.id) as User;
+  }
+
   const role = isFirstUser ? "super_admin" : "pending";
   const result = db
     .prepare(

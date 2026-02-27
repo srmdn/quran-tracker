@@ -3,7 +3,7 @@ import { authMiddleware, adminMiddleware } from "../middleware/auth.ts";
 import { db } from "../db/connection.ts";
 import { sendMonthlySnapshotEmails } from "../lib/monthly-email.ts";
 import { createPreviousMonthSnapshot } from "../lib/monthly-snapshot.ts";
-import { isAdminRole, isAssignableRole } from "../lib/roles.ts";
+import { isAdminRole, isAssignableRole, isSuperAdminRole } from "../lib/roles.ts";
 import { AdminPage } from "../views/pages/AdminPage.tsx";
 import type { Env, User } from "../types.ts";
 
@@ -14,6 +14,8 @@ admin.use("*", authMiddleware, adminMiddleware);
 admin.get("/", (c) => {
   const user = c.get("user");
   const success = c.req.query("success");
+  const error = c.req.query("error");
+  const editId = c.req.query("edit");
 
   const pendingUsers = db
     .prepare("SELECT * FROM users WHERE role = 'pending' ORDER BY created_at DESC")
@@ -23,8 +25,20 @@ admin.get("/", (c) => {
     .prepare("SELECT * FROM users WHERE role != 'pending' ORDER BY role DESC, name ASC")
     .all() as User[];
 
+  const editUser =
+    editId && /^\d+$/.test(editId)
+      ? ((db.prepare("SELECT * FROM users WHERE id = ?").get(parseInt(editId, 10)) as User | null) || undefined)
+      : undefined;
+
   return c.html(
-    <AdminPage user={user} pendingUsers={pendingUsers} allUsers={allUsers} success={success} />
+    <AdminPage
+      user={user}
+      pendingUsers={pendingUsers}
+      allUsers={allUsers}
+      editUser={editUser}
+      success={success}
+      error={error}
+    />
   );
 });
 
@@ -44,13 +58,88 @@ admin.post("/users/:id/reject", (c) => {
   return c.redirect("/admin?success=User rejected and removed.");
 });
 
+admin.post("/users/create", async (c) => {
+  const currentUser = c.get("user");
+  if (!isSuperAdminRole(currentUser.role)) {
+    return c.redirect("/admin?error=Only super admin can create users.");
+  }
+
+  const body = await c.req.parseBody();
+  const name = ((body.name as string) || "").trim();
+  const email = ((body.email as string) || "").trim().toLowerCase();
+  const role = ((body.role as string) || "").trim();
+
+  if (!name || !email || !email.includes("@")) {
+    return c.redirect("/admin?error=Name and a valid email are required.");
+  }
+  if (!isAssignableRole(role)) {
+    return c.redirect("/admin?error=Invalid role.");
+  }
+
+  try {
+    db.prepare(
+      "INSERT INTO users (google_id, email, name, avatar_url, role) VALUES (?, ?, ?, NULL, ?)"
+    ).run(`manual:${crypto.randomUUID()}`, email, name, role);
+  } catch {
+    return c.redirect("/admin?error=Failed to create user. Email may already exist.");
+  }
+
+  return c.redirect("/admin?success=User created successfully.");
+});
+
+admin.post("/users/:id/update", async (c) => {
+  const currentUser = c.get("user");
+  if (!isSuperAdminRole(currentUser.role)) {
+    return c.redirect("/admin?error=Only super admin can edit users.");
+  }
+
+  const userId = parseInt(c.req.param("id"), 10);
+  if (!Number.isInteger(userId)) {
+    return c.redirect("/admin?error=Invalid user id.");
+  }
+
+  const target = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as User | null;
+  if (!target) {
+    return c.redirect("/admin?error=User not found.");
+  }
+
+  const body = await c.req.parseBody();
+  const name = ((body.name as string) || "").trim();
+  const email = ((body.email as string) || "").trim().toLowerCase();
+  const role = ((body.role as string) || "").trim();
+
+  if (!name || !email || !email.includes("@")) {
+    return c.redirect(`/admin?edit=${userId}&error=Name and a valid email are required.`);
+  }
+  if (!isAssignableRole(role)) {
+    return c.redirect(`/admin?edit=${userId}&error=Invalid role.`);
+  }
+  if (target.id === currentUser.id && isSuperAdminRole(target.role) && !isSuperAdminRole(role)) {
+    return c.redirect(`/admin?edit=${userId}&error=Cannot demote your own super admin role.`);
+  }
+
+  try {
+    db.prepare(
+      "UPDATE users SET name = ?, email = ?, role = ?, updated_at = datetime('now') WHERE id = ?"
+    ).run(name, email, role, userId);
+  } catch {
+    return c.redirect(`/admin?edit=${userId}&error=Failed to update user. Email may already exist.`);
+  }
+
+  return c.redirect("/admin?success=User updated successfully.");
+});
+
 admin.post("/users/:id/role", async (c) => {
   const userId = c.req.param("id");
   const body = await c.req.parseBody();
   const role = body.role as string;
+  const currentUser = c.get("user");
 
   if (!isAssignableRole(role)) {
     return c.redirect("/admin");
+  }
+  if (!isSuperAdminRole(currentUser.role)) {
+    return c.redirect("/admin?error=Only super admin can change roles.");
   }
 
   db.prepare("UPDATE users SET role = ?, updated_at = datetime('now') WHERE id = ?").run(role, userId);
@@ -59,6 +148,9 @@ admin.post("/users/:id/role", async (c) => {
 
 admin.post("/users/:id/delete", (c) => {
   const currentUser = c.get("user");
+  if (!isSuperAdminRole(currentUser.role)) {
+    return c.redirect("/admin?error=Only super admin can delete users.");
+  }
   const userId = parseInt(c.req.param("id"), 10);
 
   // Cannot delete yourself
@@ -69,8 +161,8 @@ admin.post("/users/:id/delete", (c) => {
   // Cannot delete other admins
   const target = db.prepare("SELECT role FROM users WHERE id = ?").get(userId) as { role: string } | null;
   if (!target) return c.redirect("/admin?success=User not found.");
-  if (isAdminRole(target.role)) {
-    return c.redirect("/admin?success=Cannot delete another admin.");
+  if (isSuperAdminRole(target.role)) {
+    return c.redirect("/admin?success=Cannot delete a super admin account.");
   }
 
   // ON DELETE CASCADE handles sessions, progress_entries, progress_log

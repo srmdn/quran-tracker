@@ -3,14 +3,16 @@ import { Layout } from "../Layout.tsx";
 import { Header } from "../components/Header.tsx";
 import type { User } from "../../types.ts";
 import { APP_NAME } from "../../config.ts";
-import { isAdminRole } from "../../lib/roles.ts";
+import { isAdminRole, isSuperAdminRole } from "../../lib/roles.ts";
 
 export const AdminPage: FC<{
   user: User;
   pendingUsers: User[];
   allUsers: User[];
+  editUser?: User;
   success?: string;
-}> = ({ user, pendingUsers, allUsers, success }) => {
+  error?: string;
+}> = ({ user, pendingUsers, allUsers, editUser, success, error }) => {
   return (
     <Layout title={`Admin Panel - ${APP_NAME}`}>
       <Header user={user} currentPath="/admin" />
@@ -28,6 +30,13 @@ export const AdminPage: FC<{
           <div class="w-full bg-emerald-50 text-emerald-700 text-sm px-4 py-3 rounded-lg mb-6 border border-emerald-200 flex items-center gap-2">
             <span class="material-symbols-outlined text-lg">check_circle</span>
             {success}
+          </div>
+        )}
+
+        {error && (
+          <div class="w-full bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg mb-6 border border-red-200 flex items-center gap-2">
+            <span class="material-symbols-outlined text-lg">error</span>
+            {error}
           </div>
         )}
 
@@ -49,6 +58,80 @@ export const AdminPage: FC<{
             </form>
           </div>
         </div>
+
+        {isSuperAdminRole(user.role) && (
+          <div class="w-full bg-white border border-border-light rounded-xl p-6 shadow-sm mb-8">
+            <h2 class="text-text-main text-lg font-bold mb-4">Create User</h2>
+            <form method="POST" action="/admin/users/create" class="grid md:grid-cols-4 gap-3">
+              <input
+                name="name"
+                placeholder="Full name"
+                class="rounded-lg border-slate-200 bg-slate-50 text-sm"
+                required
+              />
+              <input
+                type="email"
+                name="email"
+                placeholder="Email"
+                class="rounded-lg border-slate-200 bg-slate-50 text-sm"
+                required
+              />
+              <select name="role" class="rounded-lg border-slate-200 bg-slate-50 text-sm" required>
+                <option value="santri">santri</option>
+                <option value="alumni">alumni</option>
+                <option value="asatidz">asatidz</option>
+                <option value="admin">admin</option>
+                <option value="super_admin">super_admin</option>
+              </select>
+              <button
+                type="submit"
+                class="px-4 py-2.5 bg-primary text-white rounded-lg font-bold text-sm hover:bg-primary-dark transition-colors shadow-sm"
+              >
+                Create User
+              </button>
+            </form>
+          </div>
+        )}
+
+        {isSuperAdminRole(user.role) && editUser && (
+          <div class="w-full bg-white border border-border-light rounded-xl p-6 shadow-sm mb-8">
+            <div class="flex items-center justify-between gap-3 mb-4">
+              <h2 class="text-text-main text-lg font-bold">Edit User</h2>
+              <a href="/admin" class="text-sm text-text-secondary hover:text-primary">
+                Cancel
+              </a>
+            </div>
+            <form method="POST" action={`/admin/users/${editUser.id}/update`} class="grid md:grid-cols-4 gap-3">
+              <input
+                name="name"
+                value={editUser.name}
+                class="rounded-lg border-slate-200 bg-slate-50 text-sm"
+                required
+              />
+              <input
+                type="email"
+                name="email"
+                value={editUser.email}
+                class="rounded-lg border-slate-200 bg-slate-50 text-sm"
+                required
+              />
+              <select name="role" class="rounded-lg border-slate-200 bg-slate-50 text-sm" required>
+                <option value="santri" selected={editUser.role === "santri"}>santri</option>
+                <option value="alumni" selected={editUser.role === "alumni"}>alumni</option>
+                <option value="asatidz" selected={editUser.role === "asatidz"}>asatidz</option>
+                <option value="member" selected={editUser.role === "member"}>member</option>
+                <option value="admin" selected={editUser.role === "admin"}>admin</option>
+                <option value="super_admin" selected={editUser.role === "super_admin"}>super_admin</option>
+              </select>
+              <button
+                type="submit"
+                class="px-4 py-2.5 bg-primary text-white rounded-lg font-bold text-sm hover:bg-primary-dark transition-colors shadow-sm"
+              >
+                Save Changes
+              </button>
+            </form>
+          </div>
+        )}
 
         {/* Pending approvals */}
         {pendingUsers.length > 0 && (
@@ -167,6 +250,14 @@ export const AdminPage: FC<{
                         Make Admin
                       </button>
                     </form>
+                  )}
+                  {isSuperAdminRole(user.role) && u.id !== user.id && (
+                    <a
+                      href={`/admin?edit=${u.id}`}
+                      class="text-text-secondary hover:text-primary text-xs font-medium transition-colors"
+                    >
+                      Edit
+                    </a>
                   )}
                   {!isAdminRole(u.role) && u.id !== user.id && (
                     <form
