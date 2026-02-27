@@ -1,10 +1,9 @@
 {
   "name": "ngaji",
-  "module": "src/index.tsx",
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "bun run --hot src/index.tsx",
+    "dev": "bun run src/index.tsx",
     "start": "bun run src/index.tsx"
   },
   "devDependencies": {

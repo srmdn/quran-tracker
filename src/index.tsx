@@ -79,9 +79,9 @@ app.notFound((c) => {
 });
 
 const port = parseInt(process.env.PORT || "3000", 10);
-console.log(`${APP_NAME} running at http://localhost:${port}`);
-
-export default {
+const server = Bun.serve({
   port,
   fetch: app.fetch,
-};
+});
+
+console.log(`${APP_NAME} running at ${server.url}`);
