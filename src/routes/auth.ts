@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { setCookie, getCookie, deleteCookie } from "hono/cookie";
 import { upsertUser, createSession, deleteSession } from "../lib/session.ts";
 import { GOOGLE_REDIRECT_URI } from "../config.ts";
+import { isPendingRole } from "../lib/roles.ts";
 
 const auth = new Hono();
 
@@ -91,7 +92,7 @@ auth.get("/google/callback", async (c) => {
     path: "/",
   });
 
-  if (user.role === "pending") return c.redirect("/pending");
+  if (isPendingRole(user.role)) return c.redirect("/pending");
   return c.redirect("/leaderboard");
 });
 

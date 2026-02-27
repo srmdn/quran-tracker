@@ -5,12 +5,14 @@ import { getSessionUser, cleanExpiredSessions } from "./lib/session.ts";
 import { authRoutes } from "./routes/auth.ts";
 import { leaderboardRoutes } from "./routes/leaderboard.tsx";
 import { progressRoutes } from "./routes/progress.tsx";
+import { activityRoutes } from "./routes/activity.ts";
 import { adminRoutes } from "./routes/admin.tsx";
 import { dashboardRoutes } from "./routes/dashboard.tsx";
 import { LoginPage } from "./views/pages/LoginPage.tsx";
 import { PendingPage } from "./views/pages/PendingPage.tsx";
 import { Layout } from "./views/Layout.tsx";
 import { authMiddleware } from "./middleware/auth.ts";
+import { isPendingRole } from "./lib/roles.ts";
 import type { Env } from "./types.ts";
 import { APP_NAME } from "./config.ts";
 
@@ -28,7 +30,7 @@ app.get("/", (c) => {
   if (sessionId) {
     const user = getSessionUser(sessionId);
     if (user) {
-      if (user.role === "pending") return c.redirect("/pending");
+      if (isPendingRole(user.role)) return c.redirect("/pending");
       return c.redirect("/leaderboard");
     }
   }
@@ -40,7 +42,7 @@ app.get("/login", (c) => {
   const sessionId = getCookie(c, "session");
   if (sessionId) {
     const user = getSessionUser(sessionId);
-    if (user && user.role !== "pending") return c.redirect("/leaderboard");
+    if (user && !isPendingRole(user.role)) return c.redirect("/leaderboard");
   }
   const error = c.req.query("error");
   return c.html(<LoginPage error={error} />);
@@ -49,7 +51,7 @@ app.get("/login", (c) => {
 // Pending page
 app.get("/pending", authMiddleware, (c) => {
   const user = c.get("user");
-  if (user.role !== "pending") return c.redirect("/leaderboard");
+  if (!isPendingRole(user.role)) return c.redirect("/leaderboard");
   return c.html(<PendingPage user={user} />);
 });
 
@@ -57,6 +59,7 @@ app.get("/pending", authMiddleware, (c) => {
 app.route("/auth", authRoutes);
 app.route("/leaderboard", leaderboardRoutes);
 app.route("/progress", progressRoutes);
+app.route("/activity", activityRoutes);
 app.route("/admin", adminRoutes);
 app.route("/dashboard", dashboardRoutes);
 
