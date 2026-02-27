@@ -27,6 +27,34 @@ export function getWibDateYmd(now = new Date()): string {
   return formatter.format(now);
 }
 
+export function getWibYearMonth(now = new Date()): { year: number; month: number } {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: WIB_TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+  });
+
+  const [year, month] = formatter.format(now).split("-").map(Number);
+  return { year: year!, month: month! };
+}
+
+export function getWibMonthRange(year: number, month: number): { from: string; to: string } {
+  if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) {
+    throw new Error("Invalid month range. Use year=YYYY and month=1..12.");
+  }
+
+  const from = `${year.toString().padStart(4, "0")}-${month.toString().padStart(2, "0")}-01`;
+
+  const nextMonth = month === 12 ? 1 : month + 1;
+  const nextYear = month === 12 ? year + 1 : year;
+  const lastDay = new Date(Date.UTC(nextYear, nextMonth - 1, 0)).getUTCDate();
+  const to = `${year.toString().padStart(4, "0")}-${month.toString().padStart(2, "0")}-${lastDay
+    .toString()
+    .padStart(2, "0")}`;
+
+  return { from, to };
+}
+
 export function validateWibLogDate(input: string): {
   ok: boolean;
   date?: string;
