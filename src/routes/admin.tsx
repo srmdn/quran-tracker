@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { authMiddleware, adminMiddleware } from "../middleware/auth.ts";
 import { db } from "../db/connection.ts";
+import { sendMonthlySnapshotEmails } from "../lib/monthly-email.ts";
 import { createPreviousMonthSnapshot } from "../lib/monthly-snapshot.ts";
 import { isAdminRole, isAssignableRole } from "../lib/roles.ts";
 import { AdminPage } from "../views/pages/AdminPage.tsx";
@@ -77,7 +78,7 @@ admin.post("/users/:id/delete", (c) => {
   return c.redirect("/admin?success=Member removed successfully.");
 });
 
-admin.post("/snapshots/run", (c) => {
+admin.post("/snapshots/run", async (c) => {
   const result = createPreviousMonthSnapshot();
   const period = `${result.year}-${String(result.month).padStart(2, "0")}`;
 
@@ -85,7 +86,17 @@ admin.post("/snapshots/run", (c) => {
     return c.redirect(`/admin?success=Snapshot skipped for ${period}. ${result.reason || ""}`);
   }
 
-  return c.redirect(`/admin?success=Snapshot created for ${period} with ${result.rowsInserted} rows.`);
+  let emailMsg = " Email not attempted.";
+  try {
+    const mail = await sendMonthlySnapshotEmails({ year: result.year, month: result.month });
+    emailMsg = ` Email result: sent ${mail.sent}/${mail.attempted}, failed ${mail.failed}.`;
+  } catch (err) {
+    emailMsg = ` Email failed to run: ${err instanceof Error ? err.message : "Unknown error"}.`;
+  }
+
+  return c.redirect(
+    `/admin?success=Snapshot created for ${period} with ${result.rowsInserted} rows.${emailMsg}`
+  );
 });
 
 export { admin as adminRoutes };

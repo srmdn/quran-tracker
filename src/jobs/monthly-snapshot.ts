@@ -1,4 +1,5 @@
 import { initializeDatabase } from "../db/schema.ts";
+import { sendMonthlySnapshotEmails } from "../lib/monthly-email.ts";
 import { createMonthlySnapshot, createPreviousMonthSnapshot } from "../lib/monthly-snapshot.ts";
 
 initializeDatabase();
@@ -19,3 +20,19 @@ if (result.status === "skipped") {
 }
 
 console.log(`[snapshot] created for ${period}, rows=${result.rowsInserted}`);
+
+try {
+  const mail = await sendMonthlySnapshotEmails({ year: result.year, month: result.month });
+  console.log(
+    `[snapshot-email] period=${period} attempted=${mail.attempted} sent=${mail.sent} failed=${mail.failed}`
+  );
+  if (mail.failed > 0) {
+    for (const failure of mail.failures.slice(0, 5)) {
+      console.error(`[snapshot-email] fail ${failure.email}: ${failure.error}`);
+    }
+  }
+} catch (err) {
+  console.error(
+    `[snapshot-email] fatal error: ${err instanceof Error ? err.message : "Unknown error"}`
+  );
+}

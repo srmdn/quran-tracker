@@ -47,6 +47,11 @@ GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 APP_URL=http://localhost:3000
 PORT=3000
+SMTP_HOST=glacier.mxrouting.net
+SMTP_PORT=465
+SMTP_USER=info@markaztalaqqi.com
+SMTP_PASS=your-smtp-password
+SMTP_FROM=info@markaztalaqqi.com
 ```
 
 Set the authorized redirect URI in your Google Cloud Console to:
@@ -81,6 +86,11 @@ GOOGLE_CLIENT_SECRET=your-google-client-secret
 APP_URL=https://your-domain.com
 PORT=3000
 NODE_ENV=production
+SMTP_HOST=glacier.mxrouting.net
+SMTP_PORT=465
+SMTP_USER=info@markaztalaqqi.com
+SMTP_PASS=your-smtp-password
+SMTP_FROM=info@markaztalaqqi.com
 ```
 
 Update the authorized redirect URI in Google Cloud Console to match your domain:
@@ -144,6 +154,20 @@ docker run -d -p 3000:3000 --env-file .env -v $(pwd)/data:/app/data ngaji
 ```
 
 > Mount the `data/` directory as a volume so the SQLite database persists across container restarts.
+
+### Monthly snapshot job
+
+Run monthly snapshot + email manually:
+
+```bash
+bun run snapshot:monthly
+```
+
+Optional period override:
+
+```bash
+SNAPSHOT_YEAR=2026 SNAPSHOT_MONTH=1 bun run snapshot:monthly
+```
 
 ## User Roles
 
