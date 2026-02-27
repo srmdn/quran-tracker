@@ -29,10 +29,6 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # local docs/work notes
 /docs/
-!/docs/
-/docs/*
-!/docs/Merge_Implementation_Plan.md
-!/docs/Quran_Activity_Tracker_MVP.md
 
 # SQLite database
 data/*.db
