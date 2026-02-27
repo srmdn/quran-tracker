@@ -47,5 +47,67 @@ export function initializeDatabase() {
 
     CREATE INDEX IF NOT EXISTS idx_progress_log_user ON progress_log(user_id);
     CREATE INDEX IF NOT EXISTS idx_progress_log_time ON progress_log(logged_at);
+
+    CREATE TABLE IF NOT EXISTS tilawah_logs (
+      id           INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      date_wib     TEXT NOT NULL,
+      juz_amount   REAL NOT NULL CHECK (juz_amount > 0),
+      created_at   TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_tilawah_user_date ON tilawah_logs(user_id, date_wib);
+    CREATE INDEX IF NOT EXISTS idx_tilawah_date ON tilawah_logs(date_wib);
+
+    CREATE TABLE IF NOT EXISTS murojaah_logs (
+      id                INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id           INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      date_wib          TEXT NOT NULL,
+      juz_amount        REAL NOT NULL CHECK (juz_amount > 0),
+      repetition_count  INTEGER CHECK (repetition_count IS NULL OR repetition_count > 0),
+      created_at        TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_murojaah_user_date ON murojaah_logs(user_id, date_wib);
+    CREATE INDEX IF NOT EXISTS idx_murojaah_date ON murojaah_logs(date_wib);
+
+    CREATE TABLE IF NOT EXISTS monthly_leaderboard_snapshots (
+      id                     INTEGER PRIMARY KEY AUTOINCREMENT,
+      period_year            INTEGER NOT NULL,
+      period_month           INTEGER NOT NULL CHECK (period_month BETWEEN 1 AND 12),
+      user_id                INTEGER NOT NULL REFERENCES users(id),
+      user_name_snapshot     TEXT NOT NULL,
+      role_snapshot          TEXT NOT NULL,
+      tilawah_juz            REAL NOT NULL DEFAULT 0,
+      murojaah_juz           REAL NOT NULL DEFAULT 0,
+      khatam_count           INTEGER NOT NULL DEFAULT 0,
+      score                  INTEGER NOT NULL DEFAULT 0,
+      rank                   INTEGER NOT NULL,
+      is_top3                INTEGER NOT NULL DEFAULT 0 CHECK (is_top3 IN (0, 1)),
+      is_locked              INTEGER NOT NULL DEFAULT 1 CHECK (is_locked IN (0, 1)),
+      created_at             TEXT NOT NULL DEFAULT (datetime('now')),
+      UNIQUE(period_year, period_month, user_id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_monthly_snapshots_period_rank
+      ON monthly_leaderboard_snapshots(period_year, period_month, rank);
+    CREATE INDEX IF NOT EXISTS idx_monthly_snapshots_user
+      ON monthly_leaderboard_snapshots(user_id);
+
+    CREATE TRIGGER IF NOT EXISTS trg_monthly_snapshots_prevent_update
+    BEFORE UPDATE ON monthly_leaderboard_snapshots
+    FOR EACH ROW
+    WHEN OLD.is_locked = 1
+    BEGIN
+      SELECT RAISE(ABORT, 'snapshot row is locked');
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS trg_monthly_snapshots_prevent_delete
+    BEFORE DELETE ON monthly_leaderboard_snapshots
+    FOR EACH ROW
+    WHEN OLD.is_locked = 1
+    BEGIN
+      SELECT RAISE(ABORT, 'snapshot row is locked');
+    END;
   `);
 }
