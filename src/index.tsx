@@ -5,7 +5,7 @@ import { getSessionUser, cleanExpiredSessions } from "./lib/session.ts";
 import { authRoutes } from "./routes/auth.ts";
 import { leaderboardRoutes } from "./routes/leaderboard.tsx";
 import { progressRoutes } from "./routes/progress.tsx";
-import { activityRoutes } from "./routes/activity.ts";
+import { activityRoutes } from "./routes/activity.tsx";
 import { adminRoutes } from "./routes/admin.tsx";
 import { dashboardRoutes } from "./routes/dashboard.tsx";
 import { LoginPage } from "./views/pages/LoginPage.tsx";

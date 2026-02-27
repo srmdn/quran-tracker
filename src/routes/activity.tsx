@@ -1,8 +1,16 @@
 import { Hono } from "hono";
 import { authMiddleware, memberMiddleware } from "../middleware/auth.ts";
 import { db } from "../db/connection.ts";
+import {
+  getCurrentMonthActivityLeaderboard,
+  getCurrentMonthUserActivityRank,
+  getUserActivityTotals,
+  getUserMonthlyActivityTotals,
+} from "../lib/activity-calc.ts";
 import { consumeRateLimit } from "../lib/rate-limit.ts";
-import { getWibDateYmd, validateWibLogDate } from "../lib/wib-date.ts";
+import { getWibDateYmd, getWibYearMonth, validateWibLogDate } from "../lib/wib-date.ts";
+import { ActivityPage } from "../views/pages/ActivityPage.tsx";
+import { ActivityLeaderboardPage } from "../views/pages/ActivityLeaderboardPage.tsx";
 import type { Env } from "../types.ts";
 
 const activity = new Hono<Env>();
@@ -11,7 +19,7 @@ activity.use("*", authMiddleware, memberMiddleware);
 
 function redirectWith(kind: "success" | "error", message: string) {
   const q = new URLSearchParams({ [kind]: message });
-  return `/progress?${q.toString()}`;
+  return `/activity?${q.toString()}`;
 }
 
 function parseJuzAmount(raw: string | undefined): number | null {
@@ -33,6 +41,79 @@ function rateLimitOrError(userId: number, action: "tilawah" | "murojaah"): strin
   }
   return null;
 }
+
+activity.get("/", (c) => {
+  const user = c.get("user");
+  const success = c.req.query("success");
+  const error = c.req.query("error");
+  const todayWib = getWibDateYmd();
+  const ym = getWibYearMonth();
+
+  const allTime = getUserActivityTotals(user.id);
+  const currentMonth = getUserMonthlyActivityTotals(user.id, ym.year, ym.month);
+  const rankInfo = getCurrentMonthUserActivityRank(user.id);
+
+  const recentTilawah = db
+    .prepare(
+      `SELECT 'tilawah' AS type, date_wib, juz_amount, NULL AS repetition_count, created_at
+       FROM tilawah_logs
+       WHERE user_id = ?`
+    )
+    .all(user.id) as Array<{
+    type: "tilawah";
+    date_wib: string;
+    juz_amount: number;
+    repetition_count: null;
+    created_at: string;
+  }>;
+
+  const recentMurojaah = db
+    .prepare(
+      `SELECT 'murojaah' AS type, date_wib, juz_amount, repetition_count, created_at
+       FROM murojaah_logs
+       WHERE user_id = ?`
+    )
+    .all(user.id) as Array<{
+    type: "murojaah";
+    date_wib: string;
+    juz_amount: number;
+    repetition_count: number | null;
+    created_at: string;
+  }>;
+
+  const recentLogs = [...recentTilawah, ...recentMurojaah]
+    .sort((a, b) => b.created_at.localeCompare(a.created_at))
+    .slice(0, 20);
+
+  return c.html(
+    <ActivityPage
+      user={user}
+      success={success}
+      error={error}
+      todayWib={todayWib}
+      allTime={allTime}
+      currentMonth={currentMonth}
+      currentMonthRank={rankInfo?.rank || null}
+      currentMonthScore={rankInfo?.score || null}
+      recentLogs={recentLogs}
+    />
+  );
+});
+
+activity.get("/leaderboard", (c) => {
+  const user = c.get("user");
+  const data = getCurrentMonthActivityLeaderboard({ page: 1, perPage: 1000 });
+
+  return c.html(
+    <ActivityLeaderboardPage
+      user={user}
+      year={data.year}
+      month={data.month}
+      rows={data.rows}
+      total={data.total}
+    />
+  );
+});
 
 activity.post("/tilawah", async (c) => {
   const user = c.get("user");

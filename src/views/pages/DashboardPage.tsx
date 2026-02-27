@@ -4,6 +4,7 @@ import { Header } from "../components/Header.tsx";
 import type { User, ProgressEntry, RankedUser } from "../../types.ts";
 import { SURAHS, JUZ_BOUNDARIES, getSurah, getJuzForPosition } from "../../data/quran-meta.ts";
 import { APP_NAME } from "../../config.ts";
+import type { UserMonthlyActivityRank } from "../../lib/activity-calc.ts";
 
 export const DashboardPage: FC<{
   user: User;
@@ -13,7 +14,24 @@ export const DashboardPage: FC<{
   totalMemorized: number;
   rank: RankedUser | null;
   currentLocation: { juz: number; surahName: string; surahNumber: number; ayah: number };
-}> = ({ user, entries, juzCompleted, progressPercent, totalMemorized, rank, currentLocation }) => {
+  activityTotals: {
+    tilawahJuz: number;
+    murojaahJuz: number;
+    totalKhatam: number;
+    progressToNextKhatam: number;
+  };
+  monthlyActivityRank: UserMonthlyActivityRank;
+}> = ({
+  user,
+  entries,
+  juzCompleted,
+  progressPercent,
+  totalMemorized,
+  rank,
+  currentLocation,
+  activityTotals,
+  monthlyActivityRank,
+}) => {
   // Build a set of completed surah numbers
   const completedSurahs = new Set<number>();
   const entryMap = new Map<number, ProgressEntry>();
@@ -21,6 +39,11 @@ export const DashboardPage: FC<{
     entryMap.set(e.surah_number, e);
     if (e.completed) completedSurahs.add(e.surah_number);
   }
+
+  const activityProgressPercent = Math.min(
+    100,
+    Math.round((activityTotals.progressToNextKhatam / 30) * 100)
+  );
 
   return (
     <Layout title={`Dashboard - ${APP_NAME}`}>
@@ -179,6 +202,51 @@ export const DashboardPage: FC<{
               <span>Not Started</span>
             </div>
           </div>
+        </div>
+
+        {/* Activity tracker summary */}
+        <div class="w-full bg-white border border-border-light rounded-xl p-6 shadow-sm mt-8">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-text-main text-lg font-bold flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary">query_stats</span>
+              Tilawah &amp; Murojaah Summary
+            </h2>
+            <a href="/activity" class="text-sm font-semibold text-primary hover:underline">
+              Open Activity Tracker
+            </a>
+          </div>
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+            <div class="text-center p-3 rounded-lg border border-border-light">
+              <p class="text-xs text-text-secondary">Tilawah</p>
+              <p class="text-xl font-black text-text-main">{activityTotals.tilawahJuz}</p>
+            </div>
+            <div class="text-center p-3 rounded-lg border border-border-light">
+              <p class="text-xs text-text-secondary">Murojaah</p>
+              <p class="text-xl font-black text-text-main">{activityTotals.murojaahJuz}</p>
+            </div>
+            <div class="text-center p-3 rounded-lg border border-border-light">
+              <p class="text-xs text-text-secondary">Khatam</p>
+              <p class="text-xl font-black text-primary">{activityTotals.totalKhatam}</p>
+            </div>
+            <div class="text-center p-3 rounded-lg border border-border-light">
+              <p class="text-xs text-text-secondary">Month Rank</p>
+              <p class="text-xl font-black text-text-main">
+                {monthlyActivityRank ? `#${monthlyActivityRank.rank}` : "-"}
+              </p>
+            </div>
+            <div class="text-center p-3 rounded-lg border border-border-light">
+              <p class="text-xs text-text-secondary">Month Score</p>
+              <p class="text-xl font-black text-primary">
+                {monthlyActivityRank?.score ?? 0}
+              </p>
+            </div>
+          </div>
+          <div class="w-full h-2 rounded-full bg-slate-100 border border-slate-200 overflow-hidden">
+            <div class="h-full bg-primary" style={`width: ${activityProgressPercent}%`} />
+          </div>
+          <p class="mt-2 text-xs text-text-secondary">
+            Progress to next khatam: {activityTotals.progressToNextKhatam}/30 juz
+          </p>
         </div>
       </main>
     </Layout>

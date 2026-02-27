@@ -27,6 +27,14 @@ export type MonthlyActivityRow = {
   rank: number;
 };
 
+export type UserMonthlyActivityRank = {
+  rank: number;
+  score: number;
+  tilawahJuz: number;
+  murojaahJuz: number;
+  khatamCount: number;
+} | null;
+
 function round2(value: number): number {
   return Math.round(value * 100) / 100;
 }
@@ -191,5 +199,28 @@ export function getMonthlyActivityLeaderboard(params: {
     month,
     total: ranked.length,
     rows: ranked.slice(start, end),
+  };
+}
+
+export function getCurrentMonthUserActivityRank(userId: number): UserMonthlyActivityRank {
+  const { year, month } = getWibYearMonth();
+  return getMonthlyUserActivityRank(userId, year, month);
+}
+
+export function getMonthlyUserActivityRank(
+  userId: number,
+  year: number,
+  month: number
+): UserMonthlyActivityRank {
+  const leaderboard = getMonthlyActivityLeaderboard({ year, month, page: 1, perPage: 10000 });
+  const row = leaderboard.rows.find((r) => r.id === userId);
+  if (!row) return null;
+
+  return {
+    rank: row.rank,
+    score: row.score,
+    tilawahJuz: row.tilawah_juz,
+    murojaahJuz: row.murojaah_juz,
+    khatamCount: row.khatam_count,
   };
 }

@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { authMiddleware, memberMiddleware } from "../middleware/auth.ts";
 import { getUserProgress, getRankedMembers } from "../lib/progress-calc.ts";
+import { getCurrentMonthUserActivityRank, getUserActivityTotals } from "../lib/activity-calc.ts";
 import { DashboardPage } from "../views/pages/DashboardPage.tsx";
 import type { Env } from "../types.ts";
 
@@ -11,6 +12,8 @@ dashboard.use("*", authMiddleware, memberMiddleware);
 dashboard.get("/", (c) => {
   const user = c.get("user");
   const userProgress = getUserProgress(user.id);
+  const activityTotals = getUserActivityTotals(user.id);
+  const monthlyActivityRank = getCurrentMonthUserActivityRank(user.id);
 
   // Get user's rank
   const { members } = getRankedMembers({ perPage: 999 });
@@ -25,6 +28,8 @@ dashboard.get("/", (c) => {
       totalMemorized={userProgress.totalMemorized}
       rank={rank}
       currentLocation={userProgress.currentLocation}
+      activityTotals={activityTotals}
+      monthlyActivityRank={monthlyActivityRank}
     />
   );
 });

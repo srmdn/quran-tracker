@@ -19,6 +19,7 @@ export const Header: FC<{ user: User | null; currentPath: string }> = ({
   const navItems = [
     { href: "/dashboard", label: "Dashboard" },
     { href: "/leaderboard", label: "Leaderboard" },
+    { href: "/activity", label: "Activity" },
     { href: "/progress", label: "Submit Progress" },
   ];
 
@@ -77,7 +78,7 @@ export const Header: FC<{ user: User | null; currentPath: string }> = ({
               {navItems.map((item) => (
                 <a
                   class={
-                    currentPath === item.href
+                    currentPath === item.href || currentPath.startsWith(`${item.href}/`)
                       ? "text-primary text-sm font-semibold leading-normal border-b-2 border-primary pb-0.5"
                       : "text-text-secondary hover:text-primary transition-colors text-sm font-medium leading-normal"
                   }
@@ -89,7 +90,7 @@ export const Header: FC<{ user: User | null; currentPath: string }> = ({
               {user && isAdminRole(user.role) && (
                 <a
                   class={
-                    currentPath === "/admin"
+                    currentPath === "/admin" || currentPath.startsWith("/admin/")
                       ? "text-primary text-sm font-semibold leading-normal border-b-2 border-primary pb-0.5"
                       : "text-text-secondary hover:text-primary transition-colors text-sm font-medium leading-normal"
                   }
@@ -193,7 +194,7 @@ export const Header: FC<{ user: User | null; currentPath: string }> = ({
               {navItems.map((item) => (
                 <a
                   class={
-                    currentPath === item.href
+                    currentPath === item.href || currentPath.startsWith(`${item.href}/`)
                       ? "text-primary text-base font-semibold bg-primary-light/50 px-4 py-3 rounded-xl border border-primary/10"
                       : "text-text-secondary hover:text-primary hover:bg-slate-50 transition-colors text-base font-medium px-4 py-3 rounded-xl border border-transparent"
                   }
@@ -205,7 +206,7 @@ export const Header: FC<{ user: User | null; currentPath: string }> = ({
               {user && isAdminRole(user.role) && (
                 <a
                   class={
-                    currentPath === "/admin"
+                    currentPath === "/admin" || currentPath.startsWith("/admin/")
                       ? "text-primary text-base font-semibold bg-primary-light/50 px-4 py-3 rounded-xl border border-primary/10"
                       : "text-text-secondary hover:text-primary hover:bg-slate-50 transition-colors text-base font-medium px-4 py-3 rounded-xl border border-transparent"
                   }
