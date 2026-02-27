@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { authMiddleware, adminMiddleware } from "../middleware/auth.ts";
 import { db } from "../db/connection.ts";
+import { isAdminRole, isAssignableRole } from "../lib/roles.ts";
 import { AdminPage } from "../views/pages/AdminPage.tsx";
 import type { Env, User } from "../types.ts";
 
@@ -27,7 +28,7 @@ admin.get("/", (c) => {
 
 admin.post("/users/:id/approve", (c) => {
   const userId = c.req.param("id");
-  db.prepare("UPDATE users SET role = 'member', updated_at = datetime('now') WHERE id = ? AND role = 'pending'").run(
+  db.prepare("UPDATE users SET role = 'santri', updated_at = datetime('now') WHERE id = ? AND role = 'pending'").run(
     userId
   );
   return c.redirect("/admin?success=User approved successfully.");
@@ -46,7 +47,7 @@ admin.post("/users/:id/role", async (c) => {
   const body = await c.req.parseBody();
   const role = body.role as string;
 
-  if (!["member", "admin"].includes(role)) {
+  if (!isAssignableRole(role)) {
     return c.redirect("/admin");
   }
 
@@ -66,7 +67,7 @@ admin.post("/users/:id/delete", (c) => {
   // Cannot delete other admins
   const target = db.prepare("SELECT role FROM users WHERE id = ?").get(userId) as { role: string } | null;
   if (!target) return c.redirect("/admin?success=User not found.");
-  if (target.role === "admin") {
+  if (isAdminRole(target.role)) {
     return c.redirect("/admin?success=Cannot delete another admin.");
   }
 

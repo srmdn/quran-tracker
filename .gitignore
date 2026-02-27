@@ -13,6 +13,7 @@ coverage
 # logs
 logs
 _.log
+*.log
 report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # dotenv environment variable files
@@ -23,6 +24,8 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .env.production.local
 .env.local
 !.env.example
+.envrc
+.direnv/
 
 # local docs/work notes
 /docs/
@@ -32,6 +35,8 @@ data/*.db
 data/*.db-journal
 data/*.db-wal
 data/*.db-shm
+*.sqlite
+*.sqlite-*
 
 # secrets and credentials
 *.pem

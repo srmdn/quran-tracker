@@ -1,4 +1,5 @@
 import { db } from "../db/connection.ts";
+import { ACTIVE_MEMBER_ROLES } from "./roles.ts";
 import {
   SURAHS,
   TOTAL_AYAHS,
@@ -126,9 +127,10 @@ export function getRankedMembers(params: {
   perPage?: number;
 }): { members: RankedUser[]; total: number } {
   const { search, sort = "juz", page = 1, perPage = 20 } = params;
+  const activeRolesSql = ACTIVE_MEMBER_ROLES.map((role) => `'${role}'`).join(", ");
 
   // Get all approved members
-  let whereClause = "WHERE u.role IN ('member', 'admin')";
+  let whereClause = `WHERE u.role IN (${activeRolesSql})`;
   const queryParams: (string | number)[] = [];
 
   if (search) {
@@ -171,7 +173,7 @@ export function getRankedMembers(params: {
       `SELECT u.id, COALESCE(SUM(pe.last_ayah), 0) as total_memorized
        FROM users u
        LEFT JOIN progress_entries pe ON pe.user_id = u.id
-       WHERE u.role IN ('member', 'admin')
+       WHERE u.role IN (${activeRolesSql})
        GROUP BY u.id
        ORDER BY total_memorized DESC, u.created_at ASC`
     )

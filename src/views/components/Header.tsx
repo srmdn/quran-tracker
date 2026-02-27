@@ -1,6 +1,7 @@
 import type { FC } from "hono/jsx";
 import type { User } from "../../types.ts";
 import { APP_NAME } from "../../config.ts";
+import { isAdminRole } from "../../lib/roles.ts";
 
 const Logo: FC = () => (
   <svg class="w-full h-full" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
@@ -85,7 +86,7 @@ export const Header: FC<{ user: User | null; currentPath: string }> = ({
                   {item.label}
                 </a>
               ))}
-              {user?.role === "admin" && (
+              {user && isAdminRole(user.role) && (
                 <a
                   class={
                     currentPath === "/admin"
@@ -201,7 +202,7 @@ export const Header: FC<{ user: User | null; currentPath: string }> = ({
                   {item.label}
                 </a>
               ))}
-              {user?.role === "admin" && (
+              {user && isAdminRole(user.role) && (
                 <a
                   class={
                     currentPath === "/admin"

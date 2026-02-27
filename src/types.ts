@@ -4,7 +4,14 @@ export interface User {
   email: string;
   name: string;
   avatar_url: string | null;
-  role: "pending" | "member" | "admin";
+  role:
+    | "pending"
+    | "member"
+    | "admin"
+    | "super_admin"
+    | "santri"
+    | "alumni"
+    | "asatidz";
   created_at: string;
   updated_at: string;
 }

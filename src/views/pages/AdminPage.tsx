@@ -3,6 +3,7 @@ import { Layout } from "../Layout.tsx";
 import { Header } from "../components/Header.tsx";
 import type { User } from "../../types.ts";
 import { APP_NAME } from "../../config.ts";
+import { isAdminRole } from "../../lib/roles.ts";
 
 export const AdminPage: FC<{
   user: User;
@@ -128,16 +129,16 @@ export const AdminPage: FC<{
                 </div>
                 <div class="flex items-center gap-3">
                   <span
-                    class={`text-xs font-bold px-2 py-1 rounded ${u.role === "admin"
+                    class={`text-xs font-bold px-2 py-1 rounded ${isAdminRole(u.role)
                       ? "bg-purple-50 text-purple-600 border border-purple-200"
-                      : u.role === "member"
+                      : ["member", "santri", "alumni", "asatidz"].includes(u.role)
                         ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
                         : "bg-amber-50 text-amber-600 border border-amber-200"
                       }`}
                   >
                     {u.role}
                   </span>
-                  {u.role === "member" && u.id !== user.id && (
+                  {!isAdminRole(u.role) && u.id !== user.id && (
                     <form method="POST" action={`/admin/users/${u.id}/role`}>
                       <input type="hidden" name="role" value="admin" />
                       <button
@@ -148,7 +149,7 @@ export const AdminPage: FC<{
                       </button>
                     </form>
                   )}
-                  {u.role !== "admin" && u.id !== user.id && (
+                  {!isAdminRole(u.role) && u.id !== user.id && (
                     <form
                       method="POST"
                       action={`/admin/users/${u.id}/delete`}

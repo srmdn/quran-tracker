@@ -38,7 +38,7 @@ export function upsertUser(params: {
   name: string;
   avatarUrl: string | null;
 }): User {
-  // Check if any users exist - first user becomes admin
+  // Check if any users exist - first user becomes super_admin
   const count = db.prepare("SELECT COUNT(*) as c FROM users").get() as { c: number };
   const isFirstUser = count.c === 0;
 
@@ -53,7 +53,7 @@ export function upsertUser(params: {
     return { ...existing, name: params.name, avatar_url: params.avatarUrl };
   }
 
-  const role = isFirstUser ? "admin" : "pending";
+  const role = isFirstUser ? "super_admin" : "pending";
   const result = db
     .prepare(
       "INSERT INTO users (google_id, email, name, avatar_url, role) VALUES (?, ?, ?, ?, ?)"
