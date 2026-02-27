@@ -95,7 +95,7 @@ class SMTPConnection {
     await this.expectCode(expected);
   }
 
-  async sendMail(params: { to: string; subject: string; text: string }): Promise<void> {
+  async sendMail(params: { to: string; subject: string; text: string; html?: string }): Promise<void> {
     await this.expectCode([220]);
     await this.sendCommand("EHLO localhost", [250]);
     await this.sendCommand("AUTH LOGIN", [334]);
@@ -105,15 +105,35 @@ class SMTPConnection {
     await this.sendCommand(`RCPT TO:<${params.to}>`, [250, 251]);
     await this.sendCommand("DATA", [354]);
 
-    const body = normalizeCrlf(params.text);
+    const bodyText = normalizeCrlf(params.text);
+    const bodyHtml = params.html ? normalizeCrlf(params.html) : null;
+
+    let contentType = "text/plain; charset=utf-8";
+    let contentBody = bodyText;
+
+    if (bodyHtml) {
+      const boundary = `b_${crypto.randomUUID().replace(/-/g, "")}`;
+      contentType = `multipart/alternative; boundary="${boundary}"`;
+      contentBody =
+        `--${boundary}\r\n` +
+        `Content-Type: text/plain; charset=utf-8\r\n` +
+        `Content-Transfer-Encoding: 8bit\r\n\r\n` +
+        `${bodyText}\r\n` +
+        `--${boundary}\r\n` +
+        `Content-Type: text/html; charset=utf-8\r\n` +
+        `Content-Transfer-Encoding: 8bit\r\n\r\n` +
+        `${bodyHtml}\r\n` +
+        `--${boundary}--`;
+    }
+
     const message =
       `From: ${this.config.from}\r\n` +
       `To: ${params.to}\r\n` +
       `Subject: ${params.subject}\r\n` +
       `MIME-Version: 1.0\r\n` +
-      `Content-Type: text/plain; charset=utf-8\r\n` +
+      `Content-Type: ${contentType}\r\n` +
       `Content-Transfer-Encoding: 8bit\r\n\r\n` +
-      `${dotStuff(body)}\r\n.\r\n`;
+      `${dotStuff(contentBody)}\r\n.\r\n`;
 
     this.socket.write(message);
     await this.expectCode([250]);
@@ -125,6 +145,7 @@ export async function sendSmtpMail(params: {
   to: string;
   subject: string;
   text: string;
+  html?: string;
 }): Promise<void> {
   const host = process.env.SMTP_HOST || "";
   const port = parseInt(process.env.SMTP_PORT || "465", 10);
