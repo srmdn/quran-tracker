@@ -27,8 +27,7 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .envrc
 .direnv/
 
-# local docs/work notes
-/docs/
+# docs are tracked (private repository)
 
 # SQLite database
 data/*.db
