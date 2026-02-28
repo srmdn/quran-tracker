@@ -1,8 +1,10 @@
 import { Hono } from "hono";
 import { setCookie, getCookie, deleteCookie } from "hono/cookie";
+import { db } from "../db/connection.ts";
 import { upsertUser, createSession, deleteSession } from "../lib/session.ts";
 import { GOOGLE_REDIRECT_URI } from "../config.ts";
 import { isPendingRole } from "../lib/roles.ts";
+import type { User } from "../types.ts";
 
 const auth = new Hono();
 
@@ -26,6 +28,41 @@ auth.get("/google", (c) => {
   });
 
   return c.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params}`);
+});
+
+auth.post("/email/login", async (c) => {
+  const body = await c.req.parseBody();
+  const email = ((body.email as string) || "").trim().toLowerCase();
+  const password = (body.password as string) || "";
+
+  if (!email || !password) {
+    return c.redirect("/login?error=Email and password are required.");
+  }
+
+  const user = db
+    .prepare("SELECT * FROM users WHERE email = ?")
+    .get(email) as User | null;
+
+  if (!user || !user.password_hash) {
+    return c.redirect("/login?error=Invalid email or password.");
+  }
+
+  const valid = await Bun.password.verify(password, user.password_hash);
+  if (!valid) {
+    return c.redirect("/login?error=Invalid email or password.");
+  }
+
+  const sessionId = createSession(user.id);
+  setCookie(c, "session", sessionId, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "Lax",
+    maxAge: 60 * 60 * 24 * 7,
+    path: "/",
+  });
+
+  if (isPendingRole(user.role)) return c.redirect("/pending");
+  return c.redirect("/leaderboard");
 });
 
 auth.get("/google/callback", async (c) => {

@@ -76,6 +76,12 @@ export const AdminPage: FC<{
                 class="rounded-lg border-slate-200 bg-slate-50 text-sm"
                 required
               />
+              <input
+                type="password"
+                name="password"
+                placeholder="Password (optional)"
+                class="rounded-lg border-slate-200 bg-slate-50 text-sm"
+              />
               <select name="role" class="rounded-lg border-slate-200 bg-slate-50 text-sm" required>
                 <option value="santri">santri</option>
                 <option value="alumni">alumni</option>
@@ -101,7 +107,7 @@ export const AdminPage: FC<{
                 Cancel
               </a>
             </div>
-            <form method="POST" action={`/admin/users/${editUser.id}/update`} class="grid md:grid-cols-4 gap-3">
+            <form method="POST" action={`/admin/users/${editUser.id}/update`} class="grid md:grid-cols-5 gap-3">
               <input
                 name="name"
                 value={editUser.name}
@@ -114,6 +120,12 @@ export const AdminPage: FC<{
                 value={editUser.email}
                 class="rounded-lg border-slate-200 bg-slate-50 text-sm"
                 required
+              />
+              <input
+                type="password"
+                name="password"
+                placeholder="New password (optional)"
+                class="rounded-lg border-slate-200 bg-slate-50 text-sm"
               />
               <select name="role" class="rounded-lg border-slate-200 bg-slate-50 text-sm" required>
                 <option value="santri" selected={editUser.role === "santri"}>santri</option>
@@ -128,6 +140,23 @@ export const AdminPage: FC<{
                 class="px-4 py-2.5 bg-primary text-white rounded-lg font-bold text-sm hover:bg-primary-dark transition-colors shadow-sm"
               >
                 Save Changes
+              </button>
+            </form>
+
+            <form method="POST" action={`/admin/users/${editUser.id}/password`} class="grid md:grid-cols-3 gap-3 mt-3">
+              <input
+                type="password"
+                name="password"
+                placeholder="Reset password (min 8 chars)"
+                class="rounded-lg border-slate-200 bg-slate-50 text-sm"
+                required
+                minlength={8}
+              />
+              <button
+                type="submit"
+                class="px-4 py-2.5 bg-white text-primary border border-primary/30 rounded-lg font-bold text-sm hover:bg-primary-light transition-colors"
+              >
+                Reset Password
               </button>
             </form>
           </div>

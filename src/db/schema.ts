@@ -110,4 +110,12 @@ export function initializeDatabase() {
       SELECT RAISE(ABORT, 'snapshot row is locked');
     END;
   `);
+
+  const userColumns = db
+    .prepare("PRAGMA table_info(users)")
+    .all() as Array<{ name: string }>;
+  const hasPasswordHash = userColumns.some((c) => c.name === "password_hash");
+  if (!hasPasswordHash) {
+    db.exec("ALTER TABLE users ADD COLUMN password_hash TEXT");
+  }
 }

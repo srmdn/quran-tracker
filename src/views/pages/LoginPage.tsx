@@ -25,7 +25,7 @@ export const LoginPage: FC<{ error?: string }> = ({ error }) => {
 
             {error && (
               <div class="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-lg mb-6 border border-red-200">
-                Authentication failed. Please try again.
+                {error}
               </div>
             )}
 
@@ -53,6 +53,41 @@ export const LoginPage: FC<{ error?: string }> = ({ error }) => {
               </svg>
               Sign in with Google
             </a>
+
+            <div class="my-5 flex items-center gap-3">
+              <div class="h-px flex-1 bg-border-light" />
+              <span class="text-xs text-text-secondary">or sign in with email</span>
+              <div class="h-px flex-1 bg-border-light" />
+            </div>
+
+            <form method="post" action="/auth/email/login" class="space-y-3 text-left">
+              <div>
+                <label class="block text-xs font-semibold text-text-secondary mb-1">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm"
+                  placeholder="you@example.com"
+                  required
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-text-secondary mb-1">Password</label>
+                <input
+                  type="password"
+                  name="password"
+                  class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm"
+                  placeholder="Your password"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                class="w-full px-6 py-3 bg-primary text-white rounded-xl font-semibold text-sm hover:bg-primary-dark transition-all shadow-sm"
+              >
+                Sign in with Email
+              </button>
+            </form>
 
             <p class="text-text-secondary text-xs mt-6">
               New members need admin approval before accessing the leaderboard.

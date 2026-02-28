@@ -68,6 +68,7 @@ admin.post("/users/create", async (c) => {
   const name = ((body.name as string) || "").trim();
   const email = ((body.email as string) || "").trim().toLowerCase();
   const role = ((body.role as string) || "").trim();
+  const password = ((body.password as string) || "").trim();
 
   if (!name || !email || !email.includes("@")) {
     return c.redirect("/admin?error=Name and a valid email are required.");
@@ -77,9 +78,10 @@ admin.post("/users/create", async (c) => {
   }
 
   try {
+    const passwordHash = password ? await Bun.password.hash(password) : null;
     db.prepare(
-      "INSERT INTO users (google_id, email, name, avatar_url, role) VALUES (?, ?, ?, NULL, ?)"
-    ).run(`manual:${crypto.randomUUID()}`, email, name, role);
+      "INSERT INTO users (google_id, email, name, avatar_url, role, password_hash) VALUES (?, ?, ?, NULL, ?, ?)"
+    ).run(`manual:${crypto.randomUUID()}`, email, name, role, passwordHash);
   } catch {
     return c.redirect("/admin?error=Failed to create user. Email may already exist.");
   }
@@ -107,6 +109,7 @@ admin.post("/users/:id/update", async (c) => {
   const name = ((body.name as string) || "").trim();
   const email = ((body.email as string) || "").trim().toLowerCase();
   const role = ((body.role as string) || "").trim();
+  const password = ((body.password as string) || "").trim();
 
   if (!name || !email || !email.includes("@")) {
     return c.redirect(`/admin?edit=${userId}&error=Name and a valid email are required.`);
@@ -119,14 +122,43 @@ admin.post("/users/:id/update", async (c) => {
   }
 
   try {
-    db.prepare(
-      "UPDATE users SET name = ?, email = ?, role = ?, updated_at = datetime('now') WHERE id = ?"
-    ).run(name, email, role, userId);
+    if (password) {
+      const passwordHash = await Bun.password.hash(password);
+      db.prepare(
+        "UPDATE users SET name = ?, email = ?, role = ?, password_hash = ?, updated_at = datetime('now') WHERE id = ?"
+      ).run(name, email, role, passwordHash, userId);
+    } else {
+      db.prepare(
+        "UPDATE users SET name = ?, email = ?, role = ?, updated_at = datetime('now') WHERE id = ?"
+      ).run(name, email, role, userId);
+    }
   } catch {
     return c.redirect(`/admin?edit=${userId}&error=Failed to update user. Email may already exist.`);
   }
 
   return c.redirect("/admin?success=User updated successfully.");
+});
+
+admin.post("/users/:id/password", async (c) => {
+  const currentUser = c.get("user");
+  if (!isSuperAdminRole(currentUser.role)) {
+    return c.redirect("/admin?error=Only super admin can reset passwords.");
+  }
+
+  const userId = parseInt(c.req.param("id"), 10);
+  if (!Number.isInteger(userId)) {
+    return c.redirect("/admin?error=Invalid user id.");
+  }
+
+  const body = await c.req.parseBody();
+  const password = ((body.password as string) || "").trim();
+  if (!password || password.length < 8) {
+    return c.redirect(`/admin?edit=${userId}&error=Password must be at least 8 characters.`);
+  }
+
+  const hash = await Bun.password.hash(password);
+  db.prepare("UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?").run(hash, userId);
+  return c.redirect(`/admin?edit=${userId}&success=Password updated.`);
 });
 
 admin.post("/users/:id/role", async (c) => {
