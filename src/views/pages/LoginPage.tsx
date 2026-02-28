@@ -1,6 +1,6 @@
 import type { FC } from "hono/jsx";
 import { Layout } from "../Layout.tsx";
-import { APP_NAME } from "../../config.ts";
+import { APP_NAME, ORG_NAME } from "../../config.ts";
 
 export const LoginPage: FC<{ error?: string }> = ({ error }) => {
   return (
@@ -20,7 +20,7 @@ export const LoginPage: FC<{ error?: string }> = ({ error }) => {
               {APP_NAME}
             </h1>
             <p class="text-text-secondary text-sm mb-8">
-              Track your Quran memorization progress and stay motivated with your community during Ramadan.
+              Qur'an memorization and activity tracking system for {ORG_NAME} Islamic boarding school.
             </p>
 
             {error && (
@@ -61,7 +61,7 @@ export const LoginPage: FC<{ error?: string }> = ({ error }) => {
 
           <div class="text-center mt-6">
             <p class="text-text-secondary text-xs">
-              Goal: Memorize 30 Juz within Ramadan
+              Markaz Talaqqi Islamic Boarding School
             </p>
           </div>
         </div>

@@ -3,7 +3,7 @@ import { Layout } from "../Layout.tsx";
 import { Header } from "../components/Header.tsx";
 import type { User, ProgressEntry, RankedUser } from "../../types.ts";
 import { SURAHS, JUZ_BOUNDARIES, getSurah, getJuzForPosition } from "../../data/quran-meta.ts";
-import { APP_NAME } from "../../config.ts";
+import { APP_NAME, ORG_NAME } from "../../config.ts";
 import type { UserMonthlyActivityRank } from "../../lib/activity-calc.ts";
 
 export const DashboardPage: FC<{
@@ -55,7 +55,7 @@ export const DashboardPage: FC<{
             <h1 class="text-text-main text-3xl font-black leading-tight tracking-[-0.033em]">
               Assalamu'alaikum, {user.name.split(" ")[0]}!
             </h1>
-            <p class="text-text-secondary text-base">Your Quran memorization journey at a glance.</p>
+            <p class="text-text-secondary text-base">Your Qur'an journey at {ORG_NAME} at a glance.</p>
           </div>
           <a
             href="/progress"

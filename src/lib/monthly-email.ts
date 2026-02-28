@@ -1,5 +1,6 @@
 import { db } from "../db/connection.ts";
 import { ACTIVE_MEMBER_ROLES } from "./roles.ts";
+import { ORG_NAME, PRODUCT_NAME, PUBLIC_BASE_URL } from "../config.ts";
 import { sendSmtpMail } from "./smtp.ts";
 
 export type MonthlyEmailResult = {
@@ -92,6 +93,25 @@ function formatPeriodLabel(periodType: PeriodType, year: number, month: number, 
   return `Monthly Snapshot ${getMonthLabel(year, month)}`;
 }
 
+function buildEmailSubject(params: {
+  periodType: PeriodType;
+  periodLabel: string;
+  year: number;
+  month: number;
+  weeklyDateRange?: string;
+}): string {
+  const { periodType, periodLabel, year, month, weeklyDateRange } = params;
+  const periodName =
+    periodType === "weekly" ? "Weekly Snapshot" : periodType === "yearly" ? "Yearly Snapshot" : "Monthly Snapshot";
+  const descriptor =
+    periodType === "weekly"
+      ? weeklyDateRange || `${year}-${String(month).padStart(2, "0")}`
+      : periodType === "yearly"
+        ? `${year}`
+        : getMonthLabel(year, month);
+  return `${ORG_NAME} | ${periodName} | ${descriptor}`;
+}
+
 function buildMessage(params: {
   year: number;
   month: number;
@@ -102,10 +122,10 @@ function buildMessage(params: {
 }): { subject: string; text: string; html: string } {
   const { year, month, recipientName, recipientStats } = params;
   const periodType = params.periodType || "monthly";
-  const monthLabel = getMonthLabel(year, month);
   const periodLabel = formatPeriodLabel(periodType, year, month, params.weeklyDateRange);
   const topThree = getTopThree(year, month);
   const generatedAt = getWibGeneratedAtLabel();
+  const ctaUrl = `${PUBLIC_BASE_URL}/activity/leaderboard`;
 
   const topLines =
     topThree.length === 0
@@ -114,7 +134,13 @@ function buildMessage(params: {
           .map((u) => `${u.rank}. ${u.user_name_snapshot} - ${u.score} points`)
           .join("\n");
 
-  const subject = `${periodLabel} - Quran Activity Tracker`;
+  const subject = buildEmailSubject({
+    periodType,
+    periodLabel,
+    year,
+    month,
+    weeklyDateRange: params.weeklyDateRange,
+  });
   const text = [
     `Assalamu'alaikum,`,
     ``,
@@ -129,9 +155,11 @@ function buildMessage(params: {
       ? `Rank #${recipientStats.rank} | Score ${recipientStats.score} | Tilawah ${recipientStats.tilawah_juz} | Murojaah ${recipientStats.murojaah_juz} | Khatam ${recipientStats.khatam_count}`
       : "No personal snapshot data found for this period.",
     ``,
+    `View full leaderboard: ${ctaUrl}`,
+    ``,
     `Keep istiqamah in tilawah and murojaah. May Allah bless your efforts.`,
     ``,
-    `- Quran Activity Tracker`,
+    `- ${PRODUCT_NAME} (${ORG_NAME})`,
   ].join("\n");
 
   const topHtml =
@@ -163,7 +191,7 @@ function buildMessage(params: {
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
             <tr>
               <td style="background:#10b981;color:#ffffff;padding:18px 24px;">
-                <h1 style="margin:0;font-size:20px;line-height:1.2;">Quran Activity Tracker</h1>
+                <h1 style="margin:0;font-size:20px;line-height:1.2;">${escapeHtml(PRODUCT_NAME)}</h1>
                 <p style="margin:6px 0 0;font-size:13px;opacity:0.95;">${escapeHtml(periodLabel)}</p>
               </td>
             </tr>
@@ -171,7 +199,7 @@ function buildMessage(params: {
               <td style="padding:20px 24px;">
                 <p style="margin:0 0 8px;">Assalamu'alaikum ${escapeHtml(recipientName)},</p>
                 <p style="margin:0 0 16px;color:#475569;">Here is your snapshot update for <strong>${escapeHtml(
-                  monthLabel
+                  periodLabel
                 )}</strong>.</p>
                 <p style="margin:0 0 16px;color:#64748b;font-size:12px;">Generated: ${escapeHtml(generatedAt)}</p>
 
@@ -185,12 +213,18 @@ function buildMessage(params: {
                   ${personalHtml}
                 </div>
 
+                <p style="margin:0 0 16px;">
+                  <a href="${escapeHtml(ctaUrl)}" style="display:inline-block;padding:10px 16px;background:#10b981;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:700;font-size:14px;">
+                    View Full Leaderboard
+                  </a>
+                </p>
+
                 <p style="margin:0;color:#334155;">Keep istiqamah in tilawah and murojaah. May Allah bless your efforts.</p>
               </td>
             </tr>
             <tr>
               <td style="padding:14px 24px;background:#f1f5f9;color:#64748b;font-size:12px;">
-                This is an automated email from Quran Activity Tracker.
+                This is an automated email from ${escapeHtml(PRODUCT_NAME)} - ${escapeHtml(ORG_NAME)}.
               </td>
             </tr>
           </table>
