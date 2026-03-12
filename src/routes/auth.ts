@@ -62,7 +62,7 @@ auth.post("/email/login", async (c) => {
   });
 
   if (isPendingRole(user.role)) return c.redirect("/pending");
-  return c.redirect("/leaderboard");
+  return c.redirect("/dashboard");
 });
 
 auth.get("/google/callback", async (c) => {
@@ -130,7 +130,7 @@ auth.get("/google/callback", async (c) => {
   });
 
   if (isPendingRole(user.role)) return c.redirect("/pending");
-  return c.redirect("/leaderboard");
+  return c.redirect("/dashboard");
 });
 
 auth.post("/logout", (c) => {

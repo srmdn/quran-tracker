@@ -26,7 +26,7 @@ export const LeaderboardPage: FC<{
         <div class="w-full flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-8">
           <div class="flex flex-col gap-2">
             <h1 class="text-text-main text-3xl md:text-4xl font-black leading-tight tracking-[-0.033em]">
-              {ORG_NAME} Leaderboard
+              Leaderboard
             </h1>
             <p class="text-text-secondary text-base font-normal leading-normal max-w-2xl">
               Track progress, celebrate milestones, and stay motivated in your Qur'an journey
