@@ -8,13 +8,8 @@ export const LoginPage: FC<{ error?: string }> = ({ error }) => {
       <div class="flex-1 flex items-center justify-center px-4">
         <div class="w-full max-w-md">
           <div class="bg-white border border-border-light rounded-2xl p-8 shadow-lg text-center">
-            <div class="size-16 text-primary mx-auto mb-6">
-              <svg class="w-full h-full" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M42.4379 44C42.4379 44 36.0744 33.9038 41.1692 24C46.8624 12.9336 42.2078 4 42.2078 4L7.01134 4C7.01134 4 11.6577 12.932 5.96912 23.9969C0.876273 33.9029 7.27094 44 7.27094 44L42.4379 44Z"
-                  fill="currentColor"
-                />
-              </svg>
+            <div class="size-20 mx-auto mb-6">
+              <img src="/public/logo.png" alt="Markaz Talaqqi Logo" class="w-full h-full object-contain" />
             </div>
             <h1 class="text-text-main text-2xl font-black tracking-tight mb-2">
               {APP_NAME}

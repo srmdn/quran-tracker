@@ -8,6 +8,7 @@ export const Layout: FC<{ title?: string; children: Child }> = ({ title, childre
         <meta charset="utf-8" />
         <meta content="width=device-width, initial-scale=1.0" name="viewport" />
         <title>{title || APP_NAME}</title>
+        <link rel="icon" type="image/png" href="/public/logo.png" />
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
           rel="stylesheet"

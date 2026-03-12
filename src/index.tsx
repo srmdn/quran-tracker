@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { getCookie } from "hono/cookie";
+import { serveStatic } from "hono/bun";
 import { initializeDatabase } from "./db/schema.ts";
 import { getSessionUser, cleanExpiredSessions } from "./lib/session.ts";
 import { authRoutes } from "./routes/auth.ts";
@@ -23,6 +24,9 @@ initializeDatabase();
 cleanExpiredSessions();
 
 const app = new Hono<Env>();
+
+// Static files
+app.use("/public/*", serveStatic({ root: "./" }));
 
 // Root route - redirect based on auth state
 app.get("/", (c) => {
