@@ -1,46 +1,43 @@
 import type { FC } from "hono/jsx";
 import { Layout } from "../Layout.tsx";
 import { Header } from "../components/Header.tsx";
-import type { User, ProgressEntry, RankedUser } from "../../types.ts";
-import { SURAHS, JUZ_BOUNDARIES, getSurah, getJuzForPosition } from "../../data/quran-meta.ts";
-import { APP_NAME, ORG_NAME } from "../../config.ts";
-import type { UserMonthlyActivityRank } from "../../lib/activity-calc.ts";
+import type { User } from "../../types.ts";
+import { SURAHS } from "../../data/quran-meta.ts";
+import { APP_NAME } from "../../config.ts";
+import type { UserTarget } from "../../lib/targets.ts";
+import type { UserStreak } from "../../lib/streak.ts";
+import type { ActivityTotals, UserMonthlyActivityRank } from "../../lib/activity-calc.ts";
+import type { RecentLogEntry, HeatmapCell } from "../../routes/dashboard.tsx";
 
 export const DashboardPage: FC<{
   user: User;
-  entries: ProgressEntry[];
-  juzCompleted: number;
-  progressPercent: number;
-  totalMemorized: number;
-  rank: RankedUser | null;
-  currentLocation: { juz: number; surahName: string; surahNumber: number; ayah: number };
-  activityTotals: {
-    tilawahJuz: number;
-    murojaahJuz: number;
-    totalKhatam: number;
-    progressToNextKhatam: number;
-  };
-  monthlyActivityRank: UserMonthlyActivityRank;
+  todayWib: string;
+  target: UserTarget;
+  todayTilawah: number;
+  todayMurojaah: number;
+  streak: UserStreak;
+  activityTotals: ActivityTotals;
+  monthlyRank: UserMonthlyActivityRank;
+  heatmap: HeatmapCell[];
+  recentLogs: RecentLogEntry[];
+  totalKhatam: number;
 }> = ({
   user,
-  entries,
-  juzCompleted,
-  progressPercent,
-  totalMemorized,
-  rank,
-  currentLocation,
+  todayWib,
+  target,
+  todayTilawah,
+  todayMurojaah,
+  streak,
   activityTotals,
-  monthlyActivityRank,
+  monthlyRank,
+  heatmap,
+  recentLogs,
+  totalKhatam,
 }) => {
-  // Build a set of completed surah numbers
-  const completedSurahs = new Set<number>();
-  const entryMap = new Map<number, ProgressEntry>();
-  for (const e of entries) {
-    entryMap.set(e.surah_number, e);
-    if (e.completed) completedSurahs.add(e.surah_number);
-  }
-
-  const activityProgressPercent = Math.min(
+  const firstName = user.name.split(" ")[0];
+  const tilawahPercent = Math.min(100, Math.round((todayTilawah / target.tilawah_juz_daily) * 100));
+  const murojaahPercent = Math.min(100, Math.round((todayMurojaah / target.murojaah_juz_daily) * 100));
+  const khatamProgressPercent = Math.min(
     100,
     Math.round((activityTotals.progressToNextKhatam / 30) * 100)
   );
@@ -48,206 +45,221 @@ export const DashboardPage: FC<{
   return (
     <Layout title={`Dashboard - ${APP_NAME}`}>
       <Header user={user} currentPath="/dashboard" />
-      <main class="flex-1 flex flex-col items-center w-full px-4 sm:px-6 lg:px-8 py-8 max-w-5xl mx-auto">
-        {/* Welcome */}
-        <div class="w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+      <main class="flex-1 flex flex-col items-center w-full px-4 sm:px-6 lg:px-8 py-8 max-w-4xl mx-auto">
+
+        {/* Welcome + streak */}
+        <div class="w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-8">
           <div>
             <h1 class="text-text-main text-3xl font-black leading-tight tracking-[-0.033em]">
-              Assalamu'alaikum, {user.name.split(" ")[0]}!
+              Assalamu'alaikum, {firstName}!
             </h1>
-            <p class="text-text-secondary text-base">Your Qur'an journey at {ORG_NAME} at a glance.</p>
+            {streak.current_streak > 0 ? (
+              <div class="flex items-center gap-2 mt-1.5">
+                <span class="text-xl leading-none">🔥</span>
+                <span class="text-base font-bold text-orange-500">{streak.current_streak} day streak</span>
+                {streak.longest_streak > streak.current_streak && (
+                  <span class="text-sm text-text-secondary">· best: {streak.longest_streak}</span>
+                )}
+              </div>
+            ) : (
+              <p class="text-text-secondary text-sm mt-1">Start logging today to build your streak!</p>
+            )}
           </div>
           <a
-            href="/progress"
-            class="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-lg font-bold text-sm hover:bg-primary-dark transition-colors shadow-sm"
+            href="/setup"
+            class="flex items-center gap-2 px-4 py-2 bg-white border border-border-light rounded-lg text-sm font-medium text-text-secondary hover:text-primary hover:border-primary/30 transition-colors"
           >
-            <span class="material-symbols-outlined text-lg">add</span>
-            Submit Progress
+            <span class="material-symbols-outlined text-lg">tune</span>
+            Set Targets
           </a>
         </div>
 
-        {/* Stats grid */}
-        <div class="w-full grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-          <div class="bg-white border border-border-light rounded-xl p-5 text-center">
-            <p class="text-text-secondary text-xs font-medium mb-1">Your Rank</p>
-            <p class="text-3xl font-black text-primary">#{rank?.rank || "-"}</p>
-          </div>
-          <div class="bg-white border border-border-light rounded-xl p-5 text-center">
-            <p class="text-text-secondary text-xs font-medium mb-1">Juz Completed</p>
-            <p class="text-3xl font-black text-text-main">{juzCompleted}/30</p>
-          </div>
-          <div class="bg-white border border-border-light rounded-xl p-5 text-center">
-            <p class="text-text-secondary text-xs font-medium mb-1">Progress</p>
-            <p class="text-3xl font-black text-text-main">{progressPercent}%</p>
-          </div>
-          <div class="bg-white border border-border-light rounded-xl p-5 text-center">
-            <p class="text-text-secondary text-xs font-medium mb-1">Ayahs</p>
-            <p class="text-3xl font-black text-text-main">{totalMemorized.toLocaleString()}</p>
-          </div>
-          <div class="bg-white border border-border-light rounded-xl p-5 text-center col-span-2 md:col-span-1">
-            <p class="text-text-secondary text-xs font-medium mb-1">Weekly Trend</p>
-            <p class="text-3xl font-black text-primary">+{rank?.trend || 0}</p>
-          </div>
-        </div>
-
-        {/* Current location */}
-        {currentLocation.juz > 0 && (
-          <div class="w-full bg-white border-2 border-primary/20 rounded-xl p-6 mb-8 shadow-sm">
-            <div class="flex items-center gap-3 mb-3">
-              <span class="material-symbols-outlined text-primary text-2xl">my_location</span>
-              <h2 class="text-text-main text-lg font-bold">Current Location</h2>
-            </div>
-            <div class="flex flex-wrap gap-6 text-sm">
-              <div>
-                <span class="text-text-secondary">Juz</span>
-                <p class="text-text-main font-bold text-lg">{currentLocation.juz}</p>
-              </div>
-              <div>
-                <span class="text-text-secondary">Surah</span>
-                <p class="text-text-main font-bold text-lg">{currentLocation.surahName}</p>
-              </div>
-              <div>
-                <span class="text-text-secondary">Ayah</span>
-                <p class="text-text-main font-bold text-lg">{currentLocation.ayah}</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Overall progress bar */}
-        <div class="w-full bg-white border border-border-light rounded-xl p-6 mb-8 shadow-sm">
-          <h2 class="text-text-main text-lg font-bold mb-4 flex items-center gap-2">
-            <span class="material-symbols-outlined text-primary">bar_chart</span>
-            Overall Progress to 30 Juz
+        {/* Today's progress */}
+        <div class="w-full bg-white border border-border-light rounded-xl p-6 mb-6">
+          <h2 class="text-text-main font-bold mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-xl">today</span>
+            Today's Progress
+            <span class="text-xs font-normal text-text-secondary ml-auto">{todayWib}</span>
           </h2>
-          <div class="w-full bg-slate-100 rounded-full h-4 overflow-hidden border border-slate-200 mb-2">
-            <div
-              class="bg-primary h-4 rounded-full relative overflow-hidden transition-all duration-500"
-              style={`width: ${progressPercent}%`}
-            >
-              {progressPercent > 5 && (
-                <span class="absolute inset-0 flex items-center justify-center text-white text-xs font-bold">
-                  {progressPercent}%
-                </span>
-              )}
-            </div>
-          </div>
-          <p class="text-text-secondary text-xs">
-            {juzCompleted} of 30 Juz completed &bull; {totalMemorized.toLocaleString()} of 6,236
-            total ayahs memorized
-          </p>
-        </div>
-
-        {/* Juz grid */}
-        <div class="w-full bg-white border border-border-light rounded-xl p-6 shadow-sm">
-          <h2 class="text-text-main text-lg font-bold mb-4 flex items-center gap-2">
-            <span class="material-symbols-outlined text-primary">grid_view</span>
-            Juz Overview
-          </h2>
-          <div class="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-10 gap-2">
-            {JUZ_BOUNDARIES.map((juz) => {
-              // Check if this juz is complete, partial, or not started
-              let status: "complete" | "partial" | "empty" = "empty";
-              let hasAnyProgress = false;
-
-              for (let s = juz.startSurah; s <= juz.endSurah; s++) {
-                const entry = entryMap.get(s);
-                if (entry && entry.last_ayah > 0) {
-                  hasAnyProgress = true;
-                }
-              }
-
-              // Simplified: check if all surahs in this juz are sufficiently memorized
-              let allComplete = true;
-              for (let s = juz.startSurah; s <= juz.endSurah; s++) {
-                const surah = getSurah(s);
-                if (!surah) { allComplete = false; break; }
-                const entry = entryMap.get(s);
-                const neededEnd = s === juz.endSurah ? juz.endAyah : surah.totalAyahs;
-                if (!entry || entry.last_ayah < neededEnd) {
-                  allComplete = false;
-                  break;
-                }
-              }
-
-              if (allComplete) status = "complete";
-              else if (hasAnyProgress) status = "partial";
-
-              return (
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            {/* Tilawah bar */}
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <a href="/tilawah" class="text-sm font-semibold text-text-main hover:text-primary transition-colors">Tilawah →</a>
+                <span class="text-sm font-semibold text-text-secondary">{todayTilawah}/{target.tilawah_juz_daily} juz</span>
+              </div>
+              <div class="w-full h-3 rounded-full bg-slate-100 border border-slate-200 overflow-hidden">
                 <div
-                  class={`aspect-square rounded-lg flex items-center justify-center text-sm font-bold border transition-all ${status === "complete"
-                      ? "bg-primary text-white border-primary shadow-sm"
-                      : status === "partial"
-                        ? "bg-primary/10 text-primary border-primary/30"
-                        : "bg-slate-50 text-text-secondary border-border-light"
-                    }`}
-                  title={`Juz ${juz.juzNumber}`}
-                >
-                  {juz.juzNumber}
-                </div>
-              );
-            })}
-          </div>
-          <div class="flex items-center gap-4 mt-4 text-xs text-text-secondary">
-            <div class="flex items-center gap-1.5">
-              <div class="w-3 h-3 rounded bg-primary" />
-              <span>Completed</span>
+                  class={`h-full rounded-full transition-all ${tilawahPercent >= 100 ? "bg-emerald-500" : "bg-primary"}`}
+                  style={`width: ${tilawahPercent}%`}
+                />
+              </div>
+              <p class="text-xs text-text-secondary mt-1">
+                {tilawahPercent >= 100 ? "✓ Target met!" : `${Math.max(0, target.tilawah_juz_daily - todayTilawah).toFixed(1)} juz to go`}
+              </p>
             </div>
-            <div class="flex items-center gap-1.5">
-              <div class="w-3 h-3 rounded bg-primary/10 border border-primary/30" />
-              <span>In Progress</span>
-            </div>
-            <div class="flex items-center gap-1.5">
-              <div class="w-3 h-3 rounded bg-slate-50 border border-border-light" />
-              <span>Not Started</span>
+            {/* Murojaah bar */}
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <a href="/murojaah" class="text-sm font-semibold text-text-main hover:text-primary transition-colors">Murojaah →</a>
+                <span class="text-sm font-semibold text-text-secondary">{todayMurojaah}/{target.murojaah_juz_daily} juz</span>
+              </div>
+              <div class="w-full h-3 rounded-full bg-slate-100 border border-slate-200 overflow-hidden">
+                <div
+                  class={`h-full rounded-full transition-all ${murojaahPercent >= 100 ? "bg-emerald-500" : "bg-amber-500"}`}
+                  style={`width: ${murojaahPercent}%`}
+                />
+              </div>
+              <p class="text-xs text-text-secondary mt-1">
+                {murojaahPercent >= 100 ? "✓ Target met!" : `${Math.max(0, target.murojaah_juz_daily - todayMurojaah).toFixed(1)} juz to go`}
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Activity tracker summary */}
-        <div class="w-full bg-white border border-border-light rounded-xl p-6 shadow-sm mt-8">
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="text-text-main text-lg font-bold flex items-center gap-2">
-              <span class="material-symbols-outlined text-primary">query_stats</span>
-              Tilawah &amp; Murojaah Summary
+        {/* Stats row */}
+        <div class="w-full grid grid-cols-3 md:grid-cols-5 gap-3 mb-6">
+          <div class="bg-white border border-border-light rounded-xl p-4 text-center">
+            <p class="text-text-secondary text-xs font-medium mb-1">Month Rank</p>
+            <p class="text-2xl font-black text-primary">
+              {monthlyRank ? `#${monthlyRank.rank}` : "-"}
+            </p>
+          </div>
+          <div class="bg-white border border-border-light rounded-xl p-4 text-center">
+            <p class="text-text-secondary text-xs font-medium mb-1">Month Score</p>
+            <p class="text-2xl font-black text-text-main">{monthlyRank?.score ?? 0}</p>
+          </div>
+          <div class="bg-white border border-border-light rounded-xl p-4 text-center">
+            <p class="text-text-secondary text-xs font-medium mb-1">All-time Tilawah</p>
+            <p class="text-2xl font-black text-text-main">{activityTotals.tilawahJuz}</p>
+            <p class="text-xs text-text-secondary">juz</p>
+          </div>
+          <div class="bg-white border border-border-light rounded-xl p-4 text-center">
+            <p class="text-text-secondary text-xs font-medium mb-1">All-time Murojaah</p>
+            <p class="text-2xl font-black text-text-main">{activityTotals.murojaahJuz}</p>
+            <p class="text-xs text-text-secondary">juz</p>
+          </div>
+          <div class="bg-white border border-border-light rounded-xl p-4 text-center col-span-3 md:col-span-1">
+            <p class="text-text-secondary text-xs font-medium mb-1">Total Khatam</p>
+            <p class="text-2xl font-black text-primary">{totalKhatam}</p>
+            <p class="text-xs text-text-secondary">times</p>
+          </div>
+        </div>
+
+        {/* Progress to next khatam */}
+        <div class="w-full bg-white border border-border-light rounded-xl p-6 mb-6">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-text-main font-bold flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary text-xl">auto_stories</span>
+              Progress to Next Khatam
             </h2>
-            <a href="/activity" class="text-sm font-semibold text-primary hover:underline">
-              Open Activity Tracker
-            </a>
+            <span class="text-sm font-semibold text-text-secondary">
+              {activityTotals.progressToNextKhatam}/30 juz
+            </span>
           </div>
-          <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
-            <div class="text-center p-3 rounded-lg border border-border-light">
-              <p class="text-xs text-text-secondary">Tilawah</p>
-              <p class="text-xl font-black text-text-main">{activityTotals.tilawahJuz}</p>
-            </div>
-            <div class="text-center p-3 rounded-lg border border-border-light">
-              <p class="text-xs text-text-secondary">Murojaah</p>
-              <p class="text-xl font-black text-text-main">{activityTotals.murojaahJuz}</p>
-            </div>
-            <div class="text-center p-3 rounded-lg border border-border-light">
-              <p class="text-xs text-text-secondary">Khatam</p>
-              <p class="text-xl font-black text-primary">{activityTotals.totalKhatam}</p>
-            </div>
-            <div class="text-center p-3 rounded-lg border border-border-light">
-              <p class="text-xs text-text-secondary">Month Rank</p>
-              <p class="text-xl font-black text-text-main">
-                {monthlyActivityRank ? `#${monthlyActivityRank.rank}` : "-"}
-              </p>
-            </div>
-            <div class="text-center p-3 rounded-lg border border-border-light">
-              <p class="text-xs text-text-secondary">Month Score</p>
-              <p class="text-xl font-black text-primary">
-                {monthlyActivityRank?.score ?? 0}
-              </p>
-            </div>
+          <div class="w-full h-3 rounded-full bg-slate-100 border border-slate-200 overflow-hidden mb-1">
+            <div
+              class={`h-full rounded-full ${khatamProgressPercent >= 100 ? "bg-emerald-500" : "bg-primary"}`}
+              style={`width: ${khatamProgressPercent}%`}
+            />
           </div>
-          <div class="w-full h-2 rounded-full bg-slate-100 border border-slate-200 overflow-hidden">
-            <div class="h-full bg-primary" style={`width: ${activityProgressPercent}%`} />
-          </div>
-          <p class="mt-2 text-xs text-text-secondary">
-            Progress to next khatam: {activityTotals.progressToNextKhatam}/30 juz
+          <p class="text-xs text-text-secondary">
+            {khatamProgressPercent >= 100
+              ? "Khatam completed! Log your ending position to record it."
+              : `${(30 - activityTotals.progressToNextKhatam).toFixed(1)} juz remaining to next khatam`}
           </p>
         </div>
+
+        {/* Activity heatmap */}
+        <div class="w-full bg-white border border-border-light rounded-xl p-6 mb-6">
+          <h2 class="text-text-main font-bold mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-xl">grid_on</span>
+            90-Day Activity
+          </h2>
+          {/* Day-of-week labels */}
+          <div style="display:grid; grid-template-rows: repeat(7, minmax(0, 1fr)); grid-auto-flow: column; gap: 3px;">
+            {heatmap.map((cell) => (
+              cell.state === "filler" ? (
+                <div style="width:12px; height:12px;" />
+              ) : (
+                <div
+                  title={cell.date}
+                  style="width:12px; height:12px; border-radius:2px;"
+                  class={
+                    cell.state === "met"
+                      ? "bg-emerald-500"
+                      : cell.state === "logged"
+                        ? "bg-primary/40"
+                        : "bg-slate-100 border border-slate-200"
+                  }
+                />
+              )
+            ))}
+          </div>
+          <div class="flex items-center gap-4 mt-3 text-xs text-text-secondary">
+            <div class="flex items-center gap-1.5">
+              <div class="w-3 h-3 rounded-sm bg-emerald-500" />
+              <span>Target met</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <div class="w-3 h-3 rounded-sm bg-primary/40" />
+              <span>Partial</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <div class="w-3 h-3 rounded-sm bg-slate-100 border border-slate-200" />
+              <span>No log</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent logs */}
+        <div class="w-full bg-white border border-border-light rounded-xl overflow-hidden">
+          <div class="px-6 py-4 border-b border-border-light bg-slate-50/50 flex items-center justify-between">
+            <h2 class="text-text-main font-bold">Recent Activity</h2>
+            <div class="flex items-center gap-3">
+              <a href="/tilawah" class="text-xs font-semibold text-primary hover:underline">Tilawah</a>
+              <a href="/murojaah" class="text-xs font-semibold text-primary hover:underline">Murojaah</a>
+            </div>
+          </div>
+          <div class="divide-y divide-border-light">
+            {recentLogs.length === 0 ? (
+              <div class="px-6 py-10 text-center text-text-secondary text-sm">
+                No activity yet. Start logging tilawah or murojaah!
+              </div>
+            ) : (
+              recentLogs.map((log) => {
+                const surahName = log.end_surah
+                  ? SURAHS.find((s) => s.number === log.end_surah)?.name
+                  : null;
+                const isTilawah = log.type === "tilawah";
+                return (
+                  <div class="px-6 py-3.5 flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                      <span
+                        class={`text-xs font-bold px-2 py-0.5 rounded-full ${isTilawah ? "bg-primary/10 text-primary" : "bg-amber-50 text-amber-600"}`}
+                      >
+                        {isTilawah ? "Tilawah" : "Murojaah"}
+                      </span>
+                      <div>
+                        <p class="text-sm font-semibold text-text-main">
+                          {log.juz_amount} juz
+                          {log.repetition_count ? ` · ${log.repetition_count}x` : ""}
+                        </p>
+                        {surahName && (
+                          <p class="text-xs text-text-secondary">
+                            Ended · Juz {log.end_juz} · {surahName} : {log.end_ayah}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <span class="text-xs text-text-secondary whitespace-nowrap">{log.date_wib}</span>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+
       </main>
     </Layout>
   );

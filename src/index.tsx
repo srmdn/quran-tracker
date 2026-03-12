@@ -9,6 +9,9 @@ import { progressRoutes } from "./routes/progress.tsx";
 import { activityRoutes } from "./routes/activity.tsx";
 import { adminRoutes } from "./routes/admin.tsx";
 import { dashboardRoutes } from "./routes/dashboard.tsx";
+import { setupRoutes } from "./routes/setup.tsx";
+import { tilawahRoutes } from "./routes/tilawah.tsx";
+import { murojaahRoutes } from "./routes/murojaah.tsx";
 import { LoginPage } from "./views/pages/LoginPage.tsx";
 import { PendingPage } from "./views/pages/PendingPage.tsx";
 import { Layout } from "./views/Layout.tsx";
@@ -61,6 +64,9 @@ app.get("/pending", authMiddleware, (c) => {
 
 // Mount routes
 app.route("/auth", authRoutes);
+app.route("/setup", setupRoutes);
+app.route("/tilawah", tilawahRoutes);
+app.route("/murojaah", murojaahRoutes);
 app.route("/leaderboard", leaderboardRoutes);
 app.route("/progress", progressRoutes);
 app.route("/activity", activityRoutes);

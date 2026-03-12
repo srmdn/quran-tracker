@@ -14,7 +14,8 @@ export const Header: FC<{ user: User | null; currentPath: string }> = ({
   const navItems = [
     { href: "/dashboard", label: "Dashboard" },
     { href: "/activity/leaderboard", label: "Leaderboard" },
-    { href: "/activity", label: "Log Activity" },
+    { href: "/tilawah", label: "Tilawah" },
+    { href: "/murojaah", label: "Murojaah" },
   ];
 
   const menuScript = `

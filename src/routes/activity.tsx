@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { authMiddleware, memberMiddleware } from "../middleware/auth.ts";
+import { authMiddleware, memberMiddleware, targetMiddleware } from "../middleware/auth.ts";
 import { db } from "../db/connection.ts";
 import {
   getCurrentMonthActivityLeaderboard,
@@ -15,7 +15,7 @@ import type { Env } from "../types.ts";
 
 const activity = new Hono<Env>();
 
-activity.use("*", authMiddleware, memberMiddleware);
+activity.use("*", authMiddleware, memberMiddleware, targetMiddleware);
 
 function redirectWith(kind: "success" | "error", message: string) {
   const q = new URLSearchParams({ [kind]: message });
@@ -104,12 +104,24 @@ activity.get("/leaderboard", (c) => {
   const user = c.get("user");
   const data = getCurrentMonthActivityLeaderboard({ page: 1, perPage: 1000 });
 
+  // Enrich rows with current streak from user_streaks
+  const streakMap = new Map<number, number>();
+  const streakRows = db
+    .prepare("SELECT user_id, current_streak FROM user_streaks")
+    .all() as Array<{ user_id: number; current_streak: number }>;
+  for (const s of streakRows) streakMap.set(s.user_id, s.current_streak);
+
+  const enrichedRows = data.rows.map((r) => ({
+    ...r,
+    current_streak: streakMap.get(r.id) ?? 0,
+  }));
+
   return c.html(
     <ActivityLeaderboardPage
       user={user}
       year={data.year}
       month={data.month}
-      rows={data.rows}
+      rows={enrichedRows}
       total={data.total}
     />
   );

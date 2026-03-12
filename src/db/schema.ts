@@ -118,4 +118,58 @@ export function initializeDatabase() {
   if (!hasPasswordHash) {
     db.exec("ALTER TABLE users ADD COLUMN password_hash TEXT");
   }
+
+  // Position columns on tilawah_logs
+  const tilawahColumns = db
+    .prepare("PRAGMA table_info(tilawah_logs)")
+    .all() as Array<{ name: string }>;
+  const tilawahColNames = tilawahColumns.map((c) => c.name);
+  if (!tilawahColNames.includes("end_surah")) db.exec("ALTER TABLE tilawah_logs ADD COLUMN end_surah INTEGER");
+  if (!tilawahColNames.includes("end_ayah"))  db.exec("ALTER TABLE tilawah_logs ADD COLUMN end_ayah INTEGER");
+  if (!tilawahColNames.includes("end_juz"))   db.exec("ALTER TABLE tilawah_logs ADD COLUMN end_juz INTEGER");
+
+  // Position columns on murojaah_logs
+  const murojaahColumns = db
+    .prepare("PRAGMA table_info(murojaah_logs)")
+    .all() as Array<{ name: string }>;
+  const murojaahColNames = murojaahColumns.map((c) => c.name);
+  if (!murojaahColNames.includes("end_surah")) db.exec("ALTER TABLE murojaah_logs ADD COLUMN end_surah INTEGER");
+  if (!murojaahColNames.includes("end_ayah"))  db.exec("ALTER TABLE murojaah_logs ADD COLUMN end_ayah INTEGER");
+  if (!murojaahColNames.includes("end_juz"))   db.exec("ALTER TABLE murojaah_logs ADD COLUMN end_juz INTEGER");
+
+  // user_targets
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS user_targets (
+      user_id               INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      tilawah_juz_daily     REAL NOT NULL CHECK (tilawah_juz_daily > 0),
+      murojaah_juz_daily    REAL NOT NULL CHECK (murojaah_juz_daily > 0),
+      created_at            TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at            TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+  `);
+
+  // user_streaks
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS user_streaks (
+      user_id           INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      current_streak    INTEGER NOT NULL DEFAULT 0,
+      longest_streak    INTEGER NOT NULL DEFAULT 0,
+      last_active_date  TEXT,
+      updated_at        TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+  `);
+
+  // khatam_events — position-verified khatam (end_surah=114, end_ayah=6)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS khatam_events (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      type        TEXT NOT NULL CHECK (type IN ('tilawah', 'murojaah')),
+      date_wib    TEXT NOT NULL,
+      created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_khatam_events_user ON khatam_events(user_id);
+    CREATE INDEX IF NOT EXISTS idx_khatam_events_date ON khatam_events(user_id, date_wib);
+  `);
 }
