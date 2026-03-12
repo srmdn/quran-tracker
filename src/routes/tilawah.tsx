@@ -6,7 +6,7 @@ import { getWibDateYmd, validateWibLogDate } from "../lib/wib-date.ts";
 import { getUserTarget, getTodayTilawahTotal } from "../lib/targets.ts";
 import { checkAndUpdateStreak } from "../lib/streak.ts";
 import { getUserActivityTotals } from "../lib/activity-calc.ts";
-import { SURAHS } from "../data/quran-meta.ts";
+import { SURAHS, getJuzForPosition } from "../data/quran-meta.ts";
 import { TilawahPage } from "../views/pages/TilawahPage.tsx";
 import type { Env } from "../types.ts";
 
@@ -87,16 +87,15 @@ tilawah.post("/", async (c) => {
   // Validate position
   const endSurah = parseInt((body.end_surah as string) || "", 10);
   const endAyah = parseInt((body.end_ayah as string) || "", 10);
-  const endJuz = parseInt((body.end_juz as string) || "", 10);
 
   const surahMeta = SURAHS.find((s) => s.number === endSurah);
   if (!surahMeta) return c.redirect(redirectWith("error", "Invalid surah selected."));
   if (!Number.isInteger(endAyah) || endAyah < 1 || endAyah > surahMeta.totalAyahs) {
     return c.redirect(redirectWith("error", `Ayah must be between 1 and ${surahMeta.totalAyahs} for ${surahMeta.name}.`));
   }
-  if (!Number.isInteger(endJuz) || endJuz < 1 || endJuz > 30) {
-    return c.redirect(redirectWith("error", "Juz must be between 1 and 30."));
-  }
+
+  // Compute juz from surah+ayah — never trust user input
+  const endJuz = getJuzForPosition(endSurah, endAyah);
 
   // Insert log
   db.prepare(

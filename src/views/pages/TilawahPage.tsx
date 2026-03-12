@@ -105,17 +105,10 @@ export const TilawahPage: FC<{
                       ))}
                     </select>
                   </div>
-                  <div class="grid grid-cols-2 gap-3">
-                    <div>
-                      <label class="block text-xs font-semibold text-text-secondary mb-1">Ayah</label>
-                      <input type="number" name="end_ayah" min="1" step="1" placeholder="e.g. 25"
-                        class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" required />
-                    </div>
-                    <div>
-                      <label class="block text-xs font-semibold text-text-secondary mb-1">Juz</label>
-                      <input type="number" name="end_juz" min="1" max="30" step="1" placeholder="1-30"
-                        class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" required />
-                    </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-text-secondary mb-1">Ayah</label>
+                    <input type="number" name="end_ayah" min="1" step="1" placeholder="e.g. 25"
+                      class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" required />
                   </div>
                 </div>
               </div>
