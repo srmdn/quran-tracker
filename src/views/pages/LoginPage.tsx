@@ -15,7 +15,7 @@ export const LoginPage: FC<{ error?: string }> = ({ error }) => {
               {APP_NAME}
             </h1>
             <p class="text-text-secondary text-sm mb-8">
-              Qur'an memorization and activity tracking system for {ORG_NAME} Islamic boarding school.
+              Tilawah &amp; Murojaah tracking for {ORG_NAME}.
             </p>
 
             {error && (
@@ -84,14 +84,11 @@ export const LoginPage: FC<{ error?: string }> = ({ error }) => {
               </button>
             </form>
 
-            <p class="text-text-secondary text-xs mt-6">
-              New members need admin approval before accessing the leaderboard.
-            </p>
           </div>
 
           <div class="text-center mt-6">
             <p class="text-text-secondary text-xs">
-              Markaz Talaqqi Islamic Boarding School
+              New members need admin approval before accessing the app.
             </p>
           </div>
         </div>

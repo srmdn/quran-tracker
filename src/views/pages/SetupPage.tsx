@@ -85,7 +85,10 @@ export const SetupPage: FC<{
           </div>
 
           <p class="text-center text-xs text-text-secondary mt-6">
-            Signed in as {user.name} &bull; <a href="/auth/logout" class="hover:underline">Sign out</a>
+            Signed in as {user.name} &bull;{" "}
+            <form method="post" action="/auth/logout" class="inline">
+              <button type="submit" class="hover:underline">Sign out</button>
+            </form>
           </p>
         </div>
       </div>
