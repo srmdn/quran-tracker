@@ -35,7 +35,7 @@ app.get("/", (c) => {
     const user = getSessionUser(sessionId);
     if (user) {
       if (isPendingRole(user.role)) return c.redirect("/pending");
-      return c.redirect("/leaderboard");
+      return c.redirect("/activity/leaderboard");
     }
   }
   return c.redirect("/login");
@@ -46,7 +46,7 @@ app.get("/login", (c) => {
   const sessionId = getCookie(c, "session");
   if (sessionId) {
     const user = getSessionUser(sessionId);
-    if (user && !isPendingRole(user.role)) return c.redirect("/leaderboard");
+    if (user && !isPendingRole(user.role)) return c.redirect("/activity/leaderboard");
   }
   const error = c.req.query("error");
   return c.html(<LoginPage error={error} />);
