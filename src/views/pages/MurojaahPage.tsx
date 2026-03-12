@@ -39,7 +39,7 @@ export const MurojaahPage: FC<{
         <div class="w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
             <h1 class="text-text-main text-3xl font-black leading-tight tracking-[-0.033em]">Murojaah</h1>
-            <p class="text-text-secondary text-sm">Log your daily Quran revision. Max 5 juz/day (WIB).</p>
+            <p class="text-text-secondary text-sm">Log your Quran revision (WIB).</p>
           </div>
           <a href="/tilawah" class="px-4 py-2.5 rounded-lg border border-border-light bg-white text-sm font-semibold text-text-main hover:bg-slate-50">
             ← Switch to Tilawah
@@ -87,8 +87,8 @@ export const MurojaahPage: FC<{
                   class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" required />
               </div>
               <div>
-                <label class="block text-xs font-semibold text-text-secondary mb-1">Juz Amount (max 5/day)</label>
-                <input type="number" name="juz_amount" min="0.01" max="5" step="0.01" placeholder="e.g. 2.0"
+                <label class="block text-xs font-semibold text-text-secondary mb-1">Juz Amount</label>
+                <input type="number" name="juz_amount" min="0.01" max="30" step="0.01" placeholder="e.g. 2.0"
                   class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" required />
               </div>
               <div>

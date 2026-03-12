@@ -39,13 +39,13 @@ export const SetupPage: FC<{
                 <label class="block text-sm font-bold text-text-main mb-1">
                   Daily Tilawah Target
                 </label>
-                <p class="text-xs text-text-secondary mb-2">How many juz do you want to read each day? (max 3)</p>
+                <p class="text-xs text-text-secondary mb-2">How many juz do you want to read each day?</p>
                 <div class="relative">
                   <input
                     type="number"
                     name="tilawah_juz_daily"
                     min="0.5"
-                    max="3"
+                    max="30"
                     step="0.5"
                     value={existing ? String(existing.tilawah_juz_daily) : "1"}
                     class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm pr-12"
@@ -59,13 +59,13 @@ export const SetupPage: FC<{
                 <label class="block text-sm font-bold text-text-main mb-1">
                   Daily Murojaah Target
                 </label>
-                <p class="text-xs text-text-secondary mb-2">How many juz do you want to revise each day? (max 5)</p>
+                <p class="text-xs text-text-secondary mb-2">How many juz do you want to revise each day?</p>
                 <div class="relative">
                   <input
                     type="number"
                     name="murojaah_juz_daily"
                     min="0.5"
-                    max="5"
+                    max="30"
                     step="0.5"
                     value={existing ? String(existing.murojaah_juz_daily) : "1"}
                     class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm pr-12"

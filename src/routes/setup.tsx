@@ -22,11 +22,11 @@ setup.post("/", async (c) => {
   const tilawah = parseFloat((body.tilawah_juz_daily as string) || "");
   const murojaah = parseFloat((body.murojaah_juz_daily as string) || "");
 
-  if (!Number.isFinite(tilawah) || tilawah <= 0 || tilawah > 3) {
-    return c.redirect("/setup?error=Tilawah+target+must+be+between+0.5+and+3+juz.");
+  if (!Number.isFinite(tilawah) || tilawah <= 0 || tilawah > 30) {
+    return c.redirect("/setup?error=Tilawah+target+must+be+between+0.5+and+30+juz.");
   }
-  if (!Number.isFinite(murojaah) || murojaah <= 0 || murojaah > 5) {
-    return c.redirect("/setup?error=Murojaah+target+must+be+between+0.5+and+5+juz.");
+  if (!Number.isFinite(murojaah) || murojaah <= 0 || murojaah > 30) {
+    return c.redirect("/setup?error=Murojaah+target+must+be+between+0.5+and+30+juz.");
   }
 
   upsertUserTarget(user.id, tilawah, murojaah);

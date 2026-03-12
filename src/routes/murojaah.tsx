@@ -73,18 +73,12 @@ murojaah.post("/", async (c) => {
   if (!/^\d+(\.\d{1,2})?$/.test(juzRaw || "")) return c.redirect(redirectWith("error", "Invalid juz amount."));
   const juzAmount = Number(juzRaw);
   if (!Number.isFinite(juzAmount) || juzAmount <= 0) return c.redirect(redirectWith("error", "Invalid juz amount."));
-  if (juzAmount > 5) return c.redirect(redirectWith("error", "Murojaah per day is limited to 5 juz."));
+  if (juzAmount > 30) return c.redirect(redirectWith("error", "Juz amount cannot exceed 30 (full Quran) per entry."));
 
   // Validate date
   const inputDate = ((body.date_wib as string) || getWibDateYmd()).trim();
   const dateCheck = validateWibLogDate(inputDate);
   if (!dateCheck.ok || !dateCheck.date) return c.redirect(redirectWith("error", dateCheck.error || "Invalid date."));
-
-  // Daily cap check
-  const existing = db
-    .prepare("SELECT COALESCE(SUM(juz_amount), 0) AS total FROM murojaah_logs WHERE user_id = ? AND date_wib = ?")
-    .get(user.id, dateCheck.date) as { total: number };
-  if (existing.total + juzAmount > 5) return c.redirect(redirectWith("error", "Murojaah daily total cannot exceed 5 juz."));
 
   // Validate repetition
   let repetitionCount: number | null = null;
