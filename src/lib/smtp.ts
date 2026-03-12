@@ -101,7 +101,10 @@ class SMTPConnection {
     await this.sendCommand("AUTH LOGIN", [334]);
     await this.sendCommand(encodeBase64(this.config.username), [334]);
     await this.sendCommand(encodeBase64(this.config.password), [235]);
-    await this.sendCommand(`MAIL FROM:<${this.config.from}>`, [250]);
+    const envelopeFrom = this.config.from.includes("<")
+      ? this.config.from.match(/<(.+)>/)?.[1] ?? this.config.from
+      : this.config.from;
+    await this.sendCommand(`MAIL FROM:<${envelopeFrom}>`, [250]);
     await this.sendCommand(`RCPT TO:<${params.to}>`, [250, 251]);
     await this.sendCommand("DATA", [354]);
 
@@ -152,17 +155,20 @@ export async function sendSmtpMail(params: {
   const username = process.env.SMTP_USER || "";
   const password = process.env.SMTP_PASS || "";
   const from = process.env.SMTP_FROM || username;
+  const fromName = process.env.SMTP_FROM_NAME || "";
 
   if (!host || !port || !username || !password || !from) {
     throw new Error("SMTP is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM.");
   }
+
+  const fromHeader = fromName ? `"${fromName}" <${from}>` : from;
 
   const conn = new SMTPConnection({
     host,
     port,
     username,
     password,
-    from,
+    from: fromHeader,
   });
 
   try {
