@@ -59,7 +59,7 @@ const SecondPlace: FC<{ member: RankedUser }> = ({ member }) => (
 );
 
 const FirstPlace: FC<{ member: RankedUser }> = ({ member }) => (
-  <div class="order-1 md:order-2 relative flex flex-col bg-white border-2 border-primary/20 rounded-xl p-6 shadow-xl shadow-emerald-100 transform md:-translate-y-4 hover:shadow-2xl transition-all duration-300">
+  <div class="order-1 md:order-2 relative flex flex-col bg-white border-2 border-primary/20 rounded-xl p-6 shadow-xl shadow-blue-100 transform md:-translate-y-4 hover:shadow-2xl transition-all duration-300">
     <div class="absolute -top-5 left-1/2 -translate-x-1/2 bg-primary text-white text-sm font-bold px-4 py-1.5 rounded-full flex items-center gap-1 shadow-lg">
       <span class="material-symbols-outlined text-lg">workspace_premium</span> 1st Place
     </div>

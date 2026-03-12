@@ -190,7 +190,7 @@ function buildMessage(params: {
         <td align="center">
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
             <tr>
-              <td style="background:#10b981;color:#ffffff;padding:18px 24px;">
+              <td style="background:#2A65AE;color:#ffffff;padding:18px 24px;">
                 <h1 style="margin:0;font-size:20px;line-height:1.2;">${escapeHtml(PRODUCT_NAME)}</h1>
                 <p style="margin:6px 0 0;font-size:13px;opacity:0.95;">${escapeHtml(periodLabel)}</p>
               </td>
@@ -214,7 +214,7 @@ function buildMessage(params: {
                 </div>
 
                 <p style="margin:0 0 16px;">
-                  <a href="${escapeHtml(ctaUrl)}" style="display:inline-block;padding:10px 16px;background:#10b981;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:700;font-size:14px;">
+                  <a href="${escapeHtml(ctaUrl)}" style="display:inline-block;padding:10px 16px;background:#2A65AE;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:700;font-size:14px;">
                     View Full Leaderboard
                   </a>
                 </p>

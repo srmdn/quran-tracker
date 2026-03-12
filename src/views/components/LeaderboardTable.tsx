@@ -37,7 +37,7 @@ const LeaderboardRow: FC<{ member: RankedUser; isCurrentUser: boolean }> = ({
     .slice(0, 2);
 
   const rowClass = isCurrentUser
-    ? "group grid grid-cols-1 md:grid-cols-12 gap-4 px-4 md:px-6 py-4 items-center bg-emerald-50/50 border-l-4 border-l-primary shadow-[inset_0_0_12px_rgba(16,185,129,0.05)]"
+    ? "group grid grid-cols-1 md:grid-cols-12 gap-4 px-4 md:px-6 py-4 items-center bg-blue-50/50 border-l-4 border-l-primary shadow-[inset_0_0_12px_rgba(42,101,174,0.05)]"
     : "group grid grid-cols-1 md:grid-cols-12 gap-4 px-4 md:px-6 py-4 items-center hover:bg-slate-50 transition-colors";
 
   return (
@@ -116,7 +116,7 @@ const LeaderboardRow: FC<{ member: RankedUser; isCurrentUser: boolean }> = ({
             class={`flex-1 rounded-full h-2 ${isCurrentUser ? "bg-white border border-slate-200" : "bg-slate-100"}`}
           >
             <div
-              class={`h-2 rounded-full ${isCurrentUser ? "bg-primary shadow-[0_0_8px_rgba(16,185,129,0.4)]" : member.progress_percent > 80 ? "bg-primary" : member.progress_percent > 50 ? "bg-primary/80" : member.progress_percent > 20 ? "bg-primary/60" : "bg-primary/40"}`}
+              class={`h-2 rounded-full ${isCurrentUser ? "bg-primary shadow-[0_0_8px_rgba(42,101,174,0.4)]" : member.progress_percent > 80 ? "bg-primary" : member.progress_percent > 50 ? "bg-primary/80" : member.progress_percent > 20 ? "bg-primary/60" : "bg-primary/40"}`}
               style={`width: ${member.progress_percent}%`}
             />
           </div>

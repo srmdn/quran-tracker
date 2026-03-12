@@ -67,11 +67,11 @@ function buildReminderEmail(params: {
   ].join("\n");
 
   const tilawahStatus = todayTilawah >= targetTilawah
-    ? `<span style="color:#10b981;font-weight:700;">✓ Done</span>`
+    ? `<span style="color:#2A65AE;font-weight:700;">✓ Done</span>`
     : `<span style="color:#ef4444;">${todayTilawah} / ${targetTilawah} juz &mdash; ${escapeHtml(remaining_tilawah)} juz left</span>`;
 
   const murojaahStatus = todayMurojaah >= targetMurojaah
-    ? `<span style="color:#10b981;font-weight:700;">✓ Done</span>`
+    ? `<span style="color:#2A65AE;font-weight:700;">✓ Done</span>`
     : `<span style="color:#ef4444;">${todayMurojaah} / ${targetMurojaah} juz &mdash; ${escapeHtml(remaining_murojaah)} juz left</span>`;
 
   const streakHtml = currentStreak > 0
@@ -86,7 +86,7 @@ function buildReminderEmail(params: {
         <td align="center">
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
             <tr>
-              <td style="background:#10b981;color:#ffffff;padding:18px 24px;">
+              <td style="background:#2A65AE;color:#ffffff;padding:18px 24px;">
                 <h1 style="margin:0;font-size:20px;line-height:1.2;">${escapeHtml(PRODUCT_NAME)}</h1>
                 <p style="margin:6px 0 0;font-size:13px;opacity:0.9;">Daily Reminder &mdash; ${escapeHtml(todayWib)}</p>
               </td>
@@ -118,7 +118,7 @@ function buildReminderEmail(params: {
                 </table>
 
                 <p style="margin:0 0 16px;">
-                  <a href="${escapeHtml(ctaUrl)}" style="display:inline-block;padding:10px 20px;background:#10b981;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:700;font-size:14px;">
+                  <a href="${escapeHtml(ctaUrl)}" style="display:inline-block;padding:10px 20px;background:#2A65AE;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:700;font-size:14px;">
                     Log Your Activity →
                   </a>
                 </p>

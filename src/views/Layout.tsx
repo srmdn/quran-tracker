@@ -16,7 +16,7 @@ export const Layout: FC<{ title?: string; children: Child }> = ({ title, childre
         <link href="https://fonts.googleapis.com" rel="preconnect" />
         <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
           rel="stylesheet"
         />
         <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -27,17 +27,17 @@ export const Layout: FC<{ title?: string; children: Child }> = ({ title, childre
             theme: {
               extend: {
                 colors: {
-                  "primary": "#10b981",
-                  "primary-dark": "#065f46",
-                  "primary-light": "#ecfdf5",
-                  "background": "#f8faf9",
+                  "primary": "#2A65AE",
+                  "primary-dark": "#1e4f8a",
+                  "primary-light": "#eff6ff",
+                  "background": "#f8fafd",
                   "surface": "#ffffff",
                   "border-light": "#e2e8f0",
                   "text-main": "#1e293b",
                   "text-secondary": "#64748b",
                 },
                 fontFamily: {
-                  "display": ["Lexend", "sans-serif"]
+                  "display": ["Plus Jakarta Sans", "sans-serif"]
                 },
                 borderRadius: {
                   "DEFAULT": "0.25rem",
