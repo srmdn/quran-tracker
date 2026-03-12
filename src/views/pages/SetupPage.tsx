@@ -84,12 +84,13 @@ export const SetupPage: FC<{
             </form>
           </div>
 
-          <p class="text-center text-xs text-text-secondary mt-6">
-            Signed in as {user.name} &bull;{" "}
-            <form method="post" action="/auth/logout" class="inline">
-              <button type="submit" class="hover:underline text-text-secondary bg-transparent border-0 p-0 cursor-pointer">Sign out</button>
+          <div class="flex items-center justify-center gap-1.5 mt-6 text-xs text-text-secondary">
+            <span>Signed in as {user.name}</span>
+            <span>&bull;</span>
+            <form method="post" action="/auth/logout">
+              <button type="submit" class="text-xs text-text-secondary bg-transparent border-0 p-0 cursor-pointer hover:underline">Sign out</button>
             </form>
-          </p>
+          </div>
         </div>
       </div>
     </Layout>
