@@ -165,7 +165,7 @@ export const LandingPage: FC<{
                   <span class="material-symbols-outlined" style="font-size:22px">group</span>
                 </div>
                 <div>
-                  <p class="text-3xl font-black text-text-main">{totalMembers}</p>
+                  <p class="text-3xl font-black text-text-main" data-countup={String(totalMembers)} data-countup-decimals="0">{totalMembers}</p>
                   <p class="text-text-secondary text-sm mt-0.5">{t(lang, "landingStatMembers")}</p>
                 </div>
               </div>
@@ -174,7 +174,7 @@ export const LandingPage: FC<{
                   <span class="material-symbols-outlined" style="font-size:22px">menu_book</span>
                 </div>
                 <div>
-                  <p class="text-3xl font-black text-text-main">{totalTilawahJuz}</p>
+                  <p class="text-3xl font-black text-text-main" data-countup={String(totalTilawahJuz)} data-countup-decimals="1">{totalTilawahJuz}</p>
                   <p class="text-text-secondary text-sm mt-0.5">{t(lang, "landingStatTilawah")}</p>
                 </div>
               </div>
@@ -183,7 +183,7 @@ export const LandingPage: FC<{
                   <span class="material-symbols-outlined" style="font-size:22px">refresh</span>
                 </div>
                 <div>
-                  <p class="text-3xl font-black text-text-main">{totalMurojaahJuz}</p>
+                  <p class="text-3xl font-black text-text-main" data-countup={String(totalMurojaahJuz)} data-countup-decimals="1">{totalMurojaahJuz}</p>
                   <p class="text-text-secondary text-sm mt-0.5">{t(lang, "landingStatMurojaah")}</p>
                 </div>
               </div>
@@ -324,7 +324,7 @@ export const LandingPage: FC<{
                 { icon: "edit_note", step: "1", title: t(lang, "landingStep1Title"), desc: t(lang, "landingStep1Desc") },
                 { icon: "local_fire_department", step: "2", title: t(lang, "landingStep2Title"), desc: t(lang, "landingStep2Desc") },
                 { icon: "emoji_events", step: "3", title: t(lang, "landingStep3Title"), desc: t(lang, "landingStep3Desc") },
-              ].map((item) => (
+              ].map((item, idx) => (
                 <div class="relative flex flex-col gap-4 p-6 bg-slate-50 rounded-2xl border border-border-light hover:border-primary/30 hover:shadow-sm transition-all">
                   <div class="flex items-center gap-3">
                     <div class="size-11 rounded-xl bg-primary text-white flex items-center justify-center shadow-sm">
@@ -334,6 +334,14 @@ export const LandingPage: FC<{
                   </div>
                   <h3 class="font-black text-text-main text-base">{item.title}</h3>
                   <p class="text-text-secondary text-sm leading-relaxed">{item.desc}</p>
+                  {idx < 2 && (
+                    <div
+                      class="hidden md:flex absolute top-1/2 -translate-y-1/2 z-10 size-9 rounded-full bg-primary text-white items-center justify-center shadow-md border-2 border-white"
+                      style="right: -18px"
+                    >
+                      <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -372,6 +380,36 @@ export const LandingPage: FC<{
           </a>
         </div>
       </footer>
+      <script dangerouslySetInnerHTML={{ __html: `
+(function() {
+  function animateCountUp(el) {
+    var target = parseFloat(el.dataset.countup);
+    var decimals = parseInt(el.dataset.countupDecimals || '0', 10);
+    var duration = 1800;
+    var start = performance.now();
+    function step(now) {
+      var elapsed = now - start;
+      var progress = Math.min(elapsed / duration, 1);
+      var eased = 1 - Math.pow(1 - progress, 3);
+      var current = target * eased;
+      el.textContent = decimals > 0 ? current.toFixed(decimals) : Math.round(current).toString();
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        animateCountUp(entry.target);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.4 });
+  document.querySelectorAll('[data-countup]').forEach(function(el) {
+    observer.observe(el);
+  });
+})();
+      `}} />
     </Layout>
   );
 };
