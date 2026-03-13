@@ -111,7 +111,7 @@ export const LandingPage: FC<{
           <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
               {/* Members */}
-              <div class="flex flex-col sm:flex-col items-center sm:items-start flex-row gap-4 bg-slate-50 rounded-2xl border border-border-light p-6">
+              <div class="flex flex-col items-center lg:items-start gap-4 bg-slate-50 rounded-2xl border border-border-light p-6 text-center lg:text-left">
                 <div class="shrink-0 size-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
                   <span class="material-symbols-outlined" style="font-size:22px">group</span>
                 </div>
@@ -122,7 +122,7 @@ export const LandingPage: FC<{
               </div>
 
               {/* Tilawah */}
-              <div class="flex flex-col sm:flex-col items-center sm:items-start flex-row gap-4 bg-slate-50 rounded-2xl border border-border-light p-6">
+              <div class="flex flex-col items-center lg:items-start gap-4 bg-slate-50 rounded-2xl border border-border-light p-6 text-center lg:text-left">
                 <div class="shrink-0 size-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
                   <span class="material-symbols-outlined" style="font-size:22px">menu_book</span>
                 </div>
@@ -133,7 +133,7 @@ export const LandingPage: FC<{
               </div>
 
               {/* Murojaah */}
-              <div class="flex flex-col sm:flex-col items-center sm:items-start flex-row gap-4 bg-slate-50 rounded-2xl border border-border-light p-6">
+              <div class="flex flex-col items-center lg:items-start gap-4 bg-slate-50 rounded-2xl border border-border-light p-6 text-center lg:text-left">
                 <div class="shrink-0 size-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
                   <span class="material-symbols-outlined" style="font-size:22px">refresh</span>
                 </div>
@@ -150,14 +150,14 @@ export const LandingPage: FC<{
         <section id="leaderboard" class="w-full bg-slate-50/70 border-b border-border-light">
           <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
             {/* Section header */}
-            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2 mb-8">
+            <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-3 mb-8 text-center lg:text-left">
               <div>
                 <h2 class="text-2xl sm:text-3xl font-black text-text-main">{t(lang, "leaderboard")}</h2>
                 <p class="text-text-secondary text-sm mt-1">
                   {t(lang, "monthlyRankings")} · {monthLabel}
                 </p>
               </div>
-              <p class="text-xs text-text-secondary bg-white border border-border-light rounded-lg px-3 py-1.5 self-start sm:self-auto whitespace-nowrap">
+              <p class="text-xs text-text-secondary bg-white border border-border-light rounded-lg px-3 py-1.5 self-center lg:self-auto whitespace-nowrap">
                 Score = Tilawah×10 + Murojaah×7 + Khatam×300
               </p>
             </div>
@@ -257,7 +257,7 @@ export const LandingPage: FC<{
         {/* ── How It Works ── */}
         <section class="w-full bg-white border-b border-border-light">
           <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-            <div class="max-w-2xl mb-10">
+            <div class="max-w-2xl mb-10 mx-auto lg:mx-0 text-center lg:text-left">
               <h2 class="text-2xl sm:text-3xl font-black text-text-main mb-2">{t(lang, "landingHowTitle")}</h2>
               <p class="text-text-secondary text-sm sm:text-base">{t(lang, "landingHowDesc")}</p>
             </div>
