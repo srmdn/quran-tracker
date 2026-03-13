@@ -4,18 +4,20 @@ import { Header } from "../components/Header.tsx";
 import type { User } from "../../types.ts";
 import { APP_NAME } from "../../config.ts";
 import { isAdminRole, isSuperAdminRole } from "../../lib/roles.ts";
+import type { Lang } from "../../lib/i18n.ts";
 
 export const AdminPage: FC<{
   user: User;
+  lang: Lang;
   pendingUsers: User[];
   allUsers: User[];
   editUser?: User;
   success?: string;
   error?: string;
-}> = ({ user, pendingUsers, allUsers, editUser, success, error }) => {
+}> = ({ user, lang, pendingUsers, allUsers, editUser, success, error }) => {
   return (
     <Layout title={`Admin Panel - ${APP_NAME}`}>
-      <Header user={user} currentPath="/admin" />
+      <Header user={user} currentPath="/admin" lang={lang} />
       <main class="flex-1 flex flex-col items-center w-full px-4 sm:px-6 lg:px-8 py-8 max-w-5xl mx-auto">
         <div class="w-full flex flex-col gap-2 mb-8">
           <h1 class="text-text-main text-3xl font-black leading-tight tracking-[-0.033em]">

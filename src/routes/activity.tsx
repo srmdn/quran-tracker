@@ -44,6 +44,7 @@ function rateLimitOrError(userId: number, action: "tilawah" | "murojaah"): strin
 
 activity.get("/", (c) => {
   const user = c.get("user");
+  const lang = c.get("lang");
   const success = c.req.query("success");
   const error = c.req.query("error");
   const todayWib = getWibDateYmd();
@@ -88,6 +89,7 @@ activity.get("/", (c) => {
   return c.html(
     <ActivityPage
       user={user}
+      lang={lang}
       success={success}
       error={error}
       todayWib={todayWib}
@@ -102,6 +104,7 @@ activity.get("/", (c) => {
 
 activity.get("/leaderboard", (c) => {
   const user = c.get("user");
+  const lang = c.get("lang");
   const data = getCurrentMonthActivityLeaderboard({ page: 1, perPage: 1000 });
 
   // Enrich rows with current streak from user_streaks
@@ -119,6 +122,7 @@ activity.get("/leaderboard", (c) => {
   return c.html(
     <ActivityLeaderboardPage
       user={user}
+      lang={lang}
       year={data.year}
       month={data.month}
       rows={enrichedRows}

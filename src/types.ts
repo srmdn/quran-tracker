@@ -60,8 +60,11 @@ export interface RankedUser {
   joined_label: string;
 }
 
+import type { Lang } from "./lib/i18n.ts";
+
 export type Env = {
   Variables: {
     user: User;
+    lang: Lang;
   };
 };

@@ -8,9 +8,11 @@ import type { UserTarget } from "../../lib/targets.ts";
 import type { UserStreak } from "../../lib/streak.ts";
 import type { ActivityTotals, UserMonthlyActivityRank } from "../../lib/activity-calc.ts";
 import type { RecentLogEntry, HeatmapCell } from "../../routes/dashboard.tsx";
+import { t, type Lang } from "../../lib/i18n.ts";
 
 export const DashboardPage: FC<{
   user: User;
+  lang: Lang;
   todayWib: string;
   target: UserTarget;
   todayTilawah: number;
@@ -23,6 +25,7 @@ export const DashboardPage: FC<{
   totalKhatam: number;
 }> = ({
   user,
+  lang,
   todayWib,
   target,
   todayTilawah,
@@ -44,7 +47,7 @@ export const DashboardPage: FC<{
 
   return (
     <Layout title={`Dashboard - ${APP_NAME}`}>
-      <Header user={user} currentPath="/dashboard" />
+      <Header user={user} currentPath="/dashboard" lang={lang} />
       <main class="flex-1 flex flex-col items-center w-full px-4 sm:px-6 lg:px-8 py-8 max-w-4xl mx-auto">
 
         {/* Welcome + streak */}
@@ -56,13 +59,13 @@ export const DashboardPage: FC<{
             {streak.current_streak > 0 ? (
               <div class="flex items-center gap-2 mt-1.5">
                 <span class="text-xl leading-none">🔥</span>
-                <span class="text-base font-bold text-orange-500">{streak.current_streak} day streak</span>
+                <span class="text-base font-bold text-orange-500">{streak.current_streak} {t(lang, "dayStreak")}</span>
                 {streak.longest_streak > streak.current_streak && (
-                  <span class="text-sm text-text-secondary">· best: {streak.longest_streak}</span>
+                  <span class="text-sm text-text-secondary">· {t(lang, "best")} {streak.longest_streak}</span>
                 )}
               </div>
             ) : (
-              <p class="text-text-secondary text-sm mt-1">Start logging today to build your streak!</p>
+              <p class="text-text-secondary text-sm mt-1">{t(lang, "startLoggingStreak")}</p>
             )}
           </div>
           <a
@@ -70,7 +73,7 @@ export const DashboardPage: FC<{
             class="flex items-center gap-2 px-4 py-2 bg-white border border-border-light rounded-lg text-sm font-medium text-text-secondary hover:text-primary hover:border-primary/30 transition-colors"
           >
             <span class="material-symbols-outlined text-lg">tune</span>
-            Set Targets
+            {t(lang, "setTargets")}
           </a>
         </div>
 
@@ -78,7 +81,7 @@ export const DashboardPage: FC<{
         <div class="w-full bg-white border border-border-light rounded-xl p-6 mb-6">
           <h2 class="text-text-main font-bold mb-4 flex items-center gap-2">
             <span class="material-symbols-outlined text-primary text-xl">today</span>
-            Today's Progress
+            {t(lang, "todayProgress")}
             <span class="text-xs font-normal text-text-secondary ml-auto">{todayWib}</span>
           </h2>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -86,7 +89,7 @@ export const DashboardPage: FC<{
             <div>
               <div class="flex items-center justify-between mb-2">
                 <a href="/tilawah" class="text-sm font-semibold text-text-main hover:text-primary transition-colors">Tilawah →</a>
-                <span class="text-sm font-semibold text-text-secondary">{todayTilawah}/{target.tilawah_juz_daily} juz</span>
+                <span class="text-sm font-semibold text-text-secondary">{todayTilawah}/{target.tilawah_juz_daily} {t(lang, "juz")}</span>
               </div>
               <div class="w-full h-3 rounded-full bg-slate-100 border border-slate-200 overflow-hidden">
                 <div
@@ -95,14 +98,14 @@ export const DashboardPage: FC<{
                 />
               </div>
               <p class="text-xs text-text-secondary mt-1">
-                {tilawahPercent >= 100 ? "✓ Target met!" : `${Math.max(0, target.tilawah_juz_daily - todayTilawah).toFixed(1)} juz to go`}
+                {tilawahPercent >= 100 ? t(lang, "targetMet") : `${Math.max(0, target.tilawah_juz_daily - todayTilawah).toFixed(1)} ${t(lang, "juzToGo")}`}
               </p>
             </div>
             {/* Murojaah bar */}
             <div>
               <div class="flex items-center justify-between mb-2">
                 <a href="/murojaah" class="text-sm font-semibold text-text-main hover:text-primary transition-colors">Murojaah →</a>
-                <span class="text-sm font-semibold text-text-secondary">{todayMurojaah}/{target.murojaah_juz_daily} juz</span>
+                <span class="text-sm font-semibold text-text-secondary">{todayMurojaah}/{target.murojaah_juz_daily} {t(lang, "juz")}</span>
               </div>
               <div class="w-full h-3 rounded-full bg-slate-100 border border-slate-200 overflow-hidden">
                 <div
@@ -111,7 +114,7 @@ export const DashboardPage: FC<{
                 />
               </div>
               <p class="text-xs text-text-secondary mt-1">
-                {murojaahPercent >= 100 ? "✓ Target met!" : `${Math.max(0, target.murojaah_juz_daily - todayMurojaah).toFixed(1)} juz to go`}
+                {murojaahPercent >= 100 ? t(lang, "targetMet") : `${Math.max(0, target.murojaah_juz_daily - todayMurojaah).toFixed(1)} ${t(lang, "juzToGo")}`}
               </p>
             </div>
           </div>
@@ -120,29 +123,29 @@ export const DashboardPage: FC<{
         {/* Stats row */}
         <div class="w-full grid grid-cols-3 md:grid-cols-5 gap-3 mb-6">
           <div class="bg-white border border-border-light rounded-xl p-4 text-center">
-            <p class="text-text-secondary text-xs font-medium mb-1">Month Rank</p>
+            <p class="text-text-secondary text-xs font-medium mb-1">{t(lang, "monthRank")}</p>
             <p class="text-2xl font-black text-primary">
               {monthlyRank ? `#${monthlyRank.rank}` : "-"}
             </p>
           </div>
           <div class="bg-white border border-border-light rounded-xl p-4 text-center">
-            <p class="text-text-secondary text-xs font-medium mb-1">Month Score</p>
+            <p class="text-text-secondary text-xs font-medium mb-1">{t(lang, "monthScore")}</p>
             <p class="text-2xl font-black text-text-main">{monthlyRank?.score ?? 0}</p>
           </div>
           <div class="bg-white border border-border-light rounded-xl p-4 text-center">
-            <p class="text-text-secondary text-xs font-medium mb-1">All-time Tilawah</p>
+            <p class="text-text-secondary text-xs font-medium mb-1">{t(lang, "allTimeTilawah")}</p>
             <p class="text-2xl font-black text-text-main">{activityTotals.tilawahJuz}</p>
-            <p class="text-xs text-text-secondary">juz</p>
+            <p class="text-xs text-text-secondary">{t(lang, "juz")}</p>
           </div>
           <div class="bg-white border border-border-light rounded-xl p-4 text-center">
-            <p class="text-text-secondary text-xs font-medium mb-1">All-time Murojaah</p>
+            <p class="text-text-secondary text-xs font-medium mb-1">{t(lang, "allTimeMurojaah")}</p>
             <p class="text-2xl font-black text-text-main">{activityTotals.murojaahJuz}</p>
-            <p class="text-xs text-text-secondary">juz</p>
+            <p class="text-xs text-text-secondary">{t(lang, "juz")}</p>
           </div>
           <div class="bg-white border border-border-light rounded-xl p-4 text-center col-span-3 md:col-span-1">
-            <p class="text-text-secondary text-xs font-medium mb-1">Total Khatam</p>
+            <p class="text-text-secondary text-xs font-medium mb-1">{t(lang, "totalKhatam")}</p>
             <p class="text-2xl font-black text-primary">{totalKhatam}</p>
-            <p class="text-xs text-text-secondary">times</p>
+            <p class="text-xs text-text-secondary">{t(lang, "times")}</p>
           </div>
         </div>
 
@@ -151,10 +154,10 @@ export const DashboardPage: FC<{
           <div class="flex items-center justify-between mb-3">
             <h2 class="text-text-main font-bold flex items-center gap-2">
               <span class="material-symbols-outlined text-primary text-xl">auto_stories</span>
-              Progress to Next Khatam
+              {t(lang, "progressToNextKhatam")}
             </h2>
             <span class="text-sm font-semibold text-text-secondary">
-              {activityTotals.progressToNextKhatam}/30 juz
+              {activityTotals.progressToNextKhatam}/30 {t(lang, "juz")}
             </span>
           </div>
           <div class="w-full h-3 rounded-full bg-slate-100 border border-slate-200 overflow-hidden mb-1">
@@ -165,8 +168,8 @@ export const DashboardPage: FC<{
           </div>
           <p class="text-xs text-text-secondary">
             {khatamProgressPercent >= 100
-              ? "Khatam completed! Log your ending position to record it."
-              : `${(30 - activityTotals.progressToNextKhatam).toFixed(1)} juz remaining to next khatam`}
+              ? t(lang, "khatamCompleted")
+              : `${(30 - activityTotals.progressToNextKhatam).toFixed(1)} ${t(lang, "juzRemainingKhatam")}`}
           </p>
         </div>
 
@@ -174,7 +177,7 @@ export const DashboardPage: FC<{
         <div class="w-full bg-white border border-border-light rounded-xl p-6 mb-6">
           <h2 class="text-text-main font-bold mb-4 flex items-center gap-2">
             <span class="material-symbols-outlined text-primary text-xl">grid_on</span>
-            90-Day Activity
+            {t(lang, "ninetyDayActivity")}
           </h2>
           {/* Day-of-week labels */}
           <div style="display:grid; grid-template-rows: repeat(7, minmax(0, 1fr)); grid-auto-flow: column; gap: 3px;">
@@ -199,15 +202,15 @@ export const DashboardPage: FC<{
           <div class="flex items-center gap-4 mt-3 text-xs text-text-secondary">
             <div class="flex items-center gap-1.5">
               <div class="w-3 h-3 rounded-sm bg-emerald-500" />
-              <span>Target met</span>
+              <span>{t(lang, "targetMetLabel")}</span>
             </div>
             <div class="flex items-center gap-1.5">
               <div class="w-3 h-3 rounded-sm bg-primary/40" />
-              <span>Partial</span>
+              <span>{t(lang, "partialLabel")}</span>
             </div>
             <div class="flex items-center gap-1.5">
               <div class="w-3 h-3 rounded-sm bg-slate-100 border border-slate-200" />
-              <span>No log</span>
+              <span>{t(lang, "noLogLabel")}</span>
             </div>
           </div>
         </div>
@@ -215,7 +218,7 @@ export const DashboardPage: FC<{
         {/* Recent logs */}
         <div class="w-full bg-white border border-border-light rounded-xl overflow-hidden">
           <div class="px-6 py-4 border-b border-border-light bg-slate-50/50 flex items-center justify-between">
-            <h2 class="text-text-main font-bold">Recent Activity</h2>
+            <h2 class="text-text-main font-bold">{t(lang, "recentActivity")}</h2>
             <div class="flex items-center gap-3">
               <a href="/tilawah" class="text-xs font-semibold text-primary hover:underline">Tilawah</a>
               <a href="/murojaah" class="text-xs font-semibold text-primary hover:underline">Murojaah</a>
@@ -224,7 +227,7 @@ export const DashboardPage: FC<{
           <div class="divide-y divide-border-light">
             {recentLogs.length === 0 ? (
               <div class="px-6 py-10 text-center text-text-secondary text-sm">
-                No activity yet. Start logging tilawah or murojaah!
+                {t(lang, "noActivityYet")}
               </div>
             ) : (
               recentLogs.map((log) => {
@@ -242,7 +245,7 @@ export const DashboardPage: FC<{
                       </span>
                       <div>
                         <p class="text-sm font-semibold text-text-main">
-                          {log.juz_amount} juz
+                          {log.juz_amount} {t(lang, "juz")}
                           {log.repetition_count ? ` · ${log.repetition_count}x` : ""}
                         </p>
                         {surahName && (

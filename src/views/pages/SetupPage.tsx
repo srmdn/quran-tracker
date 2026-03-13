@@ -3,14 +3,17 @@ import { Layout } from "../Layout.tsx";
 import type { User } from "../../types.ts";
 import type { UserTarget } from "../../lib/targets.ts";
 import { APP_NAME, ORG_NAME } from "../../config.ts";
+import { t } from "../../lib/i18n.ts";
+import type { Lang } from "../../lib/i18n.ts";
 
 export const SetupPage: FC<{
   user: User;
   existing: UserTarget | null;
   error?: string;
-}> = ({ user, existing, error }) => {
+  lang: Lang;
+}> = ({ user, existing, error, lang }) => {
   return (
-    <Layout title={`Set Your Daily Target - ${APP_NAME}`}>
+    <Layout title={`${existing ? t(lang, "updateDailyTarget") : t(lang, "setDailyTarget")} - ${APP_NAME}`}>
       <div class="flex-1 flex items-center justify-center px-4 py-12">
         <div class="w-full max-w-md">
           <div class="text-center mb-8">
@@ -18,12 +21,12 @@ export const SetupPage: FC<{
               <img src="/public/logo.png" alt="Logo" class="w-full h-full object-contain" />
             </div>
             <h1 class="text-text-main text-2xl font-black tracking-tight mb-2">
-              {existing ? "Update Your Daily Target" : "Set Your Daily Target"}
+              {existing ? t(lang, "updateDailyTarget") : t(lang, "setDailyTarget")}
             </h1>
             <p class="text-text-secondary text-sm">
               {existing
-                ? "Adjust your daily Tilawah and Murojaah goals."
-                : `Before you start, set your daily Quran goals at ${ORG_NAME}. You can change these anytime.`}
+                ? t(lang, "updateDailyTargetDesc")
+                : `${t(lang, "setDailyTargetDesc")} (${ORG_NAME})`}
             </p>
           </div>
 
@@ -37,9 +40,9 @@ export const SetupPage: FC<{
             <form method="post" action="/setup" class="space-y-6">
               <div>
                 <label class="block text-sm font-bold text-text-main mb-1">
-                  Daily Tilawah Target
+                  {t(lang, "dailyTilawahTarget")}
                 </label>
-                <p class="text-xs text-text-secondary mb-2">How many juz do you want to read each day?</p>
+                <p class="text-xs text-text-secondary mb-2">{t(lang, "howManyJuzRead")}</p>
                 <div class="relative">
                   <input
                     type="number"
@@ -48,18 +51,18 @@ export const SetupPage: FC<{
                     max="30"
                     step="0.5"
                     value={existing ? String(existing.tilawah_juz_daily) : "1"}
-                    class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm pr-12"
+                    class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm pr-14"
                     required
                   />
-                  <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text-secondary font-medium">juz/day</span>
+                  <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text-secondary font-medium">juz/hari</span>
                 </div>
               </div>
 
               <div>
                 <label class="block text-sm font-bold text-text-main mb-1">
-                  Daily Murojaah Target
+                  {t(lang, "dailyMurojaahTarget")}
                 </label>
-                <p class="text-xs text-text-secondary mb-2">How many juz do you want to revise each day?</p>
+                <p class="text-xs text-text-secondary mb-2">{t(lang, "howManyJuzRevise")}</p>
                 <div class="relative">
                   <input
                     type="number"
@@ -68,10 +71,10 @@ export const SetupPage: FC<{
                     max="30"
                     step="0.5"
                     value={existing ? String(existing.murojaah_juz_daily) : "1"}
-                    class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm pr-12"
+                    class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm pr-14"
                     required
                   />
-                  <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text-secondary font-medium">juz/day</span>
+                  <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text-secondary font-medium">juz/hari</span>
                 </div>
               </div>
 
@@ -79,16 +82,18 @@ export const SetupPage: FC<{
                 type="submit"
                 class="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-primary-dark transition-all shadow-sm"
               >
-                {existing ? "Save Changes" : "Start Tracking"}
+                {existing ? t(lang, "saveChanges") : t(lang, "startTracking")}
               </button>
             </form>
           </div>
 
           <div class="flex items-center justify-center gap-1.5 mt-6 text-xs text-text-secondary">
-            <span>Signed in as {user.name}</span>
+            <span>{t(lang, "signedInAs")} {user.name}</span>
             <span>&bull;</span>
             <form method="post" action="/auth/logout">
-              <button type="submit" class="text-xs text-text-secondary bg-transparent border-0 p-0 cursor-pointer hover:underline">Sign out</button>
+              <button type="submit" class="text-xs text-text-secondary bg-transparent border-0 p-0 cursor-pointer hover:underline">
+                {t(lang, "signOut")}
+              </button>
             </form>
           </div>
         </div>

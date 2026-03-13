@@ -2,14 +2,30 @@ import type { FC } from "hono/jsx";
 import type { User } from "../../types.ts";
 import { APP_NAME } from "../../config.ts";
 import { isAdminRole } from "../../lib/roles.ts";
+import { t } from "../../lib/i18n.ts";
+import type { Lang } from "../../lib/i18n.ts";
 
 const Logo: FC = () => (
   <img src="/public/logo.png" alt="Markaz Talaqqi Logo" class="w-full h-full object-contain" />
 );
 
-export const Header: FC<{ user: User | null; currentPath: string }> = ({
+const LangToggle: FC<{ lang: Lang }> = ({ lang }) => (
+  <form method="post" action="/lang" class="inline">
+    <input type="hidden" name="locale" value={lang === "en" ? "id" : "en"} />
+    <button
+      type="submit"
+      title={lang === "en" ? "Switch to Indonesian" : "Switch to English"}
+      class="text-xs font-bold px-2 py-1 rounded-lg border border-border-light bg-slate-50 text-text-secondary hover:text-primary hover:border-primary/30 transition-colors"
+    >
+      {t(lang, "switchLang")}
+    </button>
+  </form>
+);
+
+export const Header: FC<{ user: User | null; currentPath: string; lang: Lang }> = ({
   user,
   currentPath,
+  lang,
 }) => {
   const navItems = [
     { href: "/dashboard", label: "Dashboard" },
@@ -95,6 +111,7 @@ export const Header: FC<{ user: User | null; currentPath: string }> = ({
                 </a>
               )}
             </nav>
+            <LangToggle lang={lang} />
             {user && (
               <>
                 <div class="h-8 w-px bg-border-light"></div>
@@ -133,7 +150,7 @@ export const Header: FC<{ user: User | null; currentPath: string }> = ({
                   >
                     <div class="px-4 py-3 border-b border-border-light lg:hidden">
                       <p class="text-sm font-semibold text-text-main truncate">{user.name}</p>
-                      <p class="text-xs text-text-secondary">Signed in</p>
+                      <p class="text-xs text-text-secondary">{t(lang, "signedIn")}</p>
                     </div>
                     <form method="post" action="/auth/logout" class="my-0 py-0">
                       <button
@@ -141,7 +158,7 @@ export const Header: FC<{ user: User | null; currentPath: string }> = ({
                         class="w-full text-left flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
                       >
                         <span class="material-symbols-outlined text-lg">logout</span>
-                        Logout
+                        {t(lang, "logout")}
                       </button>
                     </form>
                   </div>
@@ -232,18 +249,21 @@ export const Header: FC<{ user: User | null; currentPath: string }> = ({
                   )}
                   <div>
                     <p class="text-text-main font-bold text-base">{user.name}</p>
-                    <p class="text-text-secondary text-xs">Signed in</p>
+                    <p class="text-text-secondary text-xs">{t(lang, "signedIn")}</p>
                   </div>
                 </div>
-                <form method="post" action="/auth/logout" class="w-full">
-                  <button
-                    type="submit"
-                    class="w-full flex items-center justify-center gap-2 text-red-600 bg-white hover:bg-red-50 transition-colors text-sm font-bold px-4 py-3 rounded-xl border border-border-light hover:border-red-100 shadow-sm"
-                  >
-                    <span>Logout</span>
-                    <span class="material-symbols-outlined text-xl">logout</span>
-                  </button>
-                </form>
+                <div class="flex gap-2">
+                  <LangToggle lang={lang} />
+                  <form method="post" action="/auth/logout" class="flex-1">
+                    <button
+                      type="submit"
+                      class="w-full flex items-center justify-center gap-2 text-red-600 bg-white hover:bg-red-50 transition-colors text-sm font-bold px-4 py-3 rounded-xl border border-border-light hover:border-red-100 shadow-sm"
+                    >
+                      <span>{t(lang, "logout")}</span>
+                      <span class="material-symbols-outlined text-xl">logout</span>
+                    </button>
+                  </form>
+                </div>
               </div>
             </div>
           </div>

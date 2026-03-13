@@ -10,10 +10,12 @@ import { dashboardRoutes } from "./routes/dashboard.tsx";
 import { setupRoutes } from "./routes/setup.tsx";
 import { tilawahRoutes } from "./routes/tilawah.tsx";
 import { murojaahRoutes } from "./routes/murojaah.tsx";
+import { langRoutes } from "./routes/lang.ts";
 import { LoginPage } from "./views/pages/LoginPage.tsx";
 import { PendingPage } from "./views/pages/PendingPage.tsx";
 import { Layout } from "./views/Layout.tsx";
 import { authMiddleware } from "./middleware/auth.ts";
+import { langMiddleware } from "./middleware/lang.ts";
 import { isPendingRole } from "./lib/roles.ts";
 import type { Env } from "./types.ts";
 import { APP_NAME } from "./config.ts";
@@ -26,8 +28,11 @@ cleanExpiredSessions();
 
 const app = new Hono<Env>();
 
-// Static files
+// Static files (no middleware needed)
 app.use("/public/*", serveStatic({ root: "./" }));
+
+// Language middleware on all non-static routes
+app.use("*", langMiddleware);
 
 // Root route - redirect based on auth state
 app.get("/", (c) => {
@@ -49,18 +54,21 @@ app.get("/login", (c) => {
     const user = getSessionUser(sessionId);
     if (user && !isPendingRole(user.role)) return c.redirect("/activity/leaderboard");
   }
+  const lang = c.get("lang");
   const error = c.req.query("error");
-  return c.html(<LoginPage error={error} />);
+  return c.html(<LoginPage error={error} lang={lang} />);
 });
 
 // Pending page
 app.get("/pending", authMiddleware, (c) => {
   const user = c.get("user");
   if (!isPendingRole(user.role)) return c.redirect("/dashboard");
-  return c.html(<PendingPage user={user} />);
+  const lang = c.get("lang");
+  return c.html(<PendingPage user={user} lang={lang} />);
 });
 
 // Mount routes
+app.route("/lang", langRoutes);
 app.route("/auth", authRoutes);
 app.route("/setup", setupRoutes);
 app.route("/tilawah", tilawahRoutes);

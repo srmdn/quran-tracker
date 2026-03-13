@@ -8,10 +8,12 @@ import type { UserTarget } from "../../lib/targets.ts";
 import type { UserStreak } from "../../lib/streak.ts";
 import type { ActivityTotals, UserMonthlyActivityRank } from "../../lib/activity-calc.ts";
 import type { RecentLogEntry } from "../../routes/dashboard.tsx";
+import { t, type Lang } from "../../lib/i18n.ts";
 
 export const AdminMemberDetailPage: FC<{
   adminUser: User;
   member: User;
+  lang: Lang;
   target: UserTarget | null;
   streak: UserStreak;
   activityTotals: ActivityTotals;
@@ -23,6 +25,7 @@ export const AdminMemberDetailPage: FC<{
 }> = ({
   adminUser,
   member,
+  lang,
   target,
   streak,
   activityTotals,
@@ -41,7 +44,7 @@ export const AdminMemberDetailPage: FC<{
 
   return (
     <Layout title={`${member.name} — ${APP_NAME}`}>
-      <Header user={adminUser} currentPath="/admin" />
+      <Header user={adminUser} currentPath="/admin" lang={lang} />
       <main class="flex-1 flex flex-col items-center w-full px-4 sm:px-6 lg:px-8 py-8 max-w-4xl mx-auto">
 
         {/* Back link */}
@@ -51,7 +54,7 @@ export const AdminMemberDetailPage: FC<{
             class="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-primary transition-colors"
           >
             <span class="material-symbols-outlined text-base">arrow_back</span>
-            Back to Admin Panel
+            {t(lang, "backToAdmin")}
           </a>
         </div>
 
@@ -74,13 +77,13 @@ export const AdminMemberDetailPage: FC<{
               <span class="text-xs font-bold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
                 {member.role}
               </span>
-              <span class="text-xs text-text-secondary">Joined {member.created_at.slice(0, 10)}</span>
+              <span class="text-xs text-text-secondary">{t(lang, "joinedLabel")} {member.created_at.slice(0, 10)}</span>
             </div>
           </div>
           {streak.current_streak > 0 && (
             <div class="text-center flex-shrink-0">
               <span class="text-3xl">🔥</span>
-              <p class="text-sm font-bold text-orange-500">{streak.current_streak} days</p>
+              <p class="text-sm font-bold text-orange-500">{streak.current_streak} {t(lang, "days")}</p>
             </div>
           )}
         </div>
@@ -89,7 +92,7 @@ export const AdminMemberDetailPage: FC<{
         <div class="w-full bg-white border border-border-light rounded-xl p-6 mb-6">
           <h2 class="text-text-main font-bold mb-4 flex items-center gap-2">
             <span class="material-symbols-outlined text-primary text-xl">today</span>
-            Today's Progress
+            {t(lang, "todayProgressLabel")}
             <span class="text-xs font-normal text-text-secondary ml-auto">{todayWib}</span>
           </h2>
           {target ? (
@@ -99,7 +102,7 @@ export const AdminMemberDetailPage: FC<{
                 <div class="flex items-center justify-between mb-2">
                   <span class="text-sm font-semibold text-text-main">Tilawah</span>
                   <span class="text-sm font-semibold text-text-secondary">
-                    {todayTilawah}/{target.tilawah_juz_daily} juz
+                    {todayTilawah}/{target.tilawah_juz_daily} {t(lang, "juz")}
                   </span>
                 </div>
                 <div class="w-full h-3 rounded-full bg-slate-100 border border-slate-200 overflow-hidden">
@@ -110,8 +113,8 @@ export const AdminMemberDetailPage: FC<{
                 </div>
                 <p class="text-xs text-text-secondary mt-1">
                   {tilawahPercent >= 100
-                    ? "✓ Target met!"
-                    : `${Math.max(0, target.tilawah_juz_daily - todayTilawah).toFixed(1)} juz to go`}
+                    ? t(lang, "targetMet")
+                    : `${Math.max(0, target.tilawah_juz_daily - todayTilawah).toFixed(1)} ${t(lang, "juzToGo")}`}
                 </p>
               </div>
               {/* Murojaah */}
@@ -119,7 +122,7 @@ export const AdminMemberDetailPage: FC<{
                 <div class="flex items-center justify-between mb-2">
                   <span class="text-sm font-semibold text-text-main">Murojaah</span>
                   <span class="text-sm font-semibold text-text-secondary">
-                    {todayMurojaah}/{target.murojaah_juz_daily} juz
+                    {todayMurojaah}/{target.murojaah_juz_daily} {t(lang, "juz")}
                   </span>
                 </div>
                 <div class="w-full h-3 rounded-full bg-slate-100 border border-slate-200 overflow-hidden">
@@ -130,30 +133,30 @@ export const AdminMemberDetailPage: FC<{
                 </div>
                 <p class="text-xs text-text-secondary mt-1">
                   {murojaahPercent >= 100
-                    ? "✓ Target met!"
-                    : `${Math.max(0, target.murojaah_juz_daily - todayMurojaah).toFixed(1)} juz to go`}
+                    ? t(lang, "targetMet")
+                    : `${Math.max(0, target.murojaah_juz_daily - todayMurojaah).toFixed(1)} ${t(lang, "juzToGo")}`}
                 </p>
               </div>
             </div>
           ) : (
-            <p class="text-text-secondary text-sm">No daily target set yet.</p>
+            <p class="text-text-secondary text-sm">{t(lang, "noTargetSet")}</p>
           )}
         </div>
 
         {/* Stats row */}
         <div class="w-full grid grid-cols-3 md:grid-cols-5 gap-3 mb-6">
           <div class="bg-white border border-border-light rounded-xl p-4 text-center">
-            <p class="text-text-secondary text-xs font-medium mb-1">Streak</p>
+            <p class="text-text-secondary text-xs font-medium mb-1">{t(lang, "streakLabel")}</p>
             <p class="text-2xl font-black text-orange-500">{streak.current_streak}</p>
-            <p class="text-xs text-text-secondary">days</p>
+            <p class="text-xs text-text-secondary">{t(lang, "days")}</p>
           </div>
           <div class="bg-white border border-border-light rounded-xl p-4 text-center">
-            <p class="text-text-secondary text-xs font-medium mb-1">Best Streak</p>
+            <p class="text-text-secondary text-xs font-medium mb-1">{t(lang, "bestStreakLabel")}</p>
             <p class="text-2xl font-black text-text-main">{streak.longest_streak}</p>
-            <p class="text-xs text-text-secondary">days</p>
+            <p class="text-xs text-text-secondary">{t(lang, "days")}</p>
           </div>
           <div class="bg-white border border-border-light rounded-xl p-4 text-center">
-            <p class="text-text-secondary text-xs font-medium mb-1">Month Rank</p>
+            <p class="text-text-secondary text-xs font-medium mb-1">{t(lang, "monthRank")}</p>
             <p class="text-2xl font-black text-primary">
               {monthlyRank ? `#${monthlyRank.rank}` : "-"}
             </p>
@@ -161,12 +164,12 @@ export const AdminMemberDetailPage: FC<{
           <div class="bg-white border border-border-light rounded-xl p-4 text-center">
             <p class="text-text-secondary text-xs font-medium mb-1">Tilawah</p>
             <p class="text-2xl font-black text-text-main">{activityTotals.tilawahJuz}</p>
-            <p class="text-xs text-text-secondary">juz all-time</p>
+            <p class="text-xs text-text-secondary">{t(lang, "juz")} all-time</p>
           </div>
           <div class="bg-white border border-border-light rounded-xl p-4 text-center col-span-3 md:col-span-1">
             <p class="text-text-secondary text-xs font-medium mb-1">Khatam</p>
             <p class="text-2xl font-black text-primary">{activityTotals.totalKhatam}</p>
-            <p class="text-xs text-text-secondary">times</p>
+            <p class="text-xs text-text-secondary">{t(lang, "times")}</p>
           </div>
         </div>
 
@@ -176,12 +179,12 @@ export const AdminMemberDetailPage: FC<{
             <span class="material-symbols-outlined text-text-secondary text-xl">tune</span>
             <div class="flex items-center gap-8 text-sm">
               <div>
-                <span class="text-text-secondary">Daily tilawah target: </span>
-                <span class="font-bold text-text-main">{target.tilawah_juz_daily} juz</span>
+                <span class="text-text-secondary">{t(lang, "dailyTargetInfo")} </span>
+                <span class="font-bold text-text-main">{target.tilawah_juz_daily} {t(lang, "juz")}</span>
               </div>
               <div>
-                <span class="text-text-secondary">Daily murojaah target: </span>
-                <span class="font-bold text-text-main">{target.murojaah_juz_daily} juz</span>
+                <span class="text-text-secondary">{t(lang, "dailyMurojaahInfo")} </span>
+                <span class="font-bold text-text-main">{target.murojaah_juz_daily} {t(lang, "juz")}</span>
               </div>
             </div>
           </div>
@@ -192,14 +195,14 @@ export const AdminMemberDetailPage: FC<{
           <div class="px-6 py-4 border-b border-border-light bg-slate-50/50">
             <h2 class="text-text-main font-bold flex items-center gap-2">
               <span class="material-symbols-outlined text-primary text-xl">history</span>
-              Activity Log
-              <span class="text-xs font-normal text-text-secondary ml-auto">Last 30 entries</span>
+              {t(lang, "activityLog")}
+              <span class="text-xs font-normal text-text-secondary ml-auto">{t(lang, "last30entries")}</span>
             </h2>
           </div>
           <div class="divide-y divide-border-light">
             {recentLogs.length === 0 ? (
               <div class="px-6 py-10 text-center text-text-secondary text-sm">
-                No activity logged yet.
+                {t(lang, "noActivityLogged")}
               </div>
             ) : (
               recentLogs.map((log) => {
@@ -217,12 +220,12 @@ export const AdminMemberDetailPage: FC<{
                       </span>
                       <div>
                         <p class="text-sm font-semibold text-text-main">
-                          {log.juz_amount} juz
+                          {log.juz_amount} {t(lang, "juz")}
                           {log.repetition_count ? ` · ${log.repetition_count}x` : ""}
                         </p>
                         {surahName && (
                           <p class="text-xs text-text-secondary">
-                            Ended · Juz {log.end_juz} · {surahName} : {log.end_ayah}
+                            {t(lang, "endedAt")} · Juz {log.end_juz} · {surahName} : {log.end_ayah}
                           </p>
                         )}
                       </div>

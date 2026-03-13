@@ -5,6 +5,7 @@ import type { User } from "../../types.ts";
 import { SURAHS } from "../../data/quran-meta.ts";
 import { APP_NAME } from "../../config.ts";
 import type { UserTarget } from "../../lib/targets.ts";
+import { t, type Lang } from "../../lib/i18n.ts";
 
 type LogEntry = {
   id: number;
@@ -18,6 +19,7 @@ type LogEntry = {
 
 export const TilawahPage: FC<{
   user: User;
+  lang: Lang;
   success?: string;
   error?: string;
   todayWib: string;
@@ -30,23 +32,23 @@ export const TilawahPage: FC<{
   page: number;
   totalLogs: number;
   perPage: number;
-}> = ({ user, success, error, todayWib, todayTotal, target, lastLog, recentLogs, allTimeJuz, totalKhatam, page, totalLogs, perPage }) => {
+}> = ({ user, lang, success, error, todayWib, todayTotal, target, lastLog, recentLogs, allTimeJuz, totalKhatam, page, totalLogs, perPage }) => {
   const totalPages = Math.max(1, Math.ceil(totalLogs / perPage));
   const todayPercent = Math.min(100, Math.round((todayTotal / target.tilawah_juz_daily) * 100));
   const lastSurahName = lastLog?.end_surah ? SURAHS.find((s) => s.number === lastLog.end_surah)?.name : null;
 
   return (
     <Layout title={`Tilawah - ${APP_NAME}`}>
-      <Header user={user} currentPath="/tilawah" />
+      <Header user={user} currentPath="/tilawah" lang={lang} />
       <main class="flex-1 flex flex-col items-center w-full px-4 sm:px-6 lg:px-8 py-8 max-w-4xl mx-auto">
 
         <div class="w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
             <h1 class="text-text-main text-3xl font-black leading-tight tracking-[-0.033em]">Tilawah</h1>
-            <p class="text-text-secondary text-sm">Log your Quran recitation (WIB).</p>
+            <p class="text-text-secondary text-sm">{t(lang, "tilawahSubtitle")}</p>
           </div>
           <a href="/murojaah" class="px-4 py-2.5 rounded-lg border border-border-light bg-white text-sm font-semibold text-text-main hover:bg-slate-50">
-            Switch to Murojaah →
+            {t(lang, "switchToMurojaah")}
           </a>
         </div>
 
@@ -60,43 +62,43 @@ export const TilawahPage: FC<{
         {/* Today progress */}
         <div class="w-full bg-white border border-border-light rounded-xl p-6 mb-6">
           <div class="flex items-center justify-between mb-3">
-            <h2 class="text-text-main font-bold">Today's Progress</h2>
-            <span class="text-sm font-semibold text-text-secondary">{todayTotal}/{target.tilawah_juz_daily} juz</span>
+            <h2 class="text-text-main font-bold">{t(lang, "todayProgress")}</h2>
+            <span class="text-sm font-semibold text-text-secondary">{todayTotal}/{target.tilawah_juz_daily} {t(lang, "juz")}</span>
           </div>
           <div class="w-full h-3 rounded-full bg-slate-100 border border-slate-200 overflow-hidden mb-1">
             <div class={`h-full rounded-full ${todayPercent >= 100 ? "bg-emerald-500" : "bg-primary"}`} style={`width: ${todayPercent}%`} />
           </div>
-          <p class="text-xs text-text-secondary">{todayPercent >= 100 ? "✓ Daily target met!" : `${target.tilawah_juz_daily - todayTotal > 0 ? (target.tilawah_juz_daily - todayTotal).toFixed(1) : 0} juz remaining to meet today's target`}</p>
+          <p class="text-xs text-text-secondary">{todayPercent >= 100 ? t(lang, "dailyTargetMet") : `${target.tilawah_juz_daily - todayTotal > 0 ? (target.tilawah_juz_daily - todayTotal).toFixed(1) : 0} ${t(lang, "juzRemainingTarget")}`}</p>
         </div>
 
         {/* Last position */}
         {lastLog && lastLog.end_surah && (
           <div class="w-full bg-primary-light border border-primary/20 rounded-xl p-5 mb-6">
-            <p class="text-xs font-bold text-primary uppercase mb-1">Last Recorded Position</p>
+            <p class="text-xs font-bold text-primary uppercase mb-1">{t(lang, "lastRecordedPosition")}</p>
             <p class="text-text-main font-bold">
               Juz {lastLog.end_juz} &bull; {lastSurahName} &bull; Ayah {lastLog.end_ayah}
             </p>
-            <p class="text-xs text-text-secondary mt-1">Logged on {lastLog.date_wib}</p>
+            <p class="text-xs text-text-secondary mt-1">{t(lang, "loggedOn")} {lastLog.date_wib}</p>
           </div>
         )}
 
         <div class="w-full grid md:grid-cols-2 gap-6 mb-8">
           {/* Log form */}
           <div class="bg-white border border-border-light rounded-xl p-6">
-            <h3 class="text-text-main text-lg font-bold mb-4">Log Tilawah</h3>
+            <h3 class="text-text-main text-lg font-bold mb-4">{t(lang, "logTilawah")}</h3>
             <form method="post" action="/tilawah" class="space-y-4">
               <div>
-                <label class="block text-xs font-semibold text-text-secondary mb-1">Date (WIB)</label>
+                <label class="block text-xs font-semibold text-text-secondary mb-1">{t(lang, "dateWib")}</label>
                 <input type="date" name="date_wib" value={todayWib}
                   class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" required />
               </div>
               <div>
-                <label class="block text-xs font-semibold text-text-secondary mb-1">Juz Amount</label>
+                <label class="block text-xs font-semibold text-text-secondary mb-1">{t(lang, "juzAmount")}</label>
                 <input type="number" name="juz_amount" min="0.01" max="30" step="0.01" placeholder="e.g. 1.5"
                   class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" required />
               </div>
               <div class="border-t border-border-light pt-4">
-                <p class="text-xs font-bold text-text-secondary mb-3">Ending Position</p>
+                <p class="text-xs font-bold text-text-secondary mb-3">{t(lang, "endingPosition")}</p>
                 <div class="space-y-3">
                   <div>
                     <label class="block text-xs font-semibold text-text-secondary mb-1">Surah</label>
@@ -118,7 +120,7 @@ export const TilawahPage: FC<{
               </div>
               <button type="submit"
                 class="w-full py-2.5 rounded-lg bg-primary text-white font-bold text-sm hover:bg-primary-dark transition-colors">
-                Save Tilawah
+                {t(lang, "saveTilawah")}
               </button>
             </form>
           </div>
@@ -126,17 +128,17 @@ export const TilawahPage: FC<{
           {/* Stats */}
           <div class="flex flex-col gap-4">
             <div class="bg-white border border-border-light rounded-xl p-5">
-              <p class="text-xs text-text-secondary mb-1">All-time Tilawah</p>
-              <p class="text-3xl font-black text-text-main">{allTimeJuz} <span class="text-base font-medium text-text-secondary">juz</span></p>
+              <p class="text-xs text-text-secondary mb-1">{t(lang, "allTimeTilawahStat")}</p>
+              <p class="text-3xl font-black text-text-main">{allTimeJuz} <span class="text-base font-medium text-text-secondary">{t(lang, "juz")}</span></p>
             </div>
             <div class="bg-white border border-border-light rounded-xl p-5">
               <p class="text-xs text-text-secondary mb-1">Total Khatam</p>
               <p class="text-3xl font-black text-primary">{totalKhatam}</p>
-              <p class="text-xs text-text-secondary mt-1">Verified completions (reached An-Nas)</p>
+              <p class="text-xs text-text-secondary mt-1">{t(lang, "verifiedCompletions")}</p>
             </div>
             <a href="/activity/leaderboard"
               class="bg-white border border-border-light rounded-xl p-5 hover:bg-slate-50 transition-colors text-center">
-              <p class="text-sm font-bold text-primary">View Leaderboard →</p>
+              <p class="text-sm font-bold text-primary">{t(lang, "viewLeaderboard")}</p>
             </a>
           </div>
         </div>
@@ -144,12 +146,12 @@ export const TilawahPage: FC<{
         {/* Recent logs */}
         <div class="w-full bg-white border border-border-light rounded-xl overflow-hidden">
           <div class="px-6 py-4 border-b border-border-light bg-slate-50/50 flex items-center justify-between">
-            <h3 class="text-text-main text-lg font-bold">Tilawah Logs</h3>
-            <span class="text-xs text-text-secondary">{totalLogs} entries</span>
+            <h3 class="text-text-main text-lg font-bold">{t(lang, "tilawahLogs")}</h3>
+            <span class="text-xs text-text-secondary">{totalLogs} {t(lang, "entries")}</span>
           </div>
           <div class="divide-y divide-border-light">
             {recentLogs.length === 0 ? (
-              <div class="px-6 py-10 text-center text-text-secondary text-sm">No tilawah logged yet.</div>
+              <div class="px-6 py-10 text-center text-text-secondary text-sm">{t(lang, "noTilawahYet")}</div>
             ) : (() => {
                 const cutoff = new Date(todayWib);
                 cutoff.setDate(cutoff.getDate() - 6);
@@ -160,13 +162,13 @@ export const TilawahPage: FC<{
                   return (
                     <div class="px-6 py-4 flex items-center justify-between gap-4">
                       <div class="flex-1 min-w-0">
-                        <p class="text-sm font-semibold text-text-main">{log.juz_amount} juz</p>
+                        <p class="text-sm font-semibold text-text-main">{log.juz_amount} {t(lang, "juz")}</p>
                         {surahName ? (
                           <p class="text-xs text-text-secondary">
-                            Ended at Juz {log.end_juz} &bull; {surahName} : {log.end_ayah}
+                            {t(lang, "endedAt")} Juz {log.end_juz} &bull; {surahName} : {log.end_ayah}
                           </p>
                         ) : (
-                          <p class="text-xs text-text-secondary">No position recorded</p>
+                          <p class="text-xs text-text-secondary">{t(lang, "noPositionRecorded")}</p>
                         )}
                       </div>
                       <div class="flex items-center gap-3 flex-shrink-0">
@@ -176,7 +178,7 @@ export const TilawahPage: FC<{
                             onsubmit="return confirm('Delete this entry?')">
                             <button type="submit"
                               class="text-xs text-red-400 hover:text-red-600 font-medium transition-colors">
-                              Delete
+                              {t(lang, "delete")}
                             </button>
                           </form>
                         )}
@@ -189,18 +191,18 @@ export const TilawahPage: FC<{
           </div>
           {totalPages > 1 && (
             <div class="px-6 py-4 border-t border-border-light bg-slate-50/50 flex items-center justify-between gap-4">
-              <span class="text-xs text-text-secondary">Page {page} of {totalPages}</span>
+              <span class="text-xs text-text-secondary">{t(lang, "page")} {page} {t(lang, "of")} {totalPages}</span>
               <div class="flex items-center gap-2">
                 {page > 1 && (
                   <a href={`/tilawah?page=${page - 1}`}
                     class="px-3 py-1.5 text-xs font-semibold text-primary border border-primary/30 rounded-lg hover:bg-primary-light transition-colors">
-                    ← Prev
+                    {t(lang, "prev")}
                   </a>
                 )}
                 {page < totalPages && (
                   <a href={`/tilawah?page=${page + 1}`}
                     class="px-3 py-1.5 text-xs font-semibold text-primary border border-primary/30 rounded-lg hover:bg-primary-light transition-colors">
-                    Next →
+                    {t(lang, "next")}
                   </a>
                 )}
               </div>

@@ -21,6 +21,7 @@ admin.use("*", authMiddleware, adminMiddleware);
 
 admin.get("/", (c) => {
   const user = c.get("user");
+  const lang = c.get("lang");
   const success = c.req.query("success");
   const error = c.req.query("error");
   const editId = c.req.query("edit");
@@ -41,6 +42,7 @@ admin.get("/", (c) => {
   return c.html(
     <AdminPage
       user={user}
+      lang={lang}
       pendingUsers={pendingUsers}
       allUsers={allUsers}
       editUser={editUser}
@@ -290,6 +292,7 @@ admin.post("/email/test-snapshot", async (c) => {
 
 admin.get("/members/:id", (c) => {
   const adminUser = c.get("user");
+  const lang = c.get("lang");
   const memberId = parseInt(c.req.param("id"), 10);
   if (!Number.isInteger(memberId)) return c.redirect("/admin?error=Invalid member ID.");
 
@@ -324,6 +327,7 @@ admin.get("/members/:id", (c) => {
   return c.html(
     <AdminMemberDetailPage
       adminUser={adminUser}
+      lang={lang}
       member={member}
       target={target}
       streak={streak}

@@ -3,6 +3,7 @@ import { Layout } from "../Layout.tsx";
 import { Header } from "../components/Header.tsx";
 import type { User } from "../../types.ts";
 import { APP_NAME } from "../../config.ts";
+import type { Lang } from "../../lib/i18n.ts";
 
 type ActivityTotals = {
   tilawahJuz: number;
@@ -22,6 +23,7 @@ type ActivityLogItem = {
 
 export const ActivityPage: FC<{
   user: User;
+  lang: Lang;
   success?: string;
   error?: string;
   todayWib: string;
@@ -32,6 +34,7 @@ export const ActivityPage: FC<{
   recentLogs: ActivityLogItem[];
 }> = ({
   user,
+  lang,
   success,
   error,
   todayWib,
@@ -48,7 +51,7 @@ export const ActivityPage: FC<{
 
   return (
     <Layout title={`Activity Tracker - ${APP_NAME}`}>
-      <Header user={user} currentPath="/activity" />
+      <Header user={user} currentPath="/activity" lang={lang} />
       <main class="flex-1 flex flex-col items-center w-full px-4 sm:px-6 lg:px-8 py-8 max-w-6xl mx-auto">
         <div class="w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>

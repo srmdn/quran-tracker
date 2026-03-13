@@ -8,6 +8,7 @@ import { checkAndUpdateStreak, rebuildStreak } from "../lib/streak.ts";
 import { getUserActivityTotals } from "../lib/activity-calc.ts";
 import { sendStreakMilestoneEmail, isStreakMilestone } from "../lib/milestone-email.ts";
 import { SURAHS, getJuzForPosition } from "../data/quran-meta.ts";
+import { t } from "../lib/i18n.ts";
 import { MurojaahPage } from "../views/pages/MurojaahPage.tsx";
 import type { Env } from "../types.ts";
 
@@ -33,6 +34,7 @@ function redirectWith(kind: "success" | "error", message: string) {
 
 murojaah.get("/", (c) => {
   const user = c.get("user");
+  const lang = c.get("lang");
   const todayWib = getWibDateYmd();
   const target = getUserTarget(user.id)!;
   const todayTotal = getTodayMurojaahTotal(user.id, todayWib);
@@ -52,6 +54,7 @@ murojaah.get("/", (c) => {
   return c.html(
     <MurojaahPage
       user={user}
+      lang={lang}
       success={c.req.query("success")}
       error={c.req.query("error")}
       todayWib={todayWib}
@@ -69,23 +72,24 @@ murojaah.get("/", (c) => {
 
 murojaah.post("/", async (c) => {
   const user = c.get("user");
+  const lang = c.get("lang");
 
   const bucket = consumeRateLimit(`murojaah:${user.id}`, { max: 20, windowMs: 60_000 });
-  if (!bucket.allowed) return c.redirect(redirectWith("error", "Too many requests. Please wait a minute."));
+  if (!bucket.allowed) return c.redirect(redirectWith("error", t(lang, "tooManyRequests")));
 
   const body = await c.req.parseBody();
 
   // Validate juz amount
   const juzRaw = (body.juz_amount as string)?.trim();
-  if (!/^\d+(\.\d{1,2})?$/.test(juzRaw || "")) return c.redirect(redirectWith("error", "Invalid juz amount."));
+  if (!/^\d+(\.\d{1,2})?$/.test(juzRaw || "")) return c.redirect(redirectWith("error", t(lang, "invalidJuzAmount")));
   const juzAmount = Number(juzRaw);
-  if (!Number.isFinite(juzAmount) || juzAmount <= 0) return c.redirect(redirectWith("error", "Invalid juz amount."));
-  if (juzAmount > 30) return c.redirect(redirectWith("error", "Juz amount cannot exceed 30 (full Quran) per entry."));
+  if (!Number.isFinite(juzAmount) || juzAmount <= 0) return c.redirect(redirectWith("error", t(lang, "invalidJuzAmount")));
+  if (juzAmount > 30) return c.redirect(redirectWith("error", t(lang, "juzExceeds30")));
 
   // Validate date
   const inputDate = ((body.date_wib as string) || getWibDateYmd()).trim();
   const dateCheck = validateWibLogDate(inputDate);
-  if (!dateCheck.ok || !dateCheck.date) return c.redirect(redirectWith("error", dateCheck.error || "Invalid date."));
+  if (!dateCheck.ok || !dateCheck.date) return c.redirect(redirectWith("error", dateCheck.error || t(lang, "invalidDate")));
 
   // Validate repetition
   let repetitionCount: number | null = null;
@@ -101,9 +105,9 @@ murojaah.post("/", async (c) => {
   const endAyah = parseInt((body.end_ayah as string) || "", 10);
 
   const surahMeta = SURAHS.find((s) => s.number === endSurah);
-  if (!surahMeta) return c.redirect(redirectWith("error", "Invalid surah selected."));
+  if (!surahMeta) return c.redirect(redirectWith("error", t(lang, "invalidSurah")));
   if (!Number.isInteger(endAyah) || endAyah < 1 || endAyah > surahMeta.totalAyahs) {
-    return c.redirect(redirectWith("error", `Ayah must be between 1 and ${surahMeta.totalAyahs} for ${surahMeta.name}.`));
+    return c.redirect(redirectWith("error", `${t(lang, "ayahMustBeBetween")} ${surahMeta.totalAyahs} ${t(lang, "forSurah")} ${surahMeta.name}.`));
   }
 
   // Compute juz from surah+ayah — never trust user input
@@ -120,34 +124,35 @@ murojaah.post("/", async (c) => {
     sendStreakMilestoneEmail(user, newStreak).catch(() => {});
   }
 
-  const repMsg = repetitionCount ? ` · ${repetitionCount}x repetition` : "";
-  return c.redirect(redirectWith("success", `Murojaah logged: ${juzAmount} juz — ended at ${surahMeta.name} ayah ${endAyah} (Juz ${endJuz}).${repMsg}`));
+  const repMsg = repetitionCount ? ` · ${repetitionCount}x ${t(lang, "repetitionSuffix")}` : "";
+  return c.redirect(redirectWith("success", `${t(lang, "murojaahLogged")} ${juzAmount} juz — ${t(lang, "endedAtMsg")} ${surahMeta.name} ayah ${endAyah} (Juz ${endJuz}).${repMsg}`));
 });
 
 murojaah.post("/logs/:id/delete", (c) => {
   const user = c.get("user");
+  const lang = c.get("lang");
   const logId = parseInt(c.req.param("id"), 10);
-  if (!Number.isInteger(logId)) return c.redirect("/murojaah?error=Invalid+log+ID.");
+  if (!Number.isInteger(logId)) return c.redirect(redirectWith("error", t(lang, "invalidLogId")));
 
   const log = db
     .prepare("SELECT id, user_id, date_wib FROM murojaah_logs WHERE id = ?")
     .get(logId) as { id: number; user_id: number; date_wib: string } | null;
 
   if (!log || log.user_id !== user.id) {
-    return c.redirect("/murojaah?error=Log+not+found.");
+    return c.redirect(redirectWith("error", t(lang, "logNotFound")));
   }
 
   const cutoff = new Date(getWibDateYmd());
   cutoff.setDate(cutoff.getDate() - 6);
   const cutoffStr = cutoff.toISOString().slice(0, 10);
   if (log.date_wib < cutoffStr) {
-    return c.redirect("/murojaah?error=Entries+older+than+7+days+cannot+be+deleted.");
+    return c.redirect(redirectWith("error", t(lang, "entriesOlderThan7")));
   }
 
   db.prepare("DELETE FROM murojaah_logs WHERE id = ?").run(logId);
   rebuildStreak(user.id);
 
-  return c.redirect("/murojaah?success=Entry+deleted.");
+  return c.redirect(redirectWith("success", t(lang, "entryDeleted")));
 });
 
 export { murojaah as murojaahRoutes };

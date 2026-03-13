@@ -30,6 +30,7 @@ export type HeatmapCell = {
 
 dashboard.get("/", (c) => {
   const user = c.get("user");
+  const lang = c.get("lang");
   const todayWib = getWibDateYmd();
   const target = getUserTarget(user.id)!;
   const todayTilawah = getTodayTilawahTotal(user.id, todayWib);
@@ -89,6 +90,7 @@ dashboard.get("/", (c) => {
   return c.html(
     <DashboardPage
       user={user}
+      lang={lang}
       todayWib={todayWib}
       target={target}
       todayTilawah={todayTilawah}
