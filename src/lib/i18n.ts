@@ -137,8 +137,18 @@ const en = {
   dailyTilawahTargetError: "Tilawah target must be between 0.5 and 30 juz.",
   dailyMurojaahTargetError: "Murojaah target must be between 0.5 and 30 juz.",
 
+  // Fastabiqul Khoirot
+  fastabiqQuranTranslation: "So race to [all that is] good.",
+  fastabiqHadithTranslation: "The best among you are those who learn the Quran and teach it.",
+  fastabiqHadithRef: "HR. Bukhari no. 5027",
+  fastabiqDashboardLabel: "Reminder",
+
   // Landing page
   signIn: "Sign In",
+  landingAboutMarkaz: "Markaz Talaqqi is a Quran learning community dedicated to helping members consistently read, memorize, and revise the Quran together.",
+  landingJoinNote: "Access requires admin approval — reach out to your ustadz to register.",
+  landingLiveData: "Live data",
+  landingScoreInfo: "How scores are calculated",
   landingTagline: "Track your Quran journey",
   landingBadge: "Markaz Talaqqi · Quran Tracker",
   landingHeroTitle: "Track Your Quran Journey Together",
@@ -157,6 +167,10 @@ const en = {
   landingStep3Desc: "Monthly leaderboard ranks everyone by score. Tilawah, Murojaah, and Khatam all contribute — keeping the community motivated.",
   landingJoinTitle: "Ready to Start?",
   landingJoinDesc: "Sign in with your account. New members need admin approval before accessing the app.",
+  landingAboutMarkaz: "Markaz Talaqqi is a Quran learning community dedicated to helping members consistently read, memorize, and revise the Quran together.",
+  landingJoinNote: "Access requires admin approval — reach out to your ustadz to register.",
+  landingLiveData: "Live data",
+  landingScoreInfo: "How scores are calculated",
 
   // Admin member detail
   backToAdmin: "Back to Admin Panel",
@@ -305,8 +319,18 @@ const id: typeof en = {
   dailyTilawahTargetError: "Target tilawah harus antara 0.5 dan 30 juz.",
   dailyMurojaahTargetError: "Target murojaah harus antara 0.5 dan 30 juz.",
 
+  // Fastabiqul Khoirot (ID)
+  fastabiqQuranTranslation: "Maka berlomba-lombalah kamu dalam kebaikan.",
+  fastabiqHadithTranslation: "Sebaik-baik kalian adalah yang mempelajari Al-Qur'an dan mengajarkannya.",
+  fastabiqHadithRef: "HR. Bukhari no. 5027",
+  fastabiqDashboardLabel: "Pengingat",
+
   // Landing page
   signIn: "Masuk",
+  landingAboutMarkaz: "Markaz Talaqqi adalah komunitas belajar Quran yang membantu anggota untuk membaca, menghafal, dan mengulang Quran secara konsisten bersama-sama.",
+  landingJoinNote: "Akses memerlukan persetujuan admin — hubungi ustadz kamu untuk mendaftar.",
+  landingLiveData: "Data langsung",
+  landingScoreInfo: "Cara menghitung skor",
   landingTagline: "Lacak perjalanan Quran-mu",
   landingBadge: "Markaz Talaqqi · Quran Tracker",
   landingHeroTitle: "Lacak Perjalanan Quran Bersama",
@@ -325,6 +349,10 @@ const id: typeof en = {
   landingStep3Desc: "Leaderboard bulanan meranking semua anggota berdasarkan skor. Tilawah, Murojaah, dan Khatam semuanya berkontribusi — menjaga komunitas tetap termotivasi.",
   landingJoinTitle: "Siap Mulai?",
   landingJoinDesc: "Masuk dengan akunmu. Anggota baru memerlukan persetujuan admin sebelum bisa mengakses aplikasi.",
+  landingAboutMarkaz: "Markaz Talaqqi adalah komunitas belajar Quran yang membantu anggota untuk membaca, menghafal, dan mengulang Quran secara konsisten bersama-sama.",
+  landingJoinNote: "Akses memerlukan persetujuan admin — hubungi ustadz kamu untuk mendaftar.",
+  landingLiveData: "Data langsung",
+  landingScoreInfo: "Cara menghitung skor",
 
   // Admin member detail
   backToAdmin: "Kembali ke Panel Admin",

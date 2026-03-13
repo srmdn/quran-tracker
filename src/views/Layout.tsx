@@ -1,13 +1,23 @@
 import type { FC, Child } from "hono/jsx";
 import { APP_NAME } from "../config.ts";
 
-export const Layout: FC<{ title?: string; children: Child }> = ({ title, children }) => {
+export const Layout: FC<{ title?: string; description?: string; children: Child }> = ({ title, description, children }) => {
+  const resolvedTitle = title || APP_NAME;
+  const resolvedDesc = description || "Track your daily Tilawah and Murojaah, build streaks, and compete with your community.";
   return (
     <html lang="en">
       <head>
         <meta charset="utf-8" />
         <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-        <title>{title || APP_NAME}</title>
+        <title>{resolvedTitle}</title>
+        <meta name="description" content={resolvedDesc} />
+        <meta property="og:title" content={resolvedTitle} />
+        <meta property="og:description" content={resolvedDesc} />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="/public/logo.png" />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content={resolvedTitle} />
+        <meta name="twitter:description" content={resolvedDesc} />
         <link rel="icon" type="image/png" href="/public/logo.png" />
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
@@ -57,6 +67,7 @@ export const Layout: FC<{ title?: string; children: Child }> = ({ title, childre
           dangerouslySetInnerHTML={{
             __html: `
           @layer base {
+            html { scroll-behavior: smooth; }
             body {
               @apply bg-background text-text-main font-display;
             }

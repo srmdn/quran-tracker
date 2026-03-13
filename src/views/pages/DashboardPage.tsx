@@ -77,6 +77,20 @@ export const DashboardPage: FC<{
           </a>
         </div>
 
+        {/* Fastabiqul Khoirot dalil */}
+        <div class="w-full bg-primary/5 border border-primary/20 rounded-xl px-5 py-4 mb-6 flex flex-col sm:flex-row sm:items-center gap-3">
+          <div class="shrink-0 size-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+            <span class="material-symbols-outlined" style="font-size:18px">auto_stories</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-xs font-bold text-primary uppercase tracking-wider mb-0.5">{t(lang, "fastabiqDashboardLabel")}</p>
+            <p class="text-text-main text-sm font-semibold" style="font-family: 'Amiri', 'Traditional Arabic', serif; direction: rtl;">
+              فَاسْتَبِقُوا الْخَيْرَاتِ
+            </p>
+            <p class="text-text-secondary text-xs mt-0.5 italic">"{t(lang, "fastabiqQuranTranslation")}" — QS. Al-Baqarah: 148</p>
+          </div>
+        </div>
+
         {/* Today's progress */}
         <div class="w-full bg-white border border-border-light rounded-xl p-6 mb-6">
           <h2 class="text-text-main font-bold mb-4 flex items-center gap-2">

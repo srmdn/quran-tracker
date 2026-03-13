@@ -28,17 +28,17 @@ export const LandingPage: FC<{
   const rest = leaderboard.rows.slice(3);
 
   return (
-    <Layout title={`${APP_NAME} — ${t(lang, "landingTagline")}`}>
+    <Layout
+      title={`${APP_NAME} — ${t(lang, "landingTagline")}`}
+      description={t(lang, "landingAboutMarkaz")}
+    >
       {/* ── Navbar ── */}
       <header class="sticky top-0 z-20 w-full bg-white/90 backdrop-blur border-b border-border-light">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-          {/* Logo + name */}
           <a href="/landing" class="flex items-center gap-2.5 shrink-0">
             <img src="/public/logo.png" alt="Logo" class="size-8 object-contain" />
             <span class="font-black text-text-main text-base leading-none">{APP_NAME}</span>
           </a>
-
-          {/* Right side */}
           <div class="flex items-center gap-2 sm:gap-3">
             <form method="post" action="/lang">
               <input type="hidden" name="locale" value={lang === "en" ? "id" : "en"} />
@@ -63,7 +63,6 @@ export const LandingPage: FC<{
 
         {/* ── Hero ── */}
         <section class="relative w-full overflow-hidden bg-gradient-to-br from-primary/8 via-white to-primary/4 border-b border-border-light">
-          {/* Decorative circles */}
           <div class="pointer-events-none absolute -top-24 -right-24 size-96 rounded-full bg-primary/6 blur-3xl" />
           <div class="pointer-events-none absolute -bottom-16 -left-16 size-64 rounded-full bg-primary/5 blur-2xl" />
 
@@ -71,36 +70,87 @@ export const LandingPage: FC<{
             <div class="max-w-3xl mx-auto text-center">
               {/* Badge */}
               <div class="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-bold px-3 py-1.5 rounded-full mb-6 border border-primary/20">
-                <span class="material-symbols-outlined text-sm" style="font-size:14px">mosque</span>
+                <span class="material-symbols-outlined" style="font-size:14px">mosque</span>
                 {t(lang, "landingBadge")}
               </div>
 
               {/* Headline */}
-              <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-text-main leading-[1.1] tracking-[-0.03em] mb-5">
+              <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-text-main leading-[1.1] tracking-[-0.03em] mb-4">
                 {t(lang, "landingHeroTitle")}
               </h1>
 
-              {/* Sub */}
-              <p class="text-text-secondary text-base sm:text-lg leading-relaxed max-w-xl mx-auto mb-10">
+              {/* About one-liner */}
+              <p class="text-text-secondary text-base sm:text-lg leading-relaxed max-w-xl mx-auto mb-3">
+                {t(lang, "landingAboutMarkaz")}
+              </p>
+
+              {/* Hero sub */}
+              <p class="text-text-secondary text-sm max-w-lg mx-auto mb-8">
                 {t(lang, "landingHeroDesc")}
               </p>
 
-              {/* CTA */}
-              <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+              {/* CTA buttons */}
+              <div class="flex flex-col sm:flex-row items-center justify-center gap-3 mb-4">
                 <a
                   href="/login"
                   class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-primary text-white font-bold text-base hover:bg-primary-dark transition-colors shadow-md"
                 >
                   {t(lang, "landingCta")}
-                  <span class="material-symbols-outlined text-base" style="font-size:18px">arrow_forward</span>
+                  <span class="material-symbols-outlined" style="font-size:18px">arrow_forward</span>
                 </a>
                 <a
                   href="#leaderboard"
                   class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl border border-border-light bg-white text-text-main font-bold text-base hover:bg-slate-50 transition-colors"
                 >
-                  <span class="material-symbols-outlined text-base" style="font-size:18px">leaderboard</span>
+                  <span class="material-symbols-outlined" style="font-size:18px">leaderboard</span>
                   {t(lang, "leaderboard")}
                 </a>
+              </div>
+
+              {/* Join note */}
+              <p class="text-xs text-text-secondary/80 flex items-center justify-center gap-1.5">
+                <span class="material-symbols-outlined" style="font-size:14px">info</span>
+                {t(lang, "landingJoinNote")}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Fastabiqul Khoirot ── */}
+        <section class="w-full bg-primary border-b border-primary-dark">
+          <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
+            <div class="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
+              {/* Quran verse */}
+              <div class="flex-1 text-center lg:text-left">
+                <p class="text-white/50 text-xs font-bold uppercase tracking-widest mb-3">QS. Al-Baqarah: 148</p>
+                <p
+                  class="text-white text-2xl sm:text-3xl font-black leading-relaxed mb-3"
+                  style="font-family: 'Amiri', 'Traditional Arabic', serif; direction: rtl;"
+                >
+                  فَاسْتَبِقُوا الْخَيْرَاتِ
+                </p>
+                <p class="text-white/80 text-base sm:text-lg font-semibold italic">
+                  "{t(lang, "fastabiqQuranTranslation")}"
+                </p>
+              </div>
+
+              {/* Divider */}
+              <div class="hidden lg:block w-px h-24 bg-white/20" />
+              <div class="lg:hidden w-16 h-px bg-white/20" />
+
+              {/* Hadith */}
+              <div class="flex-1 text-center lg:text-left">
+                <p class="text-white/50 text-xs font-bold uppercase tracking-widest mb-3">Hadith</p>
+                <p
+                  class="text-white text-xl sm:text-2xl font-black leading-relaxed mb-3"
+                  style="font-family: 'Amiri', 'Traditional Arabic', serif; direction: rtl;"
+                >
+                  خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ
+                </p>
+                <p class="text-white/80 text-sm sm:text-base font-semibold italic mb-1">
+                  "{t(lang, "fastabiqHadithTranslation")}"
+                </p>
+                <p class="text-white/50 text-xs">{t(lang, "fastabiqHadithRef")}</p>
               </div>
             </div>
           </div>
@@ -110,7 +160,6 @@ export const LandingPage: FC<{
         <section class="w-full bg-white border-b border-border-light">
           <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-              {/* Members */}
               <div class="flex flex-col items-center lg:items-start gap-4 bg-slate-50 rounded-2xl border border-border-light p-6 text-center lg:text-left">
                 <div class="shrink-0 size-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
                   <span class="material-symbols-outlined" style="font-size:22px">group</span>
@@ -120,8 +169,6 @@ export const LandingPage: FC<{
                   <p class="text-text-secondary text-sm mt-0.5">{t(lang, "landingStatMembers")}</p>
                 </div>
               </div>
-
-              {/* Tilawah */}
               <div class="flex flex-col items-center lg:items-start gap-4 bg-slate-50 rounded-2xl border border-border-light p-6 text-center lg:text-left">
                 <div class="shrink-0 size-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
                   <span class="material-symbols-outlined" style="font-size:22px">menu_book</span>
@@ -131,8 +178,6 @@ export const LandingPage: FC<{
                   <p class="text-text-secondary text-sm mt-0.5">{t(lang, "landingStatTilawah")}</p>
                 </div>
               </div>
-
-              {/* Murojaah */}
               <div class="flex flex-col items-center lg:items-start gap-4 bg-slate-50 rounded-2xl border border-border-light p-6 text-center lg:text-left">
                 <div class="shrink-0 size-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
                   <span class="material-symbols-outlined" style="font-size:22px">refresh</span>
@@ -152,14 +197,25 @@ export const LandingPage: FC<{
             {/* Section header */}
             <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-3 mb-8 text-center lg:text-left">
               <div>
-                <h2 class="text-2xl sm:text-3xl font-black text-text-main">{t(lang, "leaderboard")}</h2>
-                <p class="text-text-secondary text-sm mt-1">
-                  {t(lang, "monthlyRankings")} · {monthLabel}
-                </p>
+                <div class="flex items-center justify-center lg:justify-start gap-2 mb-1">
+                  <h2 class="text-2xl sm:text-3xl font-black text-text-main">{t(lang, "leaderboard")}</h2>
+                  <span class="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                    <span class="size-1.5 rounded-full bg-emerald-500 animate-pulse inline-block" />
+                    {t(lang, "landingLiveData")}
+                  </span>
+                </div>
+                <p class="text-text-secondary text-sm">{t(lang, "monthlyRankings")} · {monthLabel}</p>
               </div>
-              <p class="text-xs text-text-secondary bg-white border border-border-light rounded-lg px-3 py-1.5 self-center lg:self-auto whitespace-nowrap">
-                Score = Tilawah×10 + Murojaah×7 + Khatam×300
-              </p>
+              {/* Score formula — collapsible on mobile */}
+              <details class="self-center lg:self-auto">
+                <summary class="cursor-pointer text-xs font-semibold text-primary hover:text-primary-dark list-none flex items-center justify-center lg:justify-start gap-1">
+                  <span class="material-symbols-outlined" style="font-size:14px">info</span>
+                  {t(lang, "landingScoreInfo")}
+                </summary>
+                <div class="mt-2 text-xs text-text-secondary bg-white border border-border-light rounded-lg px-3 py-2 whitespace-nowrap">
+                  Tilawah × 10 + Murojaah × 7 + Khatam × 300
+                </div>
+              </details>
             </div>
 
             {leaderboard.rows.length === 0 ? (
@@ -189,7 +245,9 @@ export const LandingPage: FC<{
                             </span>
                           </div>
                           <p class="text-lg font-black text-text-main leading-tight mb-1">{row.name}</p>
-                          <p class="text-2xl font-black text-primary mb-3">{row.score} <span class="text-sm font-bold text-text-secondary">{t(lang, "ptsLabel")}</span></p>
+                          <p class="text-2xl font-black text-primary mb-3">
+                            {row.score} <span class="text-sm font-bold text-text-secondary">{t(lang, "ptsLabel")}</span>
+                          </p>
                           <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-text-secondary border-t border-border-light pt-3">
                             <span>Tilawah <strong class="text-text-main">{row.tilawah_juz}</strong></span>
                             <span>Murojaah <strong class="text-text-main">{row.murojaah_juz}</strong></span>
@@ -201,7 +259,7 @@ export const LandingPage: FC<{
                   </div>
                 )}
 
-                {/* Ranks 4-10 */}
+                {/* Ranks 4–10 */}
                 {rest.length > 0 && (
                   <div class="bg-white border border-border-light rounded-2xl overflow-hidden shadow-sm">
                     {/* Desktop table */}
@@ -231,7 +289,6 @@ export const LandingPage: FC<{
                         </tbody>
                       </table>
                     </div>
-
                     {/* Mobile card list */}
                     <div class="sm:hidden divide-y divide-border-light">
                       {rest.map((row) => (
@@ -287,7 +344,11 @@ export const LandingPage: FC<{
         <section class="w-full bg-primary">
           <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14 text-center">
             <h2 class="text-2xl sm:text-3xl font-black text-white mb-3">{t(lang, "landingJoinTitle")}</h2>
-            <p class="text-white/75 text-sm sm:text-base mb-8 max-w-md mx-auto">{t(lang, "landingJoinDesc")}</p>
+            <p class="text-white/75 text-sm sm:text-base mb-2 max-w-md mx-auto">{t(lang, "landingJoinDesc")}</p>
+            <p class="text-white/50 text-xs mb-8 flex items-center justify-center gap-1">
+              <span class="material-symbols-outlined" style="font-size:13px">info</span>
+              {t(lang, "landingJoinNote")}
+            </p>
             <a
               href="/login"
               class="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-white text-primary font-bold text-base hover:bg-primary-light transition-colors shadow-md"
