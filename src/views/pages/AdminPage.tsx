@@ -305,6 +305,12 @@ export const AdminPage: FC<{
                       </button>
                     </form>
                   )}
+                  <a
+                    href={`/admin/members/${u.id}`}
+                    class="text-text-secondary hover:text-primary text-xs font-medium transition-colors"
+                  >
+                    View
+                  </a>
                   {isSuperAdminRole(user.role) && u.id !== user.id && (
                     <a
                       href={`/admin?edit=${u.id}`}

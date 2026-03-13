@@ -6,8 +6,13 @@ import { createPreviousMonthSnapshot } from "../lib/monthly-snapshot.ts";
 import { sendTestReminderEmail } from "../lib/reminder-email.ts";
 import { sendApprovalEmail, sendRejectionEmail, sendRoleChangeEmail } from "../lib/welcome-email.ts";
 import { isAdminRole, isAssignableRole, isSuperAdminRole } from "../lib/roles.ts";
-import { getWibYearMonth } from "../lib/wib-date.ts";
+import { getWibDateYmd, getWibYearMonth } from "../lib/wib-date.ts";
+import { getUserTarget, getTodayTilawahTotal, getTodayMurojaahTotal } from "../lib/targets.ts";
+import { getUserStreak } from "../lib/streak.ts";
+import { getUserActivityTotals, getCurrentMonthUserActivityRank } from "../lib/activity-calc.ts";
 import { AdminPage } from "../views/pages/AdminPage.tsx";
+import { AdminMemberDetailPage } from "../views/pages/AdminMemberDetailPage.tsx";
+import type { RecentLogEntry } from "../routes/dashboard.tsx";
 import type { Env, User } from "../types.ts";
 
 const admin = new Hono<Env>();
@@ -281,6 +286,55 @@ admin.post("/email/test-snapshot", async (c) => {
       `/admin?error=Failed to send test snapshot: ${err instanceof Error ? err.message : "Unknown error"}`
     );
   }
+});
+
+admin.get("/members/:id", (c) => {
+  const adminUser = c.get("user");
+  const memberId = parseInt(c.req.param("id"), 10);
+  if (!Number.isInteger(memberId)) return c.redirect("/admin?error=Invalid member ID.");
+
+  const member = db.prepare("SELECT * FROM users WHERE id = ?").get(memberId) as User | null;
+  if (!member) return c.redirect("/admin?error=Member not found.");
+
+  const todayWib = getWibDateYmd();
+  const target = getUserTarget(memberId);
+  const streak = getUserStreak(memberId);
+  const activityTotals = getUserActivityTotals(memberId);
+  const todayTilawah = getTodayTilawahTotal(memberId, todayWib);
+  const todayMurojaah = getTodayMurojaahTotal(memberId, todayWib);
+  const monthlyRank = getCurrentMonthUserActivityRank(memberId);
+
+  const recentLogs = db
+    .prepare(
+      `SELECT type, date_wib, juz_amount, end_surah, end_ayah, end_juz, repetition_count, created_at
+       FROM (
+         SELECT 'tilawah' AS type, date_wib, juz_amount, end_surah, end_ayah, end_juz,
+                NULL AS repetition_count, created_at
+         FROM tilawah_logs WHERE user_id = ?
+         UNION ALL
+         SELECT 'murojaah' AS type, date_wib, juz_amount, end_surah, end_ayah, end_juz,
+                repetition_count, created_at
+         FROM murojaah_logs WHERE user_id = ?
+       )
+       ORDER BY created_at DESC
+       LIMIT 30`
+    )
+    .all(memberId, memberId) as RecentLogEntry[];
+
+  return c.html(
+    <AdminMemberDetailPage
+      adminUser={adminUser}
+      member={member}
+      target={target}
+      streak={streak}
+      activityTotals={activityTotals}
+      todayTilawah={todayTilawah}
+      todayMurojaah={todayMurojaah}
+      todayWib={todayWib}
+      monthlyRank={monthlyRank}
+      recentLogs={recentLogs}
+    />
+  );
 });
 
 export { admin as adminRoutes };
