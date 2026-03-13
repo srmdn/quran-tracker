@@ -4,7 +4,7 @@ import { db } from "../db/connection.ts";
 import { consumeRateLimit } from "../lib/rate-limit.ts";
 import { getWibDateYmd, validateWibLogDate } from "../lib/wib-date.ts";
 import { getUserTarget, getTodayMurojaahTotal } from "../lib/targets.ts";
-import { checkAndUpdateStreak } from "../lib/streak.ts";
+import { checkAndUpdateStreak, rebuildStreak } from "../lib/streak.ts";
 import { getUserActivityTotals } from "../lib/activity-calc.ts";
 import { sendStreakMilestoneEmail, isStreakMilestone } from "../lib/milestone-email.ts";
 import { SURAHS, getJuzForPosition } from "../data/quran-meta.ts";
@@ -116,6 +116,32 @@ murojaah.post("/", async (c) => {
 
   const repMsg = repetitionCount ? ` · ${repetitionCount}x repetition` : "";
   return c.redirect(redirectWith("success", `Murojaah logged: ${juzAmount} juz — ended at ${surahMeta.name} ayah ${endAyah} (Juz ${endJuz}).${repMsg}`));
+});
+
+murojaah.post("/logs/:id/delete", (c) => {
+  const user = c.get("user");
+  const logId = parseInt(c.req.param("id"), 10);
+  if (!Number.isInteger(logId)) return c.redirect("/murojaah?error=Invalid+log+ID.");
+
+  const log = db
+    .prepare("SELECT id, user_id, date_wib FROM murojaah_logs WHERE id = ?")
+    .get(logId) as { id: number; user_id: number; date_wib: string } | null;
+
+  if (!log || log.user_id !== user.id) {
+    return c.redirect("/murojaah?error=Log+not+found.");
+  }
+
+  const cutoff = new Date(getWibDateYmd());
+  cutoff.setDate(cutoff.getDate() - 6);
+  const cutoffStr = cutoff.toISOString().slice(0, 10);
+  if (log.date_wib < cutoffStr) {
+    return c.redirect("/murojaah?error=Entries+older+than+7+days+cannot+be+deleted.");
+  }
+
+  db.prepare("DELETE FROM murojaah_logs WHERE id = ?").run(logId);
+  rebuildStreak(user.id);
+
+  return c.redirect("/murojaah?success=Entry+deleted.");
 });
 
 export { murojaah as murojaahRoutes };

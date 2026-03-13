@@ -149,28 +149,44 @@ export const MurojaahPage: FC<{
           <div class="divide-y divide-border-light">
             {recentLogs.length === 0 ? (
               <div class="px-6 py-10 text-center text-text-secondary text-sm">No murojaah logged yet.</div>
-            ) : (
-              recentLogs.map((log) => {
-                const surahName = log.end_surah ? SURAHS.find((s) => s.number === log.end_surah)?.name : null;
-                return (
-                  <div class="px-6 py-4 flex items-center justify-between">
-                    <div>
-                      <p class="text-sm font-semibold text-text-main">
-                        {log.juz_amount} juz{log.repetition_count ? ` · ${log.repetition_count}x repetition` : ""}
-                      </p>
-                      {surahName ? (
-                        <p class="text-xs text-text-secondary">
-                          Ended at Juz {log.end_juz} &bull; {surahName} : {log.end_ayah}
+            ) : (() => {
+                const cutoff = new Date(todayWib);
+                cutoff.setDate(cutoff.getDate() - 6);
+                const cutoffStr = cutoff.toISOString().slice(0, 10);
+                return recentLogs.map((log) => {
+                  const surahName = log.end_surah ? SURAHS.find((s) => s.number === log.end_surah)?.name : null;
+                  const canDelete = log.date_wib >= cutoffStr;
+                  return (
+                    <div class="px-6 py-4 flex items-center justify-between gap-4">
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-text-main">
+                          {log.juz_amount} juz{log.repetition_count ? ` · ${log.repetition_count}x repetition` : ""}
                         </p>
-                      ) : (
-                        <p class="text-xs text-text-secondary">No position recorded</p>
-                      )}
+                        {surahName ? (
+                          <p class="text-xs text-text-secondary">
+                            Ended at Juz {log.end_juz} &bull; {surahName} : {log.end_ayah}
+                          </p>
+                        ) : (
+                          <p class="text-xs text-text-secondary">No position recorded</p>
+                        )}
+                      </div>
+                      <div class="flex items-center gap-3 flex-shrink-0">
+                        <span class="text-xs text-text-secondary">{log.date_wib}</span>
+                        {canDelete && (
+                          <form method="POST" action={`/murojaah/logs/${log.id}/delete`}
+                            onsubmit="return confirm('Delete this entry?')">
+                            <button type="submit"
+                              class="text-xs text-red-400 hover:text-red-600 font-medium transition-colors">
+                              Delete
+                            </button>
+                          </form>
+                        )}
+                      </div>
                     </div>
-                    <span class="text-xs text-text-secondary">{log.date_wib}</span>
-                  </div>
-                );
-              })
-            )}
+                  );
+                });
+              })()
+            }
           </div>
         </div>
       </main>

@@ -4,7 +4,7 @@ import { db } from "../db/connection.ts";
 import { consumeRateLimit } from "../lib/rate-limit.ts";
 import { getWibDateYmd, validateWibLogDate } from "../lib/wib-date.ts";
 import { getUserTarget, getTodayTilawahTotal } from "../lib/targets.ts";
-import { checkAndUpdateStreak } from "../lib/streak.ts";
+import { checkAndUpdateStreak, rebuildStreak } from "../lib/streak.ts";
 import { getUserActivityTotals } from "../lib/activity-calc.ts";
 import { sendKhatamEmail, sendStreakMilestoneEmail, isStreakMilestone } from "../lib/milestone-email.ts";
 import { SURAHS, getJuzForPosition } from "../data/quran-meta.ts";
@@ -121,6 +121,41 @@ tilawah.post("/", async (c) => {
   }
 
   return c.redirect(redirectWith("success", `Tilawah logged: ${juzAmount} juz — ended at ${surahMeta.name} ayah ${endAyah} (Juz ${endJuz}).${khatamMsg}`));
+});
+
+tilawah.post("/logs/:id/delete", (c) => {
+  const user = c.get("user");
+  const logId = parseInt(c.req.param("id"), 10);
+  if (!Number.isInteger(logId)) return c.redirect(redirectWith("error", "Invalid log ID."));
+
+  const log = db
+    .prepare("SELECT id, user_id, date_wib, end_surah, end_ayah FROM tilawah_logs WHERE id = ?")
+    .get(logId) as { id: number; user_id: number; date_wib: string; end_surah: number | null; end_ayah: number | null } | null;
+
+  if (!log || log.user_id !== user.id) {
+    return c.redirect(redirectWith("error", "Log not found."));
+  }
+
+  // Only allow deletion within the last 7 days
+  const cutoff = new Date(getWibDateYmd());
+  cutoff.setDate(cutoff.getDate() - 6);
+  const cutoffStr = cutoff.toISOString().slice(0, 10);
+  if (log.date_wib < cutoffStr) {
+    return c.redirect(redirectWith("error", "Entries older than 7 days cannot be deleted."));
+  }
+
+  db.prepare("DELETE FROM tilawah_logs WHERE id = ?").run(logId);
+
+  // If this was a khatam entry, remove the corresponding khatam_event
+  if (log.end_surah === 114 && log.end_ayah === 6) {
+    db.prepare(
+      "DELETE FROM khatam_events WHERE id = (SELECT id FROM khatam_events WHERE user_id = ? AND date_wib = ? AND type = 'tilawah' ORDER BY id DESC LIMIT 1)"
+    ).run(user.id, log.date_wib);
+  }
+
+  rebuildStreak(user.id);
+
+  return c.redirect(redirectWith("success", "Entry deleted."));
 });
 
 export { tilawah as tilawahRoutes };

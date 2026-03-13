@@ -1,5 +1,6 @@
 import { db } from "../db/connection.ts";
 import { hasMetTargetToday, getUserTarget } from "./targets.ts";
+import { getWibDateYmd } from "./wib-date.ts";
 
 export type UserStreak = {
   current_streak: number;
@@ -69,6 +70,85 @@ export function checkAndUpdateStreak(userId: number, todayWib: string): number {
   `).run(userId, newCurrent, newLongest, todayWib);
 
   return newCurrent;
+}
+
+// Full streak recalculation from history — call after deleting a log entry.
+// Scans last 400 days of activity so it's bounded even for long-time users.
+export function rebuildStreak(userId: number): void {
+  const target = getUserTarget(userId);
+  if (!target) return;
+
+  const todayWib = getWibDateYmd();
+
+  const dates = db
+    .prepare(
+      `SELECT DISTINCT date_wib FROM (
+         SELECT date_wib FROM tilawah_logs WHERE user_id = ?
+         UNION ALL
+         SELECT date_wib FROM murojaah_logs WHERE user_id = ?
+       )
+       WHERE date_wib >= date(?, '-400 days')
+       ORDER BY date_wib DESC`
+    )
+    .all(userId, userId, todayWib) as Array<{ date_wib: string }>;
+
+  const metDates = dates
+    .map((r) => r.date_wib)
+    .filter((date) => hasMetTargetToday(userId, date, target));
+
+  if (metDates.length === 0) {
+    const existing = getUserStreak(userId);
+    db.prepare(
+      `INSERT INTO user_streaks (user_id, current_streak, longest_streak, last_active_date, updated_at)
+       VALUES (?, 0, ?, NULL, datetime('now'))
+       ON CONFLICT(user_id) DO UPDATE SET
+         current_streak   = 0,
+         last_active_date = NULL,
+         updated_at       = datetime('now')`
+    ).run(userId, existing.longest_streak);
+    return;
+  }
+
+  const todayEpoch = ymdToEpochDay(todayWib);
+  const mostRecentEpoch = ymdToEpochDay(metDates[0]!);
+
+  // If last active day is too far in the past, streak is 0
+  if (todayEpoch - mostRecentEpoch > 2) {
+    const existing = getUserStreak(userId);
+    db.prepare(
+      `INSERT INTO user_streaks (user_id, current_streak, longest_streak, last_active_date, updated_at)
+       VALUES (?, 0, ?, ?, datetime('now'))
+       ON CONFLICT(user_id) DO UPDATE SET
+         current_streak   = 0,
+         last_active_date = excluded.last_active_date,
+         updated_at       = datetime('now')`
+    ).run(userId, existing.longest_streak, metDates[0]);
+    return;
+  }
+
+  // Walk back through met dates counting consecutive days (with 1-day grace)
+  let streak = 1;
+  for (let i = 1; i < metDates.length; i++) {
+    const gap = ymdToEpochDay(metDates[i - 1]!) - ymdToEpochDay(metDates[i]!);
+    if (gap <= 2) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+
+  const existing = getUserStreak(userId);
+  const newLongest = Math.max(streak, existing.longest_streak);
+
+  db.prepare(
+    `INSERT INTO user_streaks (user_id, current_streak, longest_streak, last_active_date, updated_at)
+     VALUES (?, ?, ?, ?, datetime('now'))
+     ON CONFLICT(user_id) DO UPDATE SET
+       current_streak   = excluded.current_streak,
+       longest_streak   = excluded.longest_streak,
+       last_active_date = excluded.last_active_date,
+       updated_at       = datetime('now')`
+  ).run(userId, streak, newLongest, metDates[0]);
 }
 
 export function getActivityHeatmap(userId: number, days = 90): HeatmapEntry[] {
