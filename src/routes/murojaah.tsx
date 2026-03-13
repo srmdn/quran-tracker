@@ -42,9 +42,12 @@ murojaah.get("/", (c) => {
     .prepare("SELECT id, date_wib, juz_amount, repetition_count, end_surah, end_ayah, end_juz, created_at FROM murojaah_logs WHERE user_id = ? ORDER BY created_at DESC LIMIT 1")
     .get(user.id) as MurojaahLog | null;
 
+  const perPage = 15;
+  const page = Math.max(1, parseInt(c.req.query("page") || "1", 10));
+  const totalLogs = (db.prepare("SELECT COUNT(*) AS cnt FROM murojaah_logs WHERE user_id = ?").get(user.id) as { cnt: number }).cnt;
   const recentLogs = db
-    .prepare("SELECT id, date_wib, juz_amount, repetition_count, end_surah, end_ayah, end_juz, created_at FROM murojaah_logs WHERE user_id = ? ORDER BY created_at DESC LIMIT 15")
-    .all(user.id) as MurojaahLog[];
+    .prepare("SELECT id, date_wib, juz_amount, repetition_count, end_surah, end_ayah, end_juz, created_at FROM murojaah_logs WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?")
+    .all(user.id, perPage, (page - 1) * perPage) as MurojaahLog[];
 
   return c.html(
     <MurojaahPage
@@ -57,6 +60,9 @@ murojaah.get("/", (c) => {
       lastLog={lastLog}
       recentLogs={recentLogs}
       allTimeJuz={allTimeTotals.murojaahJuz}
+      page={page}
+      totalLogs={totalLogs}
+      perPage={perPage}
     />
   );
 });

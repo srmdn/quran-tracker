@@ -27,7 +27,11 @@ export const TilawahPage: FC<{
   recentLogs: LogEntry[];
   allTimeJuz: number;
   totalKhatam: number;
-}> = ({ user, success, error, todayWib, todayTotal, target, lastLog, recentLogs, allTimeJuz, totalKhatam }) => {
+  page: number;
+  totalLogs: number;
+  perPage: number;
+}> = ({ user, success, error, todayWib, todayTotal, target, lastLog, recentLogs, allTimeJuz, totalKhatam, page, totalLogs, perPage }) => {
+  const totalPages = Math.max(1, Math.ceil(totalLogs / perPage));
   const todayPercent = Math.min(100, Math.round((todayTotal / target.tilawah_juz_daily) * 100));
   const lastSurahName = lastLog?.end_surah ? SURAHS.find((s) => s.number === lastLog.end_surah)?.name : null;
 
@@ -139,8 +143,9 @@ export const TilawahPage: FC<{
 
         {/* Recent logs */}
         <div class="w-full bg-white border border-border-light rounded-xl overflow-hidden">
-          <div class="px-6 py-4 border-b border-border-light bg-slate-50/50">
-            <h3 class="text-text-main text-lg font-bold">Recent Tilawah Logs</h3>
+          <div class="px-6 py-4 border-b border-border-light bg-slate-50/50 flex items-center justify-between">
+            <h3 class="text-text-main text-lg font-bold">Tilawah Logs</h3>
+            <span class="text-xs text-text-secondary">{totalLogs} entries</span>
           </div>
           <div class="divide-y divide-border-light">
             {recentLogs.length === 0 ? (
@@ -182,6 +187,25 @@ export const TilawahPage: FC<{
               })()
             }
           </div>
+          {totalPages > 1 && (
+            <div class="px-6 py-4 border-t border-border-light bg-slate-50/50 flex items-center justify-between gap-4">
+              <span class="text-xs text-text-secondary">Page {page} of {totalPages}</span>
+              <div class="flex items-center gap-2">
+                {page > 1 && (
+                  <a href={`/tilawah?page=${page - 1}`}
+                    class="px-3 py-1.5 text-xs font-semibold text-primary border border-primary/30 rounded-lg hover:bg-primary-light transition-colors">
+                    ← Prev
+                  </a>
+                )}
+                {page < totalPages && (
+                  <a href={`/tilawah?page=${page + 1}`}
+                    class="px-3 py-1.5 text-xs font-semibold text-primary border border-primary/30 rounded-lg hover:bg-primary-light transition-colors">
+                    Next →
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </Layout>

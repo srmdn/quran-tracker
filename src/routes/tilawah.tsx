@@ -45,9 +45,12 @@ tilawah.get("/", (c) => {
     .prepare("SELECT id, date_wib, juz_amount, end_surah, end_ayah, end_juz, created_at FROM tilawah_logs WHERE user_id = ? ORDER BY created_at DESC LIMIT 1")
     .get(user.id) as TilawahLog | null;
 
+  const perPage = 15;
+  const page = Math.max(1, parseInt(c.req.query("page") || "1", 10));
+  const totalLogs = (db.prepare("SELECT COUNT(*) AS cnt FROM tilawah_logs WHERE user_id = ?").get(user.id) as { cnt: number }).cnt;
   const recentLogs = db
-    .prepare("SELECT id, date_wib, juz_amount, end_surah, end_ayah, end_juz, created_at FROM tilawah_logs WHERE user_id = ? ORDER BY created_at DESC LIMIT 15")
-    .all(user.id) as TilawahLog[];
+    .prepare("SELECT id, date_wib, juz_amount, end_surah, end_ayah, end_juz, created_at FROM tilawah_logs WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?")
+    .all(user.id, perPage, (page - 1) * perPage) as TilawahLog[];
 
   return c.html(
     <TilawahPage
@@ -61,6 +64,9 @@ tilawah.get("/", (c) => {
       recentLogs={recentLogs}
       allTimeJuz={allTimeTotals.tilawahJuz}
       totalKhatam={khatamCount.cnt}
+      page={page}
+      totalLogs={totalLogs}
+      perPage={perPage}
     />
   );
 });

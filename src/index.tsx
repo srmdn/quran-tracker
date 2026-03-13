@@ -4,8 +4,6 @@ import { serveStatic } from "hono/bun";
 import { initializeDatabase } from "./db/schema.ts";
 import { getSessionUser, cleanExpiredSessions } from "./lib/session.ts";
 import { authRoutes } from "./routes/auth.ts";
-import { leaderboardRoutes } from "./routes/leaderboard.tsx";
-import { progressRoutes } from "./routes/progress.tsx";
 import { activityRoutes } from "./routes/activity.tsx";
 import { adminRoutes } from "./routes/admin.tsx";
 import { dashboardRoutes } from "./routes/dashboard.tsx";
@@ -58,7 +56,7 @@ app.get("/login", (c) => {
 // Pending page
 app.get("/pending", authMiddleware, (c) => {
   const user = c.get("user");
-  if (!isPendingRole(user.role)) return c.redirect("/leaderboard");
+  if (!isPendingRole(user.role)) return c.redirect("/dashboard");
   return c.html(<PendingPage user={user} />);
 });
 
@@ -67,8 +65,8 @@ app.route("/auth", authRoutes);
 app.route("/setup", setupRoutes);
 app.route("/tilawah", tilawahRoutes);
 app.route("/murojaah", murojaahRoutes);
-app.route("/leaderboard", leaderboardRoutes);
-app.route("/progress", progressRoutes);
+app.get("/leaderboard", (c) => c.redirect("/activity/leaderboard", 301));
+app.get("/progress", (c) => c.redirect("/dashboard", 301));
 app.route("/activity", activityRoutes);
 app.route("/admin", adminRoutes);
 app.route("/dashboard", dashboardRoutes);
