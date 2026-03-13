@@ -4,6 +4,7 @@ import { db } from "../db/connection.ts";
 import { sendMonthlySnapshotEmails, sendSnapshotPreviewEmail } from "../lib/monthly-email.ts";
 import { createPreviousMonthSnapshot } from "../lib/monthly-snapshot.ts";
 import { sendTestReminderEmail } from "../lib/reminder-email.ts";
+import { sendApprovalEmail } from "../lib/welcome-email.ts";
 import { isAdminRole, isAssignableRole, isSuperAdminRole } from "../lib/roles.ts";
 import { getWibYearMonth } from "../lib/wib-date.ts";
 import { AdminPage } from "../views/pages/AdminPage.tsx";
@@ -49,6 +50,8 @@ admin.post("/users/:id/approve", (c) => {
   db.prepare("UPDATE users SET role = 'santri', updated_at = datetime('now') WHERE id = ? AND role = 'pending'").run(
     userId
   );
+  const approved = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as User | null;
+  if (approved) sendApprovalEmail(approved).catch(() => {});
   return c.redirect("/admin?success=User approved successfully.");
 });
 

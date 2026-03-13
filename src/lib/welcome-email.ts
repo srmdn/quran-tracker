@@ -46,6 +46,45 @@ export async function sendWelcomeEmail(user: User): Promise<void> {
   await sendSmtpMail({ to: user.email, subject, text, html });
 }
 
+export async function sendApprovalEmail(user: User): Promise<void> {
+  if (!user.email) return;
+
+  const firstName = user.name.split(" ")[0]!;
+  const ctaUrl = `${PUBLIC_BASE_URL}/setup`;
+
+  const subject = `Your ${PRODUCT_NAME} account has been approved!`;
+
+  const text = [
+    `Assalamu'alaikum ${firstName},`,
+    ``,
+    `Great news! Your account on ${PRODUCT_NAME} (${ORG_NAME}) has been approved.`,
+    ``,
+    `You can now log in and start tracking your daily Tilawah and Murojaah.`,
+    ``,
+    `Get started: ${ctaUrl}`,
+    ``,
+    `May Allah bless your Quran journey.`,
+    ``,
+    `— ${PRODUCT_NAME} (${ORG_NAME})`,
+  ].join("\n");
+
+  const bodyHtml = `
+    <p style="margin:0 0 16px;">Assalamu'alaikum <strong>${escapeHtml(firstName)}</strong>,</p>
+    <p style="margin:0 0 16px;color:#475569;">
+      Great news! Your account on <strong>${escapeHtml(PRODUCT_NAME)}</strong> (${escapeHtml(ORG_NAME)}) has been approved.
+    </p>
+    <p style="margin:0 0 16px;color:#475569;">
+      You can now log in and start tracking your daily <strong>Tilawah</strong> and <strong>Murojaah</strong>.
+    </p>
+    ${ctaButton(ctaUrl, "Get Started")}
+    <p style="margin:0;color:#475569;font-size:14px;">May Allah bless your Quran journey.</p>
+  `;
+
+  const html = baseEmailHtml({ subtitle: "Account Approved", bodyHtml });
+
+  await sendSmtpMail({ to: user.email, subject, text, html });
+}
+
 export async function sendNewMemberAlertToAdmins(user: User): Promise<void> {
   const admins = db
     .prepare(
