@@ -20,208 +20,294 @@ export const LandingPage: FC<{
   totalTilawahJuz: number;
   totalMurojaahJuz: number;
 }> = ({ lang, leaderboard, year, month, totalMembers, totalTilawahJuz, totalMurojaahJuz }) => {
-  const monthLabel = `${year}-${String(month).padStart(2, "0")}`;
+  const monthLabel = new Date(year, month - 1).toLocaleString(lang === "id" ? "id-ID" : "en-US", {
+    month: "long",
+    year: "numeric",
+  });
   const topThree = leaderboard.rows.slice(0, 3);
   const rest = leaderboard.rows.slice(3);
 
   return (
     <Layout title={`${APP_NAME} — ${t(lang, "landingTagline")}`}>
-      {/* Minimal nav */}
-      <nav class="w-full border-b border-border-light bg-white/80 backdrop-blur-sm sticky top-0 z-10">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-          <div class="flex items-center gap-2.5">
-            <div class="size-8">
-              <img src="/public/logo.png" alt="Logo" class="w-full h-full object-contain" />
-            </div>
-            <span class="font-black text-text-main text-base">{APP_NAME}</span>
-          </div>
-          <div class="flex items-center gap-3">
-            <form method="post" action="/lang" class="inline">
+      {/* ── Navbar ── */}
+      <header class="sticky top-0 z-20 w-full bg-white/90 backdrop-blur border-b border-border-light">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+          {/* Logo + name */}
+          <a href="/landing" class="flex items-center gap-2.5 shrink-0">
+            <img src="/public/logo.png" alt="Logo" class="size-8 object-contain" />
+            <span class="font-black text-text-main text-base leading-none">{APP_NAME}</span>
+          </a>
+
+          {/* Right side */}
+          <div class="flex items-center gap-2 sm:gap-3">
+            <form method="post" action="/lang">
               <input type="hidden" name="locale" value={lang === "en" ? "id" : "en"} />
               <button
                 type="submit"
-                class="text-xs font-bold px-2 py-1 rounded-lg border border-border-light bg-slate-50 text-text-secondary hover:text-primary hover:border-primary/30 transition-colors"
+                class="text-xs font-bold px-2.5 py-1.5 rounded-lg border border-border-light bg-slate-50 text-text-secondary hover:text-primary hover:border-primary/40 transition-colors"
               >
                 {t(lang, "switchLang")}
               </button>
             </form>
             <a
               href="/login"
-              class="px-4 py-2 rounded-lg bg-primary text-white text-sm font-bold hover:bg-primary-dark transition-colors"
+              class="px-4 py-2 rounded-lg bg-primary text-white text-sm font-bold hover:bg-primary-dark transition-colors shadow-sm whitespace-nowrap"
             >
               {t(lang, "signIn")}
             </a>
           </div>
         </div>
-      </nav>
+      </header>
 
       <main class="flex-1 w-full">
-        {/* Hero */}
-        <section class="w-full bg-gradient-to-b from-primary/5 to-white border-b border-border-light">
-          <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 text-center">
-            <div class="inline-flex items-center gap-2 bg-primary/10 text-primary text-xs font-bold px-3 py-1.5 rounded-full mb-6 border border-primary/20">
-              {t(lang, "landingBadge")}
+
+        {/* ── Hero ── */}
+        <section class="relative w-full overflow-hidden bg-gradient-to-br from-primary/8 via-white to-primary/4 border-b border-border-light">
+          {/* Decorative circles */}
+          <div class="pointer-events-none absolute -top-24 -right-24 size-96 rounded-full bg-primary/6 blur-3xl" />
+          <div class="pointer-events-none absolute -bottom-16 -left-16 size-64 rounded-full bg-primary/5 blur-2xl" />
+
+          <div class="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28 lg:py-32">
+            <div class="max-w-3xl mx-auto text-center">
+              {/* Badge */}
+              <div class="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-bold px-3 py-1.5 rounded-full mb-6 border border-primary/20">
+                <span class="material-symbols-outlined text-sm" style="font-size:14px">mosque</span>
+                {t(lang, "landingBadge")}
+              </div>
+
+              {/* Headline */}
+              <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-text-main leading-[1.1] tracking-[-0.03em] mb-5">
+                {t(lang, "landingHeroTitle")}
+              </h1>
+
+              {/* Sub */}
+              <p class="text-text-secondary text-base sm:text-lg leading-relaxed max-w-xl mx-auto mb-10">
+                {t(lang, "landingHeroDesc")}
+              </p>
+
+              {/* CTA */}
+              <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <a
+                  href="/login"
+                  class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-primary text-white font-bold text-base hover:bg-primary-dark transition-colors shadow-md"
+                >
+                  {t(lang, "landingCta")}
+                  <span class="material-symbols-outlined text-base" style="font-size:18px">arrow_forward</span>
+                </a>
+                <a
+                  href="#leaderboard"
+                  class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl border border-border-light bg-white text-text-main font-bold text-base hover:bg-slate-50 transition-colors"
+                >
+                  <span class="material-symbols-outlined text-base" style="font-size:18px">leaderboard</span>
+                  {t(lang, "leaderboard")}
+                </a>
+              </div>
             </div>
-            <h1 class="text-4xl md:text-5xl font-black text-text-main leading-tight tracking-[-0.033em] mb-4">
-              {t(lang, "landingHeroTitle")}
-            </h1>
-            <p class="text-text-secondary text-lg max-w-2xl mx-auto mb-8 leading-relaxed">
-              {t(lang, "landingHeroDesc")}
-            </p>
-            <a
-              href="/login"
-              class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white font-bold text-base hover:bg-primary-dark transition-colors shadow-sm"
-            >
-              {t(lang, "landingCta")}
-              <span class="material-symbols-outlined text-base">arrow_forward</span>
-            </a>
           </div>
         </section>
 
-        {/* Stats */}
+        {/* ── Stats ── */}
         <section class="w-full bg-white border-b border-border-light">
-          <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-            <div class="grid grid-cols-3 gap-4 md:gap-8 text-center">
-              <div>
-                <p class="text-3xl md:text-4xl font-black text-primary">{totalMembers}</p>
-                <p class="text-text-secondary text-sm mt-1">{t(lang, "landingStatMembers")}</p>
+          <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+              {/* Members */}
+              <div class="flex flex-col sm:flex-col items-center sm:items-start flex-row gap-4 bg-slate-50 rounded-2xl border border-border-light p-6">
+                <div class="shrink-0 size-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                  <span class="material-symbols-outlined" style="font-size:22px">group</span>
+                </div>
+                <div>
+                  <p class="text-3xl font-black text-text-main">{totalMembers}</p>
+                  <p class="text-text-secondary text-sm mt-0.5">{t(lang, "landingStatMembers")}</p>
+                </div>
               </div>
-              <div>
-                <p class="text-3xl md:text-4xl font-black text-primary">{totalTilawahJuz}</p>
-                <p class="text-text-secondary text-sm mt-1">{t(lang, "landingStatTilawah")}</p>
+
+              {/* Tilawah */}
+              <div class="flex flex-col sm:flex-col items-center sm:items-start flex-row gap-4 bg-slate-50 rounded-2xl border border-border-light p-6">
+                <div class="shrink-0 size-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                  <span class="material-symbols-outlined" style="font-size:22px">menu_book</span>
+                </div>
+                <div>
+                  <p class="text-3xl font-black text-text-main">{totalTilawahJuz}</p>
+                  <p class="text-text-secondary text-sm mt-0.5">{t(lang, "landingStatTilawah")}</p>
+                </div>
               </div>
-              <div>
-                <p class="text-3xl md:text-4xl font-black text-primary">{totalMurojaahJuz}</p>
-                <p class="text-text-secondary text-sm mt-1">{t(lang, "landingStatMurojaah")}</p>
+
+              {/* Murojaah */}
+              <div class="flex flex-col sm:flex-col items-center sm:items-start flex-row gap-4 bg-slate-50 rounded-2xl border border-border-light p-6">
+                <div class="shrink-0 size-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                  <span class="material-symbols-outlined" style="font-size:22px">refresh</span>
+                </div>
+                <div>
+                  <p class="text-3xl font-black text-text-main">{totalMurojaahJuz}</p>
+                  <p class="text-text-secondary text-sm mt-0.5">{t(lang, "landingStatMurojaah")}</p>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Leaderboard */}
-        <section class="w-full bg-slate-50/50">
-          <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div class="flex flex-col md:flex-row md:items-end justify-between gap-2 mb-6">
+        {/* ── Leaderboard ── */}
+        <section id="leaderboard" class="w-full bg-slate-50/70 border-b border-border-light">
+          <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+            {/* Section header */}
+            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2 mb-8">
               <div>
-                <h2 class="text-2xl font-black text-text-main">{t(lang, "leaderboard")}</h2>
-                <p class="text-text-secondary text-sm">{t(lang, "monthlyRankings")} · {monthLabel}</p>
+                <h2 class="text-2xl sm:text-3xl font-black text-text-main">{t(lang, "leaderboard")}</h2>
+                <p class="text-text-secondary text-sm mt-1">
+                  {t(lang, "monthlyRankings")} · {monthLabel}
+                </p>
               </div>
-              <p class="text-xs text-text-secondary">Score = Tilawah×10 + Murojaah×7 + Khatam×300</p>
+              <p class="text-xs text-text-secondary bg-white border border-border-light rounded-lg px-3 py-1.5 self-start sm:self-auto whitespace-nowrap">
+                Score = Tilawah×10 + Murojaah×7 + Khatam×300
+              </p>
             </div>
 
-            {/* Top 3 */}
-            {topThree.length > 0 && (
-              <div class="grid md:grid-cols-3 gap-4 mb-4">
-                {topThree.map((row) => (
-                  <div
-                    class={`bg-white border rounded-xl p-5 ${row.rank === 1 ? "border-yellow-300 shadow-sm" : "border-border-light"}`}
-                  >
-                    <div class="flex items-center justify-between mb-2">
-                      <span class={`text-xs uppercase font-bold ${row.rank === 1 ? "text-yellow-600" : row.rank === 2 ? "text-slate-500" : "text-amber-700"}`}>
-                        {row.rank === 1 ? "🥇 1st" : row.rank === 2 ? "🥈 2nd" : "🥉 3rd"}
-                      </span>
-                    </div>
-                    <p class="text-lg font-black text-text-main mb-1">{row.name}</p>
-                    <p class="text-xl font-black text-primary mb-1">{row.score} {t(lang, "ptsLabel")}</p>
-                    <p class="text-xs text-text-secondary">
-                      Tilawah {row.tilawah_juz} · Murojaah {row.murojaah_juz} · Khatam {row.khatam_count}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Rest of table */}
-            {rest.length > 0 && (
-              <div class="bg-white border border-border-light rounded-xl overflow-hidden">
-                <table class="min-w-full text-sm">
-                  <thead class="bg-slate-50 text-text-secondary border-b border-border-light">
-                    <tr>
-                      <th class="px-4 py-3 text-left font-semibold">#</th>
-                      <th class="px-4 py-3 text-left font-semibold">{t(lang, "nameCol")}</th>
-                      <th class="px-4 py-3 text-right font-semibold">Tilawah</th>
-                      <th class="px-4 py-3 text-right font-semibold">Murojaah</th>
-                      <th class="px-4 py-3 text-right font-semibold">Khatam</th>
-                      <th class="px-4 py-3 text-right font-semibold">{t(lang, "scoreCol")}</th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-border-light">
-                    {rest.map((row) => (
-                      <tr class="hover:bg-slate-50 transition-colors">
-                        <td class="px-4 py-3 font-bold text-text-secondary">#{row.rank}</td>
-                        <td class="px-4 py-3 text-text-main font-semibold">{row.name}</td>
-                        <td class="px-4 py-3 text-right text-text-main">{row.tilawah_juz}</td>
-                        <td class="px-4 py-3 text-right text-text-main">{row.murojaah_juz}</td>
-                        <td class="px-4 py-3 text-right text-text-main">{row.khatam_count}</td>
-                        <td class="px-4 py-3 text-right font-black text-primary">{row.score}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {leaderboard.rows.length === 0 && (
-              <div class="bg-white border border-border-light rounded-xl px-6 py-10 text-center text-text-secondary text-sm">
+            {leaderboard.rows.length === 0 ? (
+              <div class="bg-white border border-border-light rounded-2xl px-6 py-14 text-center text-text-secondary text-sm">
                 {t(lang, "noActivityYet")}
               </div>
+            ) : (
+              <>
+                {/* Top 3 podium */}
+                {topThree.length > 0 && (
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                    {topThree.map((row) => {
+                      const medal = row.rank === 1 ? "🥇" : row.rank === 2 ? "🥈" : "🥉";
+                      const rankLabel = row.rank === 1 ? "1st" : row.rank === 2 ? "2nd" : "3rd";
+                      const highlight = row.rank === 1;
+                      return (
+                        <div class={`relative bg-white rounded-2xl border p-5 ${highlight ? "border-yellow-300 shadow-md ring-1 ring-yellow-200/60" : "border-border-light shadow-sm"}`}>
+                          {highlight && (
+                            <div class="absolute -top-2.5 left-1/2 -translate-x-1/2 text-xs font-black px-3 py-0.5 bg-yellow-400 text-white rounded-full shadow-sm">
+                              #1
+                            </div>
+                          )}
+                          <div class="flex items-start justify-between mb-3">
+                            <span class="text-2xl">{medal}</span>
+                            <span class={`text-xs font-bold uppercase tracking-wide ${row.rank === 1 ? "text-yellow-600" : row.rank === 2 ? "text-slate-500" : "text-amber-700"}`}>
+                              {rankLabel}
+                            </span>
+                          </div>
+                          <p class="text-lg font-black text-text-main leading-tight mb-1">{row.name}</p>
+                          <p class="text-2xl font-black text-primary mb-3">{row.score} <span class="text-sm font-bold text-text-secondary">{t(lang, "ptsLabel")}</span></p>
+                          <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-text-secondary border-t border-border-light pt-3">
+                            <span>Tilawah <strong class="text-text-main">{row.tilawah_juz}</strong></span>
+                            <span>Murojaah <strong class="text-text-main">{row.murojaah_juz}</strong></span>
+                            <span>Khatam <strong class="text-text-main">{row.khatam_count}</strong></span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Ranks 4-10 */}
+                {rest.length > 0 && (
+                  <div class="bg-white border border-border-light rounded-2xl overflow-hidden shadow-sm">
+                    {/* Desktop table */}
+                    <div class="hidden sm:block overflow-x-auto">
+                      <table class="min-w-full text-sm">
+                        <thead class="bg-slate-50 border-b border-border-light text-text-secondary">
+                          <tr>
+                            <th class="px-5 py-3 text-left font-semibold w-12">#</th>
+                            <th class="px-5 py-3 text-left font-semibold">{t(lang, "nameCol")}</th>
+                            <th class="px-5 py-3 text-right font-semibold">Tilawah</th>
+                            <th class="px-5 py-3 text-right font-semibold">Murojaah</th>
+                            <th class="px-5 py-3 text-right font-semibold">Khatam</th>
+                            <th class="px-5 py-3 text-right font-semibold">{t(lang, "scoreCol")}</th>
+                          </tr>
+                        </thead>
+                        <tbody class="divide-y divide-border-light">
+                          {rest.map((row) => (
+                            <tr class="hover:bg-slate-50/70 transition-colors">
+                              <td class="px-5 py-3.5 font-bold text-text-secondary">#{row.rank}</td>
+                              <td class="px-5 py-3.5 font-semibold text-text-main">{row.name}</td>
+                              <td class="px-5 py-3.5 text-right text-text-main">{row.tilawah_juz}</td>
+                              <td class="px-5 py-3.5 text-right text-text-main">{row.murojaah_juz}</td>
+                              <td class="px-5 py-3.5 text-right text-text-main">{row.khatam_count}</td>
+                              <td class="px-5 py-3.5 text-right font-black text-primary">{row.score}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Mobile card list */}
+                    <div class="sm:hidden divide-y divide-border-light">
+                      {rest.map((row) => (
+                        <div class="flex items-center justify-between px-4 py-3.5 gap-3">
+                          <div class="flex items-center gap-3 min-w-0">
+                            <span class="shrink-0 text-sm font-black text-text-secondary w-7">#{row.rank}</span>
+                            <p class="font-semibold text-text-main text-sm truncate">{row.name}</p>
+                          </div>
+                          <div class="shrink-0 text-right">
+                            <p class="font-black text-primary text-sm">{row.score} <span class="text-xs font-bold text-text-secondary">{t(lang, "ptsLabel")}</span></p>
+                            <p class="text-xs text-text-secondary">{row.tilawah_juz} · {row.murojaah_juz} · {row.khatam_count}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </section>
 
-        {/* How it works */}
-        <section class="w-full bg-white border-t border-border-light">
-          <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <h2 class="text-2xl font-black text-text-main mb-2">{t(lang, "landingHowTitle")}</h2>
-            <p class="text-text-secondary text-sm mb-8">{t(lang, "landingHowDesc")}</p>
-            <div class="grid md:grid-cols-3 gap-6">
-              <div class="flex flex-col gap-3">
-                <div class="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-black text-lg border border-primary/20">
-                  1
+        {/* ── How It Works ── */}
+        <section class="w-full bg-white border-b border-border-light">
+          <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+            <div class="max-w-2xl mb-10">
+              <h2 class="text-2xl sm:text-3xl font-black text-text-main mb-2">{t(lang, "landingHowTitle")}</h2>
+              <p class="text-text-secondary text-sm sm:text-base">{t(lang, "landingHowDesc")}</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[
+                { icon: "edit_note", step: "1", title: t(lang, "landingStep1Title"), desc: t(lang, "landingStep1Desc") },
+                { icon: "local_fire_department", step: "2", title: t(lang, "landingStep2Title"), desc: t(lang, "landingStep2Desc") },
+                { icon: "emoji_events", step: "3", title: t(lang, "landingStep3Title"), desc: t(lang, "landingStep3Desc") },
+              ].map((item) => (
+                <div class="relative flex flex-col gap-4 p-6 bg-slate-50 rounded-2xl border border-border-light hover:border-primary/30 hover:shadow-sm transition-all">
+                  <div class="flex items-center gap-3">
+                    <div class="size-11 rounded-xl bg-primary text-white flex items-center justify-center shadow-sm">
+                      <span class="material-symbols-outlined" style="font-size:20px">{item.icon}</span>
+                    </div>
+                    <span class="text-xs font-black text-text-secondary uppercase tracking-widest">Step {item.step}</span>
+                  </div>
+                  <h3 class="font-black text-text-main text-base">{item.title}</h3>
+                  <p class="text-text-secondary text-sm leading-relaxed">{item.desc}</p>
                 </div>
-                <h3 class="font-bold text-text-main">{t(lang, "landingStep1Title")}</h3>
-                <p class="text-text-secondary text-sm leading-relaxed">{t(lang, "landingStep1Desc")}</p>
-              </div>
-              <div class="flex flex-col gap-3">
-                <div class="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-black text-lg border border-primary/20">
-                  2
-                </div>
-                <h3 class="font-bold text-text-main">{t(lang, "landingStep2Title")}</h3>
-                <p class="text-text-secondary text-sm leading-relaxed">{t(lang, "landingStep2Desc")}</p>
-              </div>
-              <div class="flex flex-col gap-3">
-                <div class="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-black text-lg border border-primary/20">
-                  3
-                </div>
-                <h3 class="font-bold text-text-main">{t(lang, "landingStep3Title")}</h3>
-                <p class="text-text-secondary text-sm leading-relaxed">{t(lang, "landingStep3Desc")}</p>
-              </div>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* CTA footer */}
-        <section class="w-full bg-primary/5 border-t border-primary/20">
-          <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
-            <h2 class="text-2xl font-black text-text-main mb-3">{t(lang, "landingJoinTitle")}</h2>
-            <p class="text-text-secondary text-sm mb-6 max-w-md mx-auto">{t(lang, "landingJoinDesc")}</p>
+        {/* ── CTA Banner ── */}
+        <section class="w-full bg-primary">
+          <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14 text-center">
+            <h2 class="text-2xl sm:text-3xl font-black text-white mb-3">{t(lang, "landingJoinTitle")}</h2>
+            <p class="text-white/75 text-sm sm:text-base mb-8 max-w-md mx-auto">{t(lang, "landingJoinDesc")}</p>
             <a
               href="/login"
-              class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white font-bold text-base hover:bg-primary-dark transition-colors shadow-sm"
+              class="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-white text-primary font-bold text-base hover:bg-primary-light transition-colors shadow-md"
             >
               {t(lang, "landingCta")}
-              <span class="material-symbols-outlined text-base">arrow_forward</span>
+              <span class="material-symbols-outlined" style="font-size:18px">arrow_forward</span>
             </a>
           </div>
         </section>
       </main>
 
-      {/* Footer */}
+      {/* ── Footer ── */}
       <footer class="w-full border-t border-border-light bg-white">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex items-center justify-between gap-4">
-          <p class="text-xs text-text-secondary">© {new Date().getFullYear()} Markaz Talaqqi</p>
-          <a href="/login" class="text-xs text-text-secondary hover:text-primary transition-colors">
-            {t(lang, "signIn")}
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <img src="/public/logo.png" alt="Logo" class="size-5 object-contain opacity-60" />
+            <p class="text-xs text-text-secondary">© {new Date().getFullYear()} Markaz Talaqqi</p>
+          </div>
+          <a href="/login" class="text-xs font-semibold text-text-secondary hover:text-primary transition-colors">
+            {t(lang, "signIn")} →
           </a>
         </div>
       </footer>
