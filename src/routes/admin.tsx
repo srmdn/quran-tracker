@@ -4,7 +4,7 @@ import { db } from "../db/connection.ts";
 import { sendMonthlySnapshotEmails, sendSnapshotPreviewEmail } from "../lib/monthly-email.ts";
 import { createPreviousMonthSnapshot } from "../lib/monthly-snapshot.ts";
 import { sendTestReminderEmail } from "../lib/reminder-email.ts";
-import { sendApprovalEmail } from "../lib/welcome-email.ts";
+import { sendApprovalEmail, sendRejectionEmail } from "../lib/welcome-email.ts";
 import { isAdminRole, isAssignableRole, isSuperAdminRole } from "../lib/roles.ts";
 import { getWibYearMonth } from "../lib/wib-date.ts";
 import { AdminPage } from "../views/pages/AdminPage.tsx";
@@ -57,9 +57,11 @@ admin.post("/users/:id/approve", (c) => {
 
 admin.post("/users/:id/reject", (c) => {
   const userId = c.req.param("id");
+  const rejected = db.prepare("SELECT * FROM users WHERE id = ? AND role = 'pending'").get(userId) as User | null;
   // Delete the user and their sessions
   db.prepare("DELETE FROM sessions WHERE user_id = ?").run(userId);
   db.prepare("DELETE FROM users WHERE id = ? AND role = 'pending'").run(userId);
+  if (rejected) sendRejectionEmail(rejected).catch(() => {});
   return c.redirect("/admin?success=User rejected and removed.");
 });
 
@@ -226,6 +228,21 @@ admin.post("/snapshots/run", async (c) => {
   return c.redirect(
     `/admin?success=Snapshot created for ${period} with ${result.rowsInserted} rows.${emailMsg}`
   );
+});
+
+admin.post("/email/test-approval", async (c) => {
+  const user = c.get("user");
+  if (!user.email) {
+    return c.redirect("/admin?error=Your account has no email address.");
+  }
+  try {
+    await sendApprovalEmail(user);
+    return c.redirect("/admin?success=Test approval email sent to " + user.email);
+  } catch (err) {
+    return c.redirect(
+      `/admin?error=Failed to send test approval: ${err instanceof Error ? err.message : "Unknown error"}`
+    );
+  }
 });
 
 admin.post("/email/test-reminder", async (c) => {

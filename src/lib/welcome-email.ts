@@ -85,6 +85,40 @@ export async function sendApprovalEmail(user: User): Promise<void> {
   await sendSmtpMail({ to: user.email, subject, text, html });
 }
 
+export async function sendRejectionEmail(user: User): Promise<void> {
+  if (!user.email) return;
+
+  const firstName = user.name.split(" ")[0]!;
+
+  const subject = `Your ${PRODUCT_NAME} registration update`;
+
+  const text = [
+    `Assalamu'alaikum ${firstName},`,
+    ``,
+    `We're sorry to inform you that your registration request for ${PRODUCT_NAME} (${ORG_NAME})`,
+    `could not be approved at this time.`,
+    ``,
+    `If you believe this is a mistake or have questions, please contact us directly.`,
+    ``,
+    `— ${PRODUCT_NAME} (${ORG_NAME})`,
+  ].join("\n");
+
+  const bodyHtml = `
+    <p style="margin:0 0 16px;">Assalamu'alaikum <strong>${escapeHtml(firstName)}</strong>,</p>
+    <p style="margin:0 0 16px;color:#475569;">
+      We're sorry to inform you that your registration request for
+      <strong>${escapeHtml(PRODUCT_NAME)}</strong> (${escapeHtml(ORG_NAME)}) could not be approved at this time.
+    </p>
+    <p style="margin:0;color:#475569;font-size:14px;">
+      If you believe this is a mistake or have questions, please contact us directly.
+    </p>
+  `;
+
+  const html = baseEmailHtml({ subtitle: "Registration Update", bodyHtml });
+
+  await sendSmtpMail({ to: user.email, subject, text, html });
+}
+
 export async function sendNewMemberAlertToAdmins(user: User): Promise<void> {
   const admins = db
     .prepare(
