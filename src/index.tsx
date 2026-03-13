@@ -11,6 +11,7 @@ import { setupRoutes } from "./routes/setup.tsx";
 import { tilawahRoutes } from "./routes/tilawah.tsx";
 import { murojaahRoutes } from "./routes/murojaah.tsx";
 import { langRoutes } from "./routes/lang.ts";
+import { landingRoutes } from "./routes/landing.tsx";
 import { LoginPage } from "./views/pages/LoginPage.tsx";
 import { PendingPage } from "./views/pages/PendingPage.tsx";
 import { Layout } from "./views/Layout.tsx";
@@ -34,17 +35,17 @@ app.use("/public/*", serveStatic({ root: "./" }));
 // Language middleware on all non-static routes
 app.use("*", langMiddleware);
 
-// Root route - redirect based on auth state
+// Root route - redirect logged-in users, show landing page to guests
 app.get("/", (c) => {
   const sessionId = getCookie(c, "session");
   if (sessionId) {
     const user = getSessionUser(sessionId);
     if (user) {
       if (isPendingRole(user.role)) return c.redirect("/pending");
-      return c.redirect("/activity/leaderboard");
+      return c.redirect("/dashboard");
     }
   }
-  return c.redirect("/login");
+  return c.redirect("/landing");
 });
 
 // Login page
@@ -68,6 +69,7 @@ app.get("/pending", authMiddleware, (c) => {
 });
 
 // Mount routes
+app.route("/landing", landingRoutes);
 app.route("/lang", langRoutes);
 app.route("/auth", authRoutes);
 app.route("/setup", setupRoutes);
