@@ -59,6 +59,31 @@ export const AdminPage: FC<{
           </div>
         </div>
 
+        <div class="w-full bg-white border border-border-light rounded-xl p-6 shadow-sm mb-8">
+          <h2 class="text-text-main text-lg font-bold mb-1">Test Emails</h2>
+          <p class="text-text-secondary text-sm mb-4">
+            Send a test email to your own account ({user.email}).
+          </p>
+          <div class="flex flex-wrap gap-3">
+            <form method="POST" action="/admin/email/test-reminder">
+              <button
+                type="submit"
+                class="px-4 py-2.5 bg-white text-primary border border-primary/30 rounded-lg font-bold text-sm hover:bg-primary-light transition-colors"
+              >
+                Send Test Daily Reminder
+              </button>
+            </form>
+            <form method="POST" action="/admin/email/test-snapshot">
+              <button
+                type="submit"
+                class="px-4 py-2.5 bg-white text-primary border border-primary/30 rounded-lg font-bold text-sm hover:bg-primary-light transition-colors"
+              >
+                Send Test Monthly Snapshot
+              </button>
+            </form>
+          </div>
+        </div>
+
         {isSuperAdminRole(user.role) && (
           <div class="w-full bg-white border border-border-light rounded-xl p-6 shadow-sm mb-8">
             <h2 class="text-text-main text-lg font-bold mb-4">Create User</h2>

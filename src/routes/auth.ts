@@ -4,6 +4,7 @@ import { db } from "../db/connection.ts";
 import { upsertUser, createSession, deleteSession } from "../lib/session.ts";
 import { GOOGLE_REDIRECT_URI } from "../config.ts";
 import { isPendingRole } from "../lib/roles.ts";
+import { sendWelcomeEmail, sendNewMemberAlertToAdmins } from "../lib/welcome-email.ts";
 import type { User } from "../types.ts";
 
 const auth = new Hono();
@@ -111,7 +112,7 @@ auth.get("/google/callback", async (c) => {
   };
 
   // Upsert user in DB
-  const user = upsertUser({
+  const { user, isNew } = upsertUser({
     googleId: googleUser.id,
     email: googleUser.email,
     name: googleUser.name,
@@ -128,6 +129,12 @@ auth.get("/google/callback", async (c) => {
     maxAge: 60 * 60 * 24 * 7,
     path: "/",
   });
+
+  if (isNew) {
+    // Fire-and-forget — don't block the redirect
+    sendWelcomeEmail(user).catch(() => {});
+    sendNewMemberAlertToAdmins(user).catch(() => {});
+  }
 
   if (isPendingRole(user.role)) return c.redirect("/pending");
   return c.redirect("/dashboard");

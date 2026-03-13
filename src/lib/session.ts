@@ -37,7 +37,7 @@ export function upsertUser(params: {
   email: string;
   name: string;
   avatarUrl: string | null;
-}): User {
+}): { user: User; isNew: boolean } {
   // Check if any users exist - first user becomes super_admin
   const count = db.prepare("SELECT COUNT(*) as c FROM users").get() as { c: number };
   const isFirstUser = count.c === 0;
@@ -50,7 +50,7 @@ export function upsertUser(params: {
     db.prepare(
       "UPDATE users SET name = ?, avatar_url = ?, updated_at = datetime('now') WHERE id = ?"
     ).run(params.name, params.avatarUrl, existing.id);
-    return { ...existing, name: params.name, avatar_url: params.avatarUrl };
+    return { user: { ...existing, name: params.name, avatar_url: params.avatarUrl }, isNew: false };
   }
 
   // If a manual account exists for this email, bind it to this Google identity.
@@ -63,9 +63,8 @@ export function upsertUser(params: {
       "UPDATE users SET google_id = ?, name = ?, avatar_url = ?, updated_at = datetime('now') WHERE id = ?"
     ).run(params.googleId, params.name, params.avatarUrl, existingByEmail.id);
 
-    return db
-      .prepare("SELECT * FROM users WHERE id = ?")
-      .get(existingByEmail.id) as User;
+    const user = db.prepare("SELECT * FROM users WHERE id = ?").get(existingByEmail.id) as User;
+    return { user, isNew: false };
   }
 
   const role = isFirstUser ? "super_admin" : "pending";
@@ -75,5 +74,6 @@ export function upsertUser(params: {
     )
     .run(params.googleId, params.email, params.name, params.avatarUrl, role);
 
-  return db.prepare("SELECT * FROM users WHERE id = ?").get(result.lastInsertRowid) as User;
+  const user = db.prepare("SELECT * FROM users WHERE id = ?").get(result.lastInsertRowid) as User;
+  return { user, isNew: true };
 }

@@ -1,9 +1,11 @@
 import { Hono } from "hono";
 import { authMiddleware, adminMiddleware } from "../middleware/auth.ts";
 import { db } from "../db/connection.ts";
-import { sendMonthlySnapshotEmails } from "../lib/monthly-email.ts";
+import { sendMonthlySnapshotEmails, sendSnapshotPreviewEmail } from "../lib/monthly-email.ts";
 import { createPreviousMonthSnapshot } from "../lib/monthly-snapshot.ts";
+import { sendTestReminderEmail } from "../lib/reminder-email.ts";
 import { isAdminRole, isAssignableRole, isSuperAdminRole } from "../lib/roles.ts";
+import { getWibYearMonth } from "../lib/wib-date.ts";
 import { AdminPage } from "../views/pages/AdminPage.tsx";
 import type { Env, User } from "../types.ts";
 
@@ -221,6 +223,37 @@ admin.post("/snapshots/run", async (c) => {
   return c.redirect(
     `/admin?success=Snapshot created for ${period} with ${result.rowsInserted} rows.${emailMsg}`
   );
+});
+
+admin.post("/email/test-reminder", async (c) => {
+  const user = c.get("user");
+  if (!user.email) {
+    return c.redirect("/admin?error=Your account has no email address.");
+  }
+  try {
+    await sendTestReminderEmail({ id: user.id, name: user.name, email: user.email });
+    return c.redirect("/admin?success=Test reminder email sent to " + user.email);
+  } catch (err) {
+    return c.redirect(
+      `/admin?error=Failed to send test reminder: ${err instanceof Error ? err.message : "Unknown error"}`
+    );
+  }
+});
+
+admin.post("/email/test-snapshot", async (c) => {
+  const user = c.get("user");
+  if (!user.email) {
+    return c.redirect("/admin?error=Your account has no email address.");
+  }
+  try {
+    const { year, month } = getWibYearMonth();
+    await sendSnapshotPreviewEmail({ to: user.email, year, month });
+    return c.redirect("/admin?success=Test snapshot email sent to " + user.email);
+  } catch (err) {
+    return c.redirect(
+      `/admin?error=Failed to send test snapshot: ${err instanceof Error ? err.message : "Unknown error"}`
+    );
+  }
 });
 
 export { admin as adminRoutes };

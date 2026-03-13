@@ -2,6 +2,9 @@ import { db } from "../db/connection.ts";
 import { ACTIVE_MEMBER_ROLES } from "./roles.ts";
 import { ORG_NAME, PRODUCT_NAME, PUBLIC_BASE_URL } from "../config.ts";
 import { sendSmtpMail } from "./smtp.ts";
+import { escapeHtml, ctaButton, baseEmailHtml } from "./email-base.ts";
+import { getMonthlyActivityLeaderboard, getMonthlyUserActivityRank } from "./activity-calc.ts";
+import { getUserStreak } from "./streak.ts";
 
 export type MonthlyEmailResult = {
   year: number;
@@ -12,20 +15,9 @@ export type MonthlyEmailResult = {
   failures: Array<{ email: string; error: string }>;
 };
 
-type PeriodType = "weekly" | "monthly" | "yearly";
-
 function getMonthLabel(year: number, month: number): string {
   const d = new Date(Date.UTC(year, month - 1, 1));
   return d.toLocaleString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
-}
-
-function escapeHtml(input: string): string {
-  return input
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
 }
 
 function getActiveRecipients(): Array<{ id: number; email: string; name: string }> {
@@ -36,203 +28,131 @@ function getActiveRecipients(): Array<{ id: number; email: string; name: string 
   return rows.filter((r) => !!r.email);
 }
 
-function getTopThree(year: number, month: number): Array<{ rank: number; user_name_snapshot: string; score: number }> {
-  return db
-    .prepare(
-      `SELECT rank, user_name_snapshot, score
-       FROM monthly_leaderboard_snapshots
-       WHERE period_year = ? AND period_month = ? AND rank <= 3
-       ORDER BY rank ASC`
-    )
-    .all(year, month) as Array<{ rank: number; user_name_snapshot: string; score: number }>;
-}
-
-function getUserSnapshotStats(
-  year: number,
-  month: number,
-  userId: number
-): {
-  rank: number;
-  score: number;
-  tilawah_juz: number;
-  murojaah_juz: number;
-  khatam_count: number;
-} | null {
-  return db
-    .prepare(
-      `SELECT rank, score, tilawah_juz, murojaah_juz, khatam_count
-       FROM monthly_leaderboard_snapshots
-       WHERE period_year = ? AND period_month = ? AND user_id = ?`
-    )
-    .get(year, month, userId) as
-    | {
-        rank: number;
-        score: number;
-        tilawah_juz: number;
-        murojaah_juz: number;
-        khatam_count: number;
-      }
-    | null;
-}
-
 function getWibGeneratedAtLabel(now = new Date()): string {
-  return new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Asia/Jakarta",
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(now) + " WIB";
-}
-
-function formatPeriodLabel(periodType: PeriodType, year: number, month: number, weeklyDateRange?: string): string {
-  if (periodType === "weekly") {
-    return weeklyDateRange
-      ? `Weekly Snapshot (${weeklyDateRange})`
-      : `Weekly Snapshot ${year}-${String(month).padStart(2, "0")}`;
-  }
-  if (periodType === "yearly") return `Yearly Snapshot ${year}`;
-  return `Monthly Snapshot ${getMonthLabel(year, month)}`;
-}
-
-function buildEmailSubject(params: {
-  periodType: PeriodType;
-  periodLabel: string;
-  year: number;
-  month: number;
-  weeklyDateRange?: string;
-}): string {
-  const { periodType, periodLabel, year, month, weeklyDateRange } = params;
-  const periodName =
-    periodType === "weekly" ? "Weekly Snapshot" : periodType === "yearly" ? "Yearly Snapshot" : "Monthly Snapshot";
-  const descriptor =
-    periodType === "weekly"
-      ? weeklyDateRange || `${year}-${String(month).padStart(2, "0")}`
-      : periodType === "yearly"
-        ? `${year}`
-        : getMonthLabel(year, month);
-  return `${ORG_NAME} | ${periodName} | ${descriptor}`;
+  return (
+    new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Asia/Jakarta",
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(now) + " WIB"
+  );
 }
 
 function buildMessage(params: {
   year: number;
   month: number;
-  periodType?: PeriodType;
-  weeklyDateRange?: string;
+  recipientId: number;
   recipientName: string;
-  recipientStats: ReturnType<typeof getUserSnapshotStats>;
+  topThree: Array<{ rank: number; name: string; score: number }>;
 }): { subject: string; text: string; html: string } {
-  const { year, month, recipientName, recipientStats } = params;
-  const periodType = params.periodType || "monthly";
-  const periodLabel = formatPeriodLabel(periodType, year, month, params.weeklyDateRange);
-  const topThree = getTopThree(year, month);
+  const { year, month, recipientId, recipientName, topThree } = params;
+  const monthLabel = getMonthLabel(year, month);
+  const firstName = recipientName.split(" ")[0]!;
   const generatedAt = getWibGeneratedAtLabel();
   const ctaUrl = `${PUBLIC_BASE_URL}/activity/leaderboard`;
 
+  const recipientStats = getMonthlyUserActivityRank(recipientId, year, month);
+  const streak = getUserStreak(recipientId);
+
+  const subject = `${ORG_NAME} | Monthly Snapshot | ${monthLabel}`;
+
+  // Plain text
   const topLines =
     topThree.length === 0
-      ? "No ranking data available for this period."
-      : topThree
-          .map((u) => `${u.rank}. ${u.user_name_snapshot} - ${u.score} points`)
-          .join("\n");
+      ? "No data yet for this month."
+      : topThree.map((u) => `${u.rank}. ${u.name} — ${u.score} pts`).join("\n");
 
-  const subject = buildEmailSubject({
-    periodType,
-    periodLabel,
-    year,
-    month,
-    weeklyDateRange: params.weeklyDateRange,
-  });
+  const personalLines = recipientStats
+    ? [
+        `Rank: #${recipientStats.rank}`,
+        `Score: ${recipientStats.score} pts`,
+        `Tilawah: ${recipientStats.tilawahJuz} juz`,
+        `Murojaah: ${recipientStats.murojaahJuz} juz`,
+        `Khatam: ${recipientStats.khatamCount}x`,
+        `Streak: 🔥 ${streak.current_streak} days`,
+      ].join("\n")
+    : "No activity recorded this month.";
+
   const text = [
-    `Assalamu'alaikum,`,
+    `Assalamu'alaikum ${firstName},`,
     ``,
-    `Here is your ${periodLabel}.`,
+    `Here is your monthly snapshot for ${monthLabel}.`,
     `Generated: ${generatedAt}`,
     ``,
-    `Top 3:`,
+    `Top 3 this month:`,
     topLines,
     ``,
-    `Your Summary:`,
-    recipientStats
-      ? `Rank #${recipientStats.rank} | Score ${recipientStats.score} | Tilawah ${recipientStats.tilawah_juz} | Murojaah ${recipientStats.murojaah_juz} | Khatam ${recipientStats.khatam_count}`
-      : "No personal snapshot data found for this period.",
+    `Your summary:`,
+    personalLines,
     ``,
     `View full leaderboard: ${ctaUrl}`,
     ``,
     `Keep istiqamah in tilawah and murojaah. May Allah bless your efforts.`,
     ``,
-    `- ${PRODUCT_NAME} (${ORG_NAME})`,
+    `— ${PRODUCT_NAME} (${ORG_NAME})`,
   ].join("\n");
 
+  // HTML
   const topHtml =
     topThree.length === 0
-      ? `<p style="margin:0;color:#64748b;">No ranking data available for this period.</p>`
+      ? `<p style="margin:0;color:#64748b;">No activity data yet for this month.</p>`
       : `<ol style="margin:0;padding-left:20px;color:#1e293b;">${topThree
           .map(
             (u) =>
-              `<li style="margin:6px 0;"><strong>${escapeHtml(
-                u.user_name_snapshot
-              )}</strong> - ${u.score} points</li>`
+              `<li style="margin:6px 0;"><strong>${escapeHtml(u.name)}</strong> &mdash; ${u.score} pts</li>`
           )
           .join("")}</ol>`;
 
   const personalHtml = recipientStats
-    ? `<p style="margin:0;color:#1e293b;"><strong>Rank #${recipientStats.rank}</strong><br/>Score: ${
-        recipientStats.score
-      }<br/>Tilawah: ${recipientStats.tilawah_juz}<br/>Murojaah: ${
-        recipientStats.murojaah_juz
-      }<br/>Khatam: ${recipientStats.khatam_count}</p>`
-    : `<p style="margin:0;color:#64748b;">No personal snapshot data found for this period.</p>`;
+    ? `<table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+        <tr>
+          <td style="padding:4px 0;color:#64748b;font-size:13px;">Rank</td>
+          <td style="padding:4px 0;font-weight:700;text-align:right;">#${recipientStats.rank}</td>
+        </tr>
+        <tr>
+          <td style="padding:4px 0;color:#64748b;font-size:13px;">Score</td>
+          <td style="padding:4px 0;font-weight:700;text-align:right;">${recipientStats.score} pts</td>
+        </tr>
+        <tr>
+          <td style="padding:4px 0;color:#64748b;font-size:13px;">Tilawah</td>
+          <td style="padding:4px 0;text-align:right;">${recipientStats.tilawahJuz} juz</td>
+        </tr>
+        <tr>
+          <td style="padding:4px 0;color:#64748b;font-size:13px;">Murojaah</td>
+          <td style="padding:4px 0;text-align:right;">${recipientStats.murojaahJuz} juz</td>
+        </tr>
+        <tr>
+          <td style="padding:4px 0;color:#64748b;font-size:13px;">Khatam</td>
+          <td style="padding:4px 0;text-align:right;">${recipientStats.khatamCount}x</td>
+        </tr>
+        <tr>
+          <td style="padding:4px 0;color:#64748b;font-size:13px;">Streak</td>
+          <td style="padding:4px 0;text-align:right;">🔥 ${streak.current_streak} days</td>
+        </tr>
+      </table>`
+    : `<p style="margin:0;color:#64748b;">No activity recorded this month.</p>`;
 
-  const html = `<!doctype html>
-<html>
-  <body style="margin:0;padding:0;background:#f8faf9;font-family:Arial,Helvetica,sans-serif;color:#1e293b;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:24px 12px;">
-      <tr>
-        <td align="center">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
-            <tr>
-              <td style="background:#2A65AE;color:#ffffff;padding:18px 24px;">
-                <h1 style="margin:0;font-size:20px;line-height:1.2;">${escapeHtml(PRODUCT_NAME)}</h1>
-                <p style="margin:6px 0 0;font-size:13px;opacity:0.95;">${escapeHtml(periodLabel)}</p>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:20px 24px;">
-                <p style="margin:0 0 8px;">Assalamu'alaikum ${escapeHtml(recipientName)},</p>
-                <p style="margin:0 0 16px;color:#475569;">Here is your snapshot update for <strong>${escapeHtml(
-                  periodLabel
-                )}</strong>.</p>
-                <p style="margin:0 0 16px;color:#64748b;font-size:12px;">Generated: ${escapeHtml(generatedAt)}</p>
+  const bodyHtml = `
+    <p style="margin:0 0 16px;">Assalamu'alaikum <strong>${escapeHtml(firstName)}</strong>,</p>
+    <p style="margin:0 0 4px;color:#475569;">Here is your monthly snapshot for <strong>${escapeHtml(monthLabel)}</strong>.</p>
+    <p style="margin:0 0 16px;color:#94a3b8;font-size:12px;">Generated: ${escapeHtml(generatedAt)}</p>
 
-                <div style="border:1px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:14px;">
-                  <h2 style="margin:0 0 10px;font-size:16px;">Top 3 Leaderboard</h2>
-                  ${topHtml}
-                </div>
+    <div style="border:1px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:14px;">
+      <h2 style="margin:0 0 10px;font-size:15px;color:#1e293b;">Top 3 This Month</h2>
+      ${topHtml}
+    </div>
 
-                <div style="border:1px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:14px;">
-                  <h2 style="margin:0 0 10px;font-size:16px;">Your Summary</h2>
-                  ${personalHtml}
-                </div>
+    <div style="border:1px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:16px;">
+      <h2 style="margin:0 0 10px;font-size:15px;color:#1e293b;">Your Summary</h2>
+      ${personalHtml}
+    </div>
 
-                <p style="margin:0 0 16px;">
-                  <a href="${escapeHtml(ctaUrl)}" style="display:inline-block;padding:10px 16px;background:#2A65AE;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:700;font-size:14px;">
-                    View Full Leaderboard
-                  </a>
-                </p>
+    ${ctaButton(ctaUrl, "View Full Leaderboard")}
 
-                <p style="margin:0;color:#334155;">Keep istiqamah in tilawah and murojaah. May Allah bless your efforts.</p>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:14px 24px;background:#f1f5f9;color:#64748b;font-size:12px;">
-                This is an automated email from ${escapeHtml(PRODUCT_NAME)} - ${escapeHtml(ORG_NAME)}.
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-  </body>
-</html>`;
+    <p style="margin:0;color:#334155;font-size:14px;">Keep istiqamah in tilawah and murojaah. May Allah bless your efforts.</p>
+  `;
+
+  const html = baseEmailHtml({ subtitle: `Monthly Snapshot — ${monthLabel}`, bodyHtml });
 
   return { subject, text, html };
 }
@@ -240,11 +160,17 @@ function buildMessage(params: {
 export async function sendMonthlySnapshotEmails(params: {
   year: number;
   month: number;
-  periodType?: PeriodType;
-  weeklyDateRange?: string;
 }): Promise<MonthlyEmailResult> {
   const { year, month } = params;
   const recipients = getActiveRecipients();
+
+  // Fetch live leaderboard once; top 3 is shared across all emails
+  const leaderboard = getMonthlyActivityLeaderboard({ year, month, page: 1, perPage: 10000 });
+  const topThree = leaderboard.rows.slice(0, 3).map((r) => ({
+    rank: r.rank,
+    name: r.name,
+    score: r.score,
+  }));
 
   let sent = 0;
   let failed = 0;
@@ -255,10 +181,9 @@ export async function sendMonthlySnapshotEmails(params: {
       const message = buildMessage({
         year,
         month,
-        periodType: params.periodType,
-        weeklyDateRange: params.weeklyDateRange,
+        recipientId: recipient.id,
         recipientName: recipient.name,
-        recipientStats: getUserSnapshotStats(year, month, recipient.id),
+        topThree,
       });
       await sendSmtpMail({
         to: recipient.email,
@@ -290,20 +215,29 @@ export async function sendSnapshotPreviewEmail(params: {
   to: string;
   year: number;
   month: number;
-  periodType?: PeriodType;
-  weeklyDateRange?: string;
 }): Promise<void> {
   const user = db
     .prepare("SELECT id, name FROM users WHERE email = ?")
     .get(params.to) as { id: number; name: string } | null;
 
+  const leaderboard = getMonthlyActivityLeaderboard({
+    year: params.year,
+    month: params.month,
+    page: 1,
+    perPage: 10000,
+  });
+  const topThree = leaderboard.rows.slice(0, 3).map((r) => ({
+    rank: r.rank,
+    name: r.name,
+    score: r.score,
+  }));
+
   const message = buildMessage({
     year: params.year,
     month: params.month,
-    periodType: params.periodType,
-    weeklyDateRange: params.weeklyDateRange,
-    recipientName: user?.name || "Member",
-    recipientStats: user ? getUserSnapshotStats(params.year, params.month, user.id) : null,
+    recipientId: user?.id ?? 0,
+    recipientName: user?.name ?? "Member",
+    topThree,
   });
 
   await sendSmtpMail({
