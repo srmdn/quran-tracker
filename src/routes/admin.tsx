@@ -4,7 +4,7 @@ import { db } from "../db/connection.ts";
 import { sendMonthlySnapshotEmails, sendSnapshotPreviewEmail } from "../lib/monthly-email.ts";
 import { createPreviousMonthSnapshot } from "../lib/monthly-snapshot.ts";
 import { sendTestReminderEmail } from "../lib/reminder-email.ts";
-import { sendApprovalEmail, sendRejectionEmail } from "../lib/welcome-email.ts";
+import { sendApprovalEmail, sendRejectionEmail, sendRoleChangeEmail } from "../lib/welcome-email.ts";
 import { isAdminRole, isAssignableRole, isSuperAdminRole } from "../lib/roles.ts";
 import { getWibYearMonth } from "../lib/wib-date.ts";
 import { AdminPage } from "../views/pages/AdminPage.tsx";
@@ -143,6 +143,11 @@ admin.post("/users/:id/update", async (c) => {
     return c.redirect(`/admin?edit=${userId}&error=Failed to update user. Email may already exist.`);
   }
 
+  if (target.role !== role) {
+    const updatedUser = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as User | null;
+    if (updatedUser) sendRoleChangeEmail(updatedUser, role).catch(() => {});
+  }
+
   return c.redirect("/admin?success=User updated successfully.");
 });
 
@@ -182,6 +187,8 @@ admin.post("/users/:id/role", async (c) => {
   }
 
   db.prepare("UPDATE users SET role = ?, updated_at = datetime('now') WHERE id = ?").run(role, userId);
+  const updated = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as User | null;
+  if (updated) sendRoleChangeEmail(updated, role).catch(() => {});
   return c.redirect("/admin?success=User role updated.");
 });
 

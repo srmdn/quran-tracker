@@ -24,12 +24,13 @@ export function getUserStreak(userId: number): UserStreak {
   return row ?? { current_streak: 0, longest_streak: 0, last_active_date: null };
 }
 
-export function checkAndUpdateStreak(userId: number, todayWib: string): void {
+// Returns the new streak value if it changed, 0 if no change (already counted today or target not met)
+export function checkAndUpdateStreak(userId: number, todayWib: string): number {
   const target = getUserTarget(userId);
-  if (!target) return;
+  if (!target) return 0;
 
   const metToday = hasMetTargetToday(userId, todayWib, target);
-  if (!metToday) return;
+  if (!metToday) return 0;
 
   const existing = getUserStreak(userId);
   const todayEpoch = ymdToEpochDay(todayWib);
@@ -38,7 +39,7 @@ export function checkAndUpdateStreak(userId: number, todayWib: string): void {
 
   if (existing.last_active_date === todayWib) {
     // Already counted today — no change needed
-    return;
+    return 0;
   } else if (existing.last_active_date) {
     const lastEpoch = ymdToEpochDay(existing.last_active_date);
     const gap = todayEpoch - lastEpoch;
@@ -66,6 +67,8 @@ export function checkAndUpdateStreak(userId: number, todayWib: string): void {
       last_active_date = excluded.last_active_date,
       updated_at       = datetime('now')
   `).run(userId, newCurrent, newLongest, todayWib);
+
+  return newCurrent;
 }
 
 export function getActivityHeatmap(userId: number, days = 90): HeatmapEntry[] {

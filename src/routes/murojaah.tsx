@@ -6,6 +6,7 @@ import { getWibDateYmd, validateWibLogDate } from "../lib/wib-date.ts";
 import { getUserTarget, getTodayMurojaahTotal } from "../lib/targets.ts";
 import { checkAndUpdateStreak } from "../lib/streak.ts";
 import { getUserActivityTotals } from "../lib/activity-calc.ts";
+import { sendStreakMilestoneEmail, isStreakMilestone } from "../lib/milestone-email.ts";
 import { SURAHS, getJuzForPosition } from "../data/quran-meta.ts";
 import { MurojaahPage } from "../views/pages/MurojaahPage.tsx";
 import type { Env } from "../types.ts";
@@ -108,7 +109,10 @@ murojaah.post("/", async (c) => {
   ).run(user.id, dateCheck.date, juzAmount, repetitionCount, endSurah, endAyah, endJuz);
 
   // Update streak
-  checkAndUpdateStreak(user.id, getWibDateYmd());
+  const newStreak = checkAndUpdateStreak(user.id, getWibDateYmd());
+  if (newStreak > 0 && isStreakMilestone(newStreak)) {
+    sendStreakMilestoneEmail(user, newStreak).catch(() => {});
+  }
 
   const repMsg = repetitionCount ? ` · ${repetitionCount}x repetition` : "";
   return c.redirect(redirectWith("success", `Murojaah logged: ${juzAmount} juz — ended at ${surahMeta.name} ayah ${endAyah} (Juz ${endJuz}).${repMsg}`));

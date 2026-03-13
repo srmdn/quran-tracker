@@ -85,6 +85,43 @@ export async function sendApprovalEmail(user: User): Promise<void> {
   await sendSmtpMail({ to: user.email, subject, text, html });
 }
 
+export async function sendRoleChangeEmail(user: User, newRole: string): Promise<void> {
+  if (!user.email) return;
+
+  const firstName = user.name.split(" ")[0]!;
+  const ctaUrl = `${PUBLIC_BASE_URL}/dashboard`;
+
+  const subject = `${PRODUCT_NAME} | Your account role has been updated`;
+
+  const text = [
+    `Assalamu'alaikum ${firstName},`,
+    ``,
+    `Your account role on ${PRODUCT_NAME} (${ORG_NAME}) has been updated to: ${newRole}`,
+    ``,
+    `Visit your dashboard: ${ctaUrl}`,
+    ``,
+    `— ${PRODUCT_NAME} (${ORG_NAME})`,
+  ].join("\n");
+
+  const bodyHtml = `
+    <p style="margin:0 0 16px;">Assalamu'alaikum <strong>${escapeHtml(firstName)}</strong>,</p>
+    <p style="margin:0 0 16px;color:#475569;">
+      Your account role on <strong>${escapeHtml(PRODUCT_NAME)}</strong> has been updated.
+    </p>
+    <table role="presentation" cellspacing="0" cellpadding="0" style="margin-bottom:16px;">
+      <tr>
+        <td style="padding:4px 12px 4px 0;color:#64748b;font-size:13px;">New role</td>
+        <td style="padding:4px 0;font-weight:700;">${escapeHtml(newRole)}</td>
+      </tr>
+    </table>
+    ${ctaButton(ctaUrl, "Go to Dashboard")}
+  `;
+
+  const html = baseEmailHtml({ subtitle: "Account Role Updated", bodyHtml });
+
+  await sendSmtpMail({ to: user.email, subject, text, html });
+}
+
 export async function sendRejectionEmail(user: User): Promise<void> {
   if (!user.email) return;
 

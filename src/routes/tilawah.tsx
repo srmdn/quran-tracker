@@ -6,6 +6,7 @@ import { getWibDateYmd, validateWibLogDate } from "../lib/wib-date.ts";
 import { getUserTarget, getTodayTilawahTotal } from "../lib/targets.ts";
 import { checkAndUpdateStreak } from "../lib/streak.ts";
 import { getUserActivityTotals } from "../lib/activity-calc.ts";
+import { sendKhatamEmail, sendStreakMilestoneEmail, isStreakMilestone } from "../lib/milestone-email.ts";
 import { SURAHS, getJuzForPosition } from "../data/quran-meta.ts";
 import { TilawahPage } from "../views/pages/TilawahPage.tsx";
 import type { Env } from "../types.ts";
@@ -108,10 +109,16 @@ tilawah.post("/", async (c) => {
     db.prepare("INSERT INTO khatam_events (user_id, type, date_wib) VALUES (?, 'tilawah', ?)")
       .run(user.id, dateCheck.date);
     khatamMsg = " 🎉 Khatam recorded!";
+    const khatamCount = (db.prepare("SELECT COUNT(*) AS cnt FROM khatam_events WHERE user_id = ? AND type = 'tilawah'")
+      .get(user.id) as { cnt: number }).cnt;
+    sendKhatamEmail(user, khatamCount).catch(() => {});
   }
 
   // Update streak
-  checkAndUpdateStreak(user.id, getWibDateYmd());
+  const newStreak = checkAndUpdateStreak(user.id, getWibDateYmd());
+  if (newStreak > 0 && isStreakMilestone(newStreak)) {
+    sendStreakMilestoneEmail(user, newStreak).catch(() => {});
+  }
 
   return c.redirect(redirectWith("success", `Tilawah logged: ${juzAmount} juz — ended at ${surahMeta.name} ayah ${endAyah} (Juz ${endJuz}).${khatamMsg}`));
 });
