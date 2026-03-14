@@ -102,6 +102,7 @@ app.notFound((c) => {
 const port = parseInt(process.env.PORT || "3000", 10);
 const server = Bun.serve({
   port,
+  hostname: process.env.HOST || "127.0.0.1",
   fetch: app.fetch,
 });
 
