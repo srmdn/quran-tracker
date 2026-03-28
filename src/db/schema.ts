@@ -166,6 +166,27 @@ export function initializeDatabase() {
     );
   `);
 
+  // enrollments — public enrollment form submissions
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS enrollments (
+      id              INTEGER PRIMARY KEY AUTOINCREMENT,
+      full_name       TEXT NOT NULL,
+      date_of_birth   TEXT NOT NULL,
+      gender          TEXT NOT NULL CHECK (gender IN ('male', 'female')),
+      whatsapp        TEXT NOT NULL,
+      address         TEXT NOT NULL,
+      program_type    TEXT NOT NULL,
+      quran_level     TEXT NOT NULL,
+      wali_name       TEXT NOT NULL,
+      wali_contact    TEXT NOT NULL,
+      notes           TEXT,
+      submitted_at    TEXT NOT NULL DEFAULT (datetime('now')),
+      ip_address      TEXT
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_enrollments_submitted ON enrollments(submitted_at);
+  `);
+
   // khatam_events — position-verified khatam (end_surah=114, end_ayah=6)
   db.exec(`
     CREATE TABLE IF NOT EXISTS khatam_events (

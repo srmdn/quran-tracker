@@ -41,6 +41,22 @@ export const AdminPage: FC<{
           </div>
         )}
 
+        {/* Enrollment submissions link */}
+        <div class="w-full bg-white border border-border-light rounded-xl p-6 shadow-sm mb-8">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div>
+              <h2 class="text-text-main text-lg font-bold">Enrollment Submissions</h2>
+              <p class="text-text-secondary text-sm">View and review public enrollment form submissions.</p>
+            </div>
+            <a
+              href="/admin/enrollments"
+              class="px-4 py-2.5 bg-primary text-white rounded-lg font-bold text-sm hover:bg-primary-dark transition-colors shadow-sm inline-block text-center"
+            >
+              View Enrollments
+            </a>
+          </div>
+        </div>
+
         <div class="w-full bg-white border border-border-light rounded-xl p-6 shadow-sm mb-8">
           <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div>

@@ -14,6 +14,10 @@ import { getUserActivityTotals, getCurrentMonthUserActivityRank } from "../lib/a
 import { AdminPage } from "../views/pages/AdminPage.tsx";
 import { AdminMemberDetailPage } from "../views/pages/AdminMemberDetailPage.tsx";
 import { AdminEditMemberPage } from "../views/pages/AdminEditMemberPage.tsx";
+import { AdminEnrollmentsPage } from "../views/pages/AdminEnrollmentsPage.tsx";
+import { AdminEnrollmentDetailPage } from "../views/pages/AdminEnrollmentDetailPage.tsx";
+import type { EnrollmentRow, } from "../views/pages/AdminEnrollmentsPage.tsx";
+import type { Enrollment } from "../views/pages/AdminEnrollmentDetailPage.tsx";
 import type { RecentLogEntry } from "../routes/dashboard.tsx";
 import type { Env, User } from "../types.ts";
 
@@ -434,6 +438,39 @@ admin.get("/members/:id", (c) => {
       success={c.req.query("success")}
       error={c.req.query("error")}
     />
+  );
+});
+
+admin.get("/enrollments", (c) => {
+  const user = c.get("user");
+  const lang = c.get("lang");
+  const perPage = 20;
+  const page = Math.max(1, parseInt(c.req.query("page") || "1", 10));
+  const total = (db.prepare("SELECT COUNT(*) AS cnt FROM enrollments").get() as { cnt: number }).cnt;
+  const rows = db
+    .prepare(
+      "SELECT id, full_name, gender, whatsapp, program_type, quran_level, submitted_at FROM enrollments ORDER BY submitted_at DESC LIMIT ? OFFSET ?"
+    )
+    .all(perPage, (page - 1) * perPage) as EnrollmentRow[];
+
+  return c.html(
+    <AdminEnrollmentsPage user={user} lang={lang} rows={rows} total={total} page={page} perPage={perPage} />
+  );
+});
+
+admin.get("/enrollments/:id", (c) => {
+  const user = c.get("user");
+  const lang = c.get("lang");
+  const id = parseInt(c.req.param("id"), 10);
+  if (!Number.isInteger(id)) return c.redirect("/admin/enrollments?error=Invalid ID.");
+
+  const enrollment = db
+    .prepare("SELECT * FROM enrollments WHERE id = ?")
+    .get(id) as Enrollment | null;
+  if (!enrollment) return c.redirect("/admin/enrollments?error=Enrollment not found.");
+
+  return c.html(
+    <AdminEnrollmentDetailPage user={user} lang={lang} enrollment={enrollment} />
   );
 });
 

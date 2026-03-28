@@ -13,6 +13,7 @@ import { murojaahRoutes } from "./routes/murojaah.tsx";
 import { langRoutes } from "./routes/lang.ts";
 import { landingRoutes } from "./routes/landing.tsx";
 import { profileRoutes } from "./routes/profile.tsx";
+import { enrollRoutes } from "./routes/enroll.tsx";
 import { LoginPage } from "./views/pages/LoginPage.tsx";
 import { PendingPage } from "./views/pages/PendingPage.tsx";
 import { SuspendedPage } from "./views/pages/SuspendedPage.tsx";
@@ -91,6 +92,7 @@ app.route("/activity", activityRoutes);
 app.route("/admin", adminRoutes);
 app.route("/dashboard", dashboardRoutes);
 app.route("/profile", profileRoutes);
+app.route("/enroll", enrollRoutes);
 
 // 404
 app.notFound((c) => {
