@@ -9,6 +9,7 @@ import type { UserStreak } from "../../lib/streak.ts";
 import type { ActivityTotals, UserMonthlyActivityRank } from "../../lib/activity-calc.ts";
 import type { RecentLogEntry } from "../../routes/dashboard.tsx";
 import { t, type Lang } from "../../lib/i18n.ts";
+import { isSuperAdminRole, isAdminRole } from "../../lib/roles.ts";
 
 export const AdminMemberDetailPage: FC<{
   adminUser: User;
@@ -60,13 +61,43 @@ export const AdminMemberDetailPage: FC<{
             <span class="material-symbols-outlined text-base">arrow_back</span>
             {t(lang, "backToAdmin")}
           </a>
-          <a
-            href={`/admin/members/${member.id}/edit`}
-            class="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary-dark transition-colors"
-          >
-            <span class="material-symbols-outlined text-base">edit</span>
-            Edit
-          </a>
+          <div class="flex items-center gap-3">
+            {isSuperAdminRole(adminUser.role) && !isAdminRole(member.role) && adminUser.id !== member.id && (
+              member.suspended_at ? (
+                <form method="POST" action={`/admin/users/${member.id}/unsuspend`} class="inline">
+                  <button
+                    type="submit"
+                    class="inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-600 hover:text-emerald-700 transition-colors"
+                  >
+                    <span class="material-symbols-outlined text-base">lock_open</span>
+                    Unsuspend
+                  </button>
+                </form>
+              ) : (
+                <form
+                  method="POST"
+                  action={`/admin/users/${member.id}/suspend`}
+                  class="inline"
+                  onsubmit={`return confirm('Suspend ${member.name}? They will not be able to access the app.')`}
+                >
+                  <button
+                    type="submit"
+                    class="inline-flex items-center gap-1.5 text-sm font-semibold text-amber-600 hover:text-amber-700 transition-colors"
+                  >
+                    <span class="material-symbols-outlined text-base">block</span>
+                    Suspend
+                  </button>
+                </form>
+              )
+            )}
+            <a
+              href={`/admin/members/${member.id}/edit`}
+              class="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary-dark transition-colors"
+            >
+              <span class="material-symbols-outlined text-base">edit</span>
+              Edit
+            </a>
+          </div>
         </div>
 
         {success && (
@@ -79,6 +110,14 @@ export const AdminMemberDetailPage: FC<{
           <div class="w-full bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg mb-6 border border-red-200 flex items-center gap-2">
             <span class="material-symbols-outlined text-lg">error</span>
             {error}
+          </div>
+        )}
+
+        {/* Suspended banner */}
+        {member.suspended_at && (
+          <div class="w-full bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg mb-4 border border-red-200 flex items-center gap-2">
+            <span class="material-symbols-outlined text-lg">block</span>
+            This account is suspended since {member.suspended_at.slice(0, 10)}.
           </div>
         )}
 

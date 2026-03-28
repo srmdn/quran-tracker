@@ -402,7 +402,7 @@ Overall the landing page is well built. Only minor items below.
 - Admin has to navigate back to the member list to edit or suspend a user.
 - Add Edit and Suspend buttons directly on the member detail page.
 - Depends on admin edit page move (roadmap 7.1) and suspend feature (roadmap 7.10).
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done — Edit link and Suspend/Unsuspend button in top action bar; suspended banner on member header.
 
 ### 14.4 Khatam history
 - Only a khatam count is shown, not when each khatam occurred.
