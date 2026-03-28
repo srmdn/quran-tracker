@@ -12,7 +12,7 @@ const landing = new Hono<Env>();
 landing.get("/", (c) => {
   const lang = c.get("lang");
 
-  const leaderboard = getCurrentMonthActivityLeaderboard({ perPage: 10 });
+  const leaderboard = getCurrentMonthActivityLeaderboard({ perPage: 20 });
 
   const totalMembers = (
     db

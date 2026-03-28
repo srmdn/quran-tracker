@@ -167,10 +167,9 @@ const en = {
   landingStep3Desc: "Monthly leaderboard ranks everyone by score. Tilawah, Murojaah, and Khatam all contribute — keeping the community motivated.",
   landingJoinTitle: "Ready to Start?",
   landingJoinDesc: "Sign in with your account. New members need admin approval before accessing the app.",
-  landingAboutMarkaz: "Markaz Talaqqi is a Quran learning community dedicated to helping members consistently read, memorize, and revise the Quran together.",
-  landingJoinNote: "Access requires admin approval — reach out to your ustadz to register.",
-  landingLiveData: "Live data",
-  landingScoreInfo: "How scores are calculated",
+  landingCtaJoinNote: "New members need admin approval. Reach out to your ustadz to register.",
+  landingAsOf: "as of",
+  landingViewFullLeaderboard: "View full leaderboard",
 
   // Admin member detail
   backToAdmin: "Back to Admin Panel",
@@ -349,10 +348,9 @@ const id: typeof en = {
   landingStep3Desc: "Leaderboard bulanan meranking semua anggota berdasarkan skor. Tilawah, Murojaah, dan Khatam semuanya berkontribusi — menjaga komunitas tetap termotivasi.",
   landingJoinTitle: "Siap Mulai?",
   landingJoinDesc: "Masuk dengan akunmu. Anggota baru memerlukan persetujuan admin sebelum bisa mengakses aplikasi.",
-  landingAboutMarkaz: "Markaz Talaqqi adalah komunitas belajar Quran yang membantu anggota untuk membaca, menghafal, dan mengulang Quran secara konsisten bersama-sama.",
-  landingJoinNote: "Akses memerlukan persetujuan admin — hubungi ustadz kamu untuk mendaftar.",
-  landingLiveData: "Data langsung",
-  landingScoreInfo: "Cara menghitung skor",
+  landingCtaJoinNote: "Anggota baru memerlukan persetujuan admin. Hubungi ustadz kamu untuk mendaftar.",
+  landingAsOf: "per",
+  landingViewFullLeaderboard: "Lihat semua peringkat",
 
   // Admin member detail
   backToAdmin: "Kembali ke Panel Admin",

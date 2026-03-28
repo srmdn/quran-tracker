@@ -24,6 +24,10 @@ export const LandingPage: FC<{
     month: "long",
     year: "numeric",
   });
+  const todayLabel = new Date().toLocaleDateString(lang === "id" ? "id-ID" : "en-US", {
+    day: "numeric",
+    month: "short",
+  });
   const topThree = leaderboard.rows.slice(0, 3);
   const rest = leaderboard.rows.slice(3);
 
@@ -204,7 +208,7 @@ export const LandingPage: FC<{
                     {t(lang, "landingLiveData")}
                   </span>
                 </div>
-                <p class="text-text-secondary text-sm">{t(lang, "monthlyRankings")} · {monthLabel}</p>
+                <p class="text-text-secondary text-sm">{t(lang, "monthlyRankings")} · {monthLabel} · {t(lang, "landingAsOf")} {todayLabel}</p>
               </div>
               {/* Score formula — collapsible on mobile */}
               <details class="self-center lg:self-auto">
@@ -225,6 +229,7 @@ export const LandingPage: FC<{
             ) : (
               <>
                 {/* Top 3 podium */}
+
                 {topThree.length > 0 && (
                   <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
                     {topThree.map((row) => {
@@ -259,7 +264,7 @@ export const LandingPage: FC<{
                   </div>
                 )}
 
-                {/* Ranks 4–10 */}
+                {/* Ranks 4+ */}
                 {rest.length > 0 && (
                   <div class="bg-white border border-border-light rounded-2xl overflow-hidden shadow-sm">
                     {/* Desktop table */}
@@ -306,6 +311,15 @@ export const LandingPage: FC<{
                     </div>
                   </div>
                 )}
+                <div class="mt-4 text-center">
+                  <a
+                    href="/login"
+                    class="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary-dark transition-colors"
+                  >
+                    {t(lang, "landingViewFullLeaderboard")}
+                    <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span>
+                  </a>
+                </div>
               </>
             )}
           </div>
@@ -355,7 +369,7 @@ export const LandingPage: FC<{
             <p class="text-white/75 text-sm sm:text-base mb-2 max-w-md mx-auto">{t(lang, "landingJoinDesc")}</p>
             <p class="text-white/50 text-xs mb-8 flex items-center justify-center gap-1">
               <span class="material-symbols-outlined" style="font-size:13px">info</span>
-              {t(lang, "landingJoinNote")}
+              {t(lang, "landingCtaJoinNote")}
             </p>
             <a
               href="/login"
