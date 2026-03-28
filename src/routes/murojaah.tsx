@@ -40,6 +40,11 @@ murojaah.get("/", (c) => {
   const todayTotal = getTodayMurojaahTotal(user.id, todayWib);
   const allTimeTotals = getUserActivityTotals(user.id);
 
+  const yearMonth = todayWib.slice(0, 7);
+  const thisMonthJuz = (db
+    .prepare("SELECT COALESCE(SUM(juz_amount), 0) AS total FROM murojaah_logs WHERE user_id = ? AND date_wib LIKE ?")
+    .get(user.id, `${yearMonth}-%`) as { total: number }).total;
+
   const lastLog = db
     .prepare("SELECT id, date_wib, juz_amount, repetition_count, end_surah, end_ayah, end_juz, created_at FROM murojaah_logs WHERE user_id = ? ORDER BY created_at DESC LIMIT 1")
     .get(user.id) as MurojaahLog | null;
@@ -63,6 +68,7 @@ murojaah.get("/", (c) => {
       lastLog={lastLog}
       recentLogs={recentLogs}
       allTimeJuz={allTimeTotals.murojaahJuz}
+      thisMonthJuz={thisMonthJuz}
       page={page}
       totalLogs={totalLogs}
       perPage={perPage}

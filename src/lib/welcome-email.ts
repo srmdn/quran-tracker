@@ -156,6 +156,65 @@ export async function sendRejectionEmail(user: User): Promise<void> {
   await sendSmtpMail({ to: user.email, subject, text, html });
 }
 
+export async function sendSuspendEmail(user: User): Promise<void> {
+  if (!user.email) return;
+  const firstName = user.name.split(" ")[0]!;
+  const subject = `${PRODUCT_NAME} | Your account has been suspended`;
+  const text = [
+    `Assalamu'alaikum ${firstName},`,
+    ``,
+    `Your account on ${PRODUCT_NAME} (${ORG_NAME}) has been suspended.`,
+    ``,
+    `If you believe this is a mistake, please contact an admin directly.`,
+    ``,
+    `— ${PRODUCT_NAME} (${ORG_NAME})`,
+  ].join("\n");
+  const bodyHtml = `
+    <p style="margin:0 0 16px;">Assalamu'alaikum <strong>${escapeHtml(firstName)}</strong>,</p>
+    <p style="margin:0 0 16px;color:#475569;">
+      Your account on <strong>${escapeHtml(PRODUCT_NAME)}</strong> (${escapeHtml(ORG_NAME)}) has been suspended.
+    </p>
+    <p style="margin:0;color:#475569;font-size:14px;">
+      If you believe this is a mistake, please contact an admin directly.
+    </p>
+  `;
+  const html = baseEmailHtml({ subtitle: "Account Suspended", bodyHtml });
+  await sendSmtpMail({ to: user.email, subject, text, html });
+}
+
+export async function sendUnsuspendEmail(user: User): Promise<void> {
+  if (!user.email) return;
+  const firstName = user.name.split(" ")[0]!;
+  const ctaUrl = `${PUBLIC_BASE_URL}/dashboard`;
+  const subject = `${PRODUCT_NAME} | Your account has been reinstated`;
+  const text = [
+    `Assalamu'alaikum ${firstName},`,
+    ``,
+    `Good news! Your account on ${PRODUCT_NAME} (${ORG_NAME}) has been reinstated.`,
+    ``,
+    `You can now log in and continue tracking your Tilawah and Murojaah.`,
+    ``,
+    `Visit the app: ${ctaUrl}`,
+    ``,
+    `May Allah bless your Quran journey.`,
+    ``,
+    `— ${PRODUCT_NAME} (${ORG_NAME})`,
+  ].join("\n");
+  const bodyHtml = `
+    <p style="margin:0 0 16px;">Assalamu'alaikum <strong>${escapeHtml(firstName)}</strong>,</p>
+    <p style="margin:0 0 16px;color:#475569;">
+      Good news! Your account on <strong>${escapeHtml(PRODUCT_NAME)}</strong> has been reinstated.
+    </p>
+    <p style="margin:0 0 16px;color:#475569;">
+      You can now log in and continue tracking your <strong>Tilawah</strong> and <strong>Murojaah</strong>.
+    </p>
+    ${ctaButton(ctaUrl, "Go to Dashboard")}
+    <p style="margin:0;color:#475569;font-size:14px;">May Allah bless your Quran journey.</p>
+  `;
+  const html = baseEmailHtml({ subtitle: "Account Reinstated", bodyHtml });
+  await sendSmtpMail({ to: user.email, subject, text, html });
+}
+
 export async function sendNewMemberAlertToAdmins(user: User): Promise<void> {
   const admins = db
     .prepare(

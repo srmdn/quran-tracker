@@ -4,7 +4,7 @@ import { db } from "../db/connection.ts";
 import { sendMonthlySnapshotEmails, sendSnapshotPreviewEmail } from "../lib/monthly-email.ts";
 import { createPreviousMonthSnapshot } from "../lib/monthly-snapshot.ts";
 import { sendTestReminderEmail } from "../lib/reminder-email.ts";
-import { sendApprovalEmail, sendRejectionEmail, sendRoleChangeEmail, sendWelcomeEmail, sendNewMemberAlertToAdmins } from "../lib/welcome-email.ts";
+import { sendApprovalEmail, sendRejectionEmail, sendRoleChangeEmail, sendWelcomeEmail, sendNewMemberAlertToAdmins, sendSuspendEmail, sendUnsuspendEmail } from "../lib/welcome-email.ts";
 import { isAdminRole, isAssignableRole, isSuperAdminRole } from "../lib/roles.ts";
 import { getWibDateYmd, getWibYearMonth } from "../lib/wib-date.ts";
 import { getUserTarget, getTodayTilawahTotal, getTodayMurojaahTotal } from "../lib/targets.ts";
@@ -217,6 +217,8 @@ admin.post("/users/:id/suspend", (c) => {
     return c.redirect("/admin?error=Cannot suspend an admin account.");
   }
   db.prepare("UPDATE users SET suspended_at = datetime('now'), updated_at = datetime('now') WHERE id = ?").run(userId);
+  const suspendedUser = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as User | null;
+  if (suspendedUser) sendSuspendEmail(suspendedUser).catch(() => {});
   return c.redirect("/admin?success=User suspended.");
 });
 
@@ -230,6 +232,8 @@ admin.post("/users/:id/unsuspend", (c) => {
     return c.redirect("/admin?error=Invalid user id.");
   }
   db.prepare("UPDATE users SET suspended_at = NULL, updated_at = datetime('now') WHERE id = ?").run(userId);
+  const unsuspendedUser = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as User | null;
+  if (unsuspendedUser) sendUnsuspendEmail(unsuspendedUser).catch(() => {});
   return c.redirect("/admin?success=User unsuspended.");
 });
 

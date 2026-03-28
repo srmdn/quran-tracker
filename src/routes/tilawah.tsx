@@ -39,6 +39,11 @@ tilawah.get("/", (c) => {
   const todayTotal = getTodayTilawahTotal(user.id, todayWib);
   const allTimeTotals = getUserActivityTotals(user.id);
 
+  const yearMonth = todayWib.slice(0, 7);
+  const thisMonthJuz = (db
+    .prepare("SELECT COALESCE(SUM(juz_amount), 0) AS total FROM tilawah_logs WHERE user_id = ? AND date_wib LIKE ?")
+    .get(user.id, `${yearMonth}-%`) as { total: number }).total;
+
   const khatamCount = db
     .prepare("SELECT COUNT(*) AS cnt FROM khatam_events WHERE user_id = ? AND type = 'tilawah'")
     .get(user.id) as { cnt: number };
@@ -66,6 +71,7 @@ tilawah.get("/", (c) => {
       lastLog={lastLog}
       recentLogs={recentLogs}
       allTimeJuz={allTimeTotals.tilawahJuz}
+      thisMonthJuz={thisMonthJuz}
       totalKhatam={khatamCount.cnt}
       page={page}
       totalLogs={totalLogs}

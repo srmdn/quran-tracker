@@ -118,13 +118,13 @@ This document tracks planned improvements, organized by topic. Items are discuss
 - The surah dropdown always starts blank even when a last position is shown above the form.
 - Pre-select `lastLog.end_surah` so users don't have to find it manually every day.
 - **Note (murojaah):** Especially useful here since users often review the same section repeatedly.
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done — surah select pre-populated from `lastLog.end_surah` via inline JS on page load (tilawah + murojaah).
 
 ### 4.2 Ayah field — dynamic max hint
 - The ayah input has no indication of how many ayahs the selected surah has.
 - Show "max: N" dynamically when a surah is selected, to prevent invalid submissions before they happen.
 - Requires a small JS snippet to read surah ayah counts from a data attribute.
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done — "max: N" hint shown below ayah input when a surah is selected; ayah counts embedded in page as inline JSON (tilawah + murojaah).
 
 ### 4.3 Form disabled when daily target is met
 - Currently the form is fully open even after the user has met today's target.
@@ -146,7 +146,7 @@ This document tracks planned improvements, organized by topic. Items are discuss
 ### 4.6 Monthly summary in stats column
 - Stats column shows all-time totals only.
 - Add a "this month" stat card for a more motivating near-term view, consistent with leaderboard scoring.
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done — "This Month" stat card added at top of stats column on both tilawah and murojaah pages.
 
 ### 4.7 Repetition count — helper text (murojaah only)
 - The repetition count field has no explanation. New users may not understand what it means.
@@ -522,7 +522,7 @@ CREATE TABLE IF NOT EXISTS email_log (
 
 ---
 
-### 19.2 Fix: welcome email + admin alert for manual registrations (Done)
+### 19.2 Fix: welcome email + admin alert for manual registrations
 
 When admin creates a user via `POST /admin/users/create`, if the created user has an email address:
 - Send them a welcome/registration confirmation email.
@@ -530,7 +530,7 @@ When admin creates a user via `POST /admin/users/create`, if the created user ha
 
 Currently this only fires for Google OAuth sign-ups.
 
-**Status:** Discussed, not yet started.
+**Status:** Done — welcome email + admin alert now fired after `POST /admin/users/create` succeeds.
 
 ---
 
@@ -540,18 +540,18 @@ When a super_admin suspends or unsuspends a member, send them a brief notificati
 - Suspension email: account has been suspended, contact admin.
 - Unsuspension email: account has been reinstated, link to app.
 
-**Status:** Discussed, not yet started.
+**Status:** Done — `sendSuspendEmail` and `sendUnsuspendEmail` added to `welcome-email.ts`; fired in suspend/unsuspend routes.
 
 ---
 
-### 19.4 Fix: murojaah khatam detection (Done)
+### 19.4 Fix: murojaah khatam detection
 
 `POST /murojaah` currently does not check for khatam (endSurah=114, endAyah=6). It should:
 - Insert a row into `khatam_events` with `type = 'murojaah'` when An-Nas is reached.
 - Fire `sendKhatamEmail` with the updated murojaah khatam count.
 - Mirror the same pattern already used in `POST /tilawah`.
 
-**Status:** Discussed, not yet started.
+**Status:** Done — khatam detection and email firing added to `POST /murojaah`, mirroring tilawah pattern.
 
 ---
 

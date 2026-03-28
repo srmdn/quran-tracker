@@ -37,11 +37,12 @@ export const TilawahPage: FC<{
   lastLog: LogEntry | null;
   recentLogs: LogEntry[];
   allTimeJuz: number;
+  thisMonthJuz: number;
   totalKhatam: number;
   page: number;
   totalLogs: number;
   perPage: number;
-}> = ({ user, lang, success, error, todayWib, todayTotal, target, lastLog, recentLogs, allTimeJuz, totalKhatam, page, totalLogs, perPage }) => {
+}> = ({ user, lang, success, error, todayWib, todayTotal, target, lastLog, recentLogs, allTimeJuz, thisMonthJuz, totalKhatam, page, totalLogs, perPage }) => {
   const totalPages = Math.max(1, Math.ceil(totalLogs / perPage));
   const todayPercent = Math.min(100, Math.round((todayTotal / target.tilawah_juz_daily) * 100));
   const lastSurahName = lastLog?.end_surah ? SURAHS.find((s) => s.number === lastLog.end_surah)?.name : null;
@@ -111,7 +112,9 @@ export const TilawahPage: FC<{
                 <div class="space-y-3">
                   <div>
                     <label class="block text-xs font-semibold text-text-secondary mb-1">Surah</label>
-                    <select name="end_surah" class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" required>
+                    <select name="end_surah" id="til-surah-sel"
+                      data-last={String(lastLog?.end_surah ?? "")}
+                      class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" required>
                       <option value="">Select surah...</option>
                       {SURAHS.map((s) => (
                         <option value={String(s.number)}>
@@ -122,8 +125,9 @@ export const TilawahPage: FC<{
                   </div>
                   <div>
                     <label class="block text-xs font-semibold text-text-secondary mb-1">Ayah</label>
-                    <input type="number" name="end_ayah" min="1" step="1" placeholder="e.g. 25"
+                    <input type="number" name="end_ayah" id="til-ayah-inp" min="1" step="1" placeholder="e.g. 25"
                       class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" required />
+                    <p id="til-ayah-hint" class="text-xs text-text-secondary mt-1"></p>
                   </div>
                 </div>
               </div>
@@ -132,10 +136,15 @@ export const TilawahPage: FC<{
                 {t(lang, "saveTilawah")}
               </button>
             </form>
+            <script dangerouslySetInnerHTML={{ __html: `(function(){var AC=${JSON.stringify(Object.fromEntries(SURAHS.map(s => [s.number, s.totalAyahs])))};var sel=document.getElementById('til-surah-sel');var hint=document.getElementById('til-ayah-hint');function upd(){var v=parseInt(sel.value,10);hint.textContent=v&&AC[v]?'max: '+AC[v]:'';}sel.addEventListener('change',upd);var last=sel.getAttribute('data-last');if(last){sel.value=last;upd();}})();` }} />
           </div>
 
           {/* Stats */}
           <div class="flex flex-col gap-4">
+            <div class="bg-white border border-border-light rounded-xl p-5">
+              <p class="text-xs text-text-secondary mb-1">{t(lang, "thisMonthTilawahStat")}</p>
+              <p class="text-3xl font-black text-text-main">{thisMonthJuz.toFixed(1)} <span class="text-base font-medium text-text-secondary">{t(lang, "juz")}</span></p>
+            </div>
             <div class="bg-white border border-border-light rounded-xl p-5">
               <p class="text-xs text-text-secondary mb-1">{t(lang, "allTimeTilawahStat")}</p>
               <p class="text-3xl font-black text-text-main">{allTimeJuz} <span class="text-base font-medium text-text-secondary">{t(lang, "juz")}</span></p>
