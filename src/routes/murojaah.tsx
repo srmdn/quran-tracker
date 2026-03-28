@@ -97,6 +97,7 @@ murojaah.post("/", async (c) => {
   if (repRaw) {
     const parsed = parseInt(repRaw, 10);
     if (!Number.isInteger(parsed) || parsed <= 0) return c.redirect(redirectWith("error", "Repetition count must be a positive integer."));
+    if (parsed > 100) return c.redirect(redirectWith("error", "Repetition count cannot exceed 100."));
     repetitionCount = parsed;
   }
 

@@ -99,8 +99,9 @@ export const MurojaahPage: FC<{
               </div>
               <div>
                 <label class="block text-xs font-semibold text-text-secondary mb-1">{t(lang, "repetitionCount")}</label>
-                <input type="number" name="repetition_count" min="1" step="1" placeholder="e.g. 3"
+                <input type="number" name="repetition_count" min="1" max="100" step="1" placeholder="e.g. 3"
                   class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" />
+                <p class="text-xs text-text-secondary mt-1">{t(lang, "repetitionCountHint")}</p>
               </div>
               <div class="border-t border-border-light pt-4">
                 <p class="text-xs font-bold text-text-secondary mb-3">{t(lang, "endingPosition")}</p>

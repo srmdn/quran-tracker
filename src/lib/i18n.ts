@@ -112,6 +112,7 @@ const en = {
   murojaahLogs: "Murojaah Logs",
   noMurojaahYet: "No murojaah logged yet.",
   repetitionSuffix: "repetition",
+  repetitionCountHint: "How many times you reviewed this section in one session.",
 
   // Leaderboard
   leaderboard: "Leaderboard",
@@ -305,6 +306,7 @@ const id: typeof en = {
   murojaahLogs: "Log Murojaah",
   noMurojaahYet: "Belum ada murojaah yang dicatat.",
   repetitionSuffix: "kali pengulangan",
+  repetitionCountHint: "Berapa kali kamu mengulang bagian ini dalam satu sesi.",
 
   // Leaderboard
   leaderboard: "Leaderboard",
