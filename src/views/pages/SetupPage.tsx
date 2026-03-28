@@ -54,8 +54,9 @@ export const SetupPage: FC<{
                     class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm pr-14"
                     required
                   />
-                  <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text-secondary font-medium">juz/hari</span>
+                  <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text-secondary font-medium">{t(lang, "juzPerDay")}</span>
                 </div>
+                <p class="text-xs text-text-secondary/70 mt-1.5">{t(lang, "setupTargetHint")}</p>
               </div>
 
               <div>
@@ -74,8 +75,9 @@ export const SetupPage: FC<{
                     class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm pr-14"
                     required
                   />
-                  <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text-secondary font-medium">juz/hari</span>
+                  <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text-secondary font-medium">{t(lang, "juzPerDay")}</span>
                 </div>
+                <p class="text-xs text-text-secondary/70 mt-1.5">{t(lang, "setupTargetHint")}</p>
               </div>
 
               <button

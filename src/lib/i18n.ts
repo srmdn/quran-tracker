@@ -36,11 +36,14 @@ const en = {
   emailPlaceholder: "you@example.com",
   passwordPlaceholder: "Your password",
   signInWithEmail: "Sign in with Email",
-  newMemberNote: "New members need admin approval before accessing the app.",
+  newMemberNote: "New members need admin approval. Contact your ustadz to register.",
+  backToHome: "← Back to home",
 
   // Pending
   awaitingApproval: "Awaiting Approval",
   awaitingApprovalDesc1: "Your account has been registered and is awaiting admin approval. You'll be able to access the community once approved.",
+  awaitingApprovalContact: "To follow up, contact your ustadz or admin.",
+  awaitingApprovalWaitTime: "Approval is usually done within 1-2 days.",
   statusLabel: "Status",
   pendingStatus: "Pending",
 
@@ -54,6 +57,8 @@ const en = {
   dailyMurojaahTarget: "Daily Murojaah Target",
   howManyJuzRevise: "How many juz do you want to revise each day?",
   startTracking: "Start Tracking",
+  juzPerDay: "juz/day",
+  setupTargetHint: "Most santri start with 1-2 juz/day.",
 
   // Dashboard
   todayProgress: "Today's Progress",
@@ -217,11 +222,14 @@ const id: typeof en = {
   emailPlaceholder: "kamu@contoh.com",
   passwordPlaceholder: "Password kamu",
   signInWithEmail: "Masuk dengan Email",
-  newMemberNote: "Anggota baru memerlukan persetujuan admin sebelum bisa mengakses aplikasi.",
+  newMemberNote: "Anggota baru memerlukan persetujuan admin. Hubungi ustadz kamu untuk mendaftar.",
+  backToHome: "← Kembali ke beranda",
 
   // Pending
   awaitingApproval: "Menunggu Persetujuan",
   awaitingApprovalDesc1: "Akunmu telah terdaftar dan sedang menunggu persetujuan admin. Kamu bisa mengakses aplikasi setelah disetujui.",
+  awaitingApprovalContact: "Untuk menindaklanjuti, hubungi ustadz atau admin.",
+  awaitingApprovalWaitTime: "Persetujuan biasanya selesai dalam 1-2 hari.",
   statusLabel: "Status",
   pendingStatus: "Menunggu",
 
@@ -235,6 +243,8 @@ const id: typeof en = {
   dailyMurojaahTarget: "Target Murojaah Harian",
   howManyJuzRevise: "Berapa juz yang ingin kamu ulang setiap hari?",
   startTracking: "Mulai Catat",
+  juzPerDay: "juz/hari",
+  setupTargetHint: "Kebanyakan santri mulai dengan 1-2 juz/hari.",
 
   // Dashboard
   todayProgress: "Progress Hari Ini",

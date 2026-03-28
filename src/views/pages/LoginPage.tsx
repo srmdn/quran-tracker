@@ -76,14 +76,20 @@ export const LoginPage: FC<{ error?: string; lang: Lang }> = ({ error, lang }) =
 
           </div>
 
-          <div class="flex items-center justify-center gap-3 mt-6">
-            <p class="text-text-secondary text-xs">{t(lang, "newMemberNote")}</p>
-            <form method="post" action="/lang">
-              <input type="hidden" name="locale" value={lang === "en" ? "id" : "en"} />
-              <button type="submit" class="text-xs font-bold px-2 py-1 rounded-lg border border-border-light bg-slate-50 text-text-secondary hover:text-primary hover:border-primary/30 transition-colors whitespace-nowrap">
-                {t(lang, "switchLang")}
-              </button>
-            </form>
+          <div class="flex flex-col items-center gap-3 mt-6">
+            <p class="text-text-secondary text-xs text-center">{t(lang, "newMemberNote")}</p>
+            <div class="flex items-center gap-3">
+              <a href="/landing" class="text-xs font-semibold text-primary hover:text-primary-dark transition-colors">
+                {t(lang, "backToHome")}
+              </a>
+              <span class="text-border-light">·</span>
+              <form method="post" action="/lang">
+                <input type="hidden" name="locale" value={lang === "en" ? "id" : "en"} />
+                <button type="submit" class="text-xs font-bold px-2 py-1 rounded-lg border border-border-light bg-slate-50 text-text-secondary hover:text-primary hover:border-primary/30 transition-colors whitespace-nowrap">
+                  {t(lang, "switchLang")}
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       </div>

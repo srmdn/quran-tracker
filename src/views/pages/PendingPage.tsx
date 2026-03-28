@@ -32,6 +32,10 @@ export const PendingPage: FC<{ user: User; lang: Lang }> = ({ user, lang }) => {
                 </span>
               </div>
             </div>
+            <div class="mt-6 bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 text-sm text-blue-700 space-y-1">
+              <p>{t(lang, "awaitingApprovalContact")}</p>
+              <p class="text-xs text-blue-500">{t(lang, "awaitingApprovalWaitTime")}</p>
+            </div>
             <form method="POST" action="/auth/logout" class="mt-6">
               <button
                 type="submit"
