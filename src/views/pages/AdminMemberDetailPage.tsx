@@ -9,6 +9,7 @@ import type { UserStreak } from "../../lib/streak.ts";
 import type { ActivityTotals, UserMonthlyActivityRank } from "../../lib/activity-calc.ts";
 import type { RecentLogEntry } from "../../routes/dashboard.tsx";
 import { t, type Lang } from "../../lib/i18n.ts";
+import { formatJuz, formatLogAmount } from "../../lib/format-juz.ts";
 import { isSuperAdminRole, isAdminRole } from "../../lib/roles.ts";
 
 export const AdminMemberDetailPage: FC<{
@@ -167,7 +168,7 @@ export const AdminMemberDetailPage: FC<{
                 <div class="flex items-center justify-between mb-2">
                   <span class="text-sm font-semibold text-text-main">Tilawah</span>
                   <span class="text-sm font-semibold text-text-secondary">
-                    {todayTilawah}/{target.tilawah_juz_daily} {t(lang, "juz")}
+                    {formatJuz(todayTilawah, lang)} / {target.tilawah_juz_daily} juz
                   </span>
                 </div>
                 <div class="w-full h-3 rounded-full bg-slate-100 border border-slate-200 overflow-hidden">
@@ -179,7 +180,7 @@ export const AdminMemberDetailPage: FC<{
                 <p class="text-xs text-text-secondary mt-1">
                   {tilawahPercent >= 100
                     ? t(lang, "targetMet")
-                    : `${Math.max(0, target.tilawah_juz_daily - todayTilawah).toFixed(1)} ${t(lang, "juzToGo")}`}
+                    : `${formatJuz(Math.max(0, target.tilawah_juz_daily - todayTilawah), lang)} ${t(lang, "toGo")}`}
                 </p>
               </div>
               {/* Murojaah */}
@@ -187,7 +188,7 @@ export const AdminMemberDetailPage: FC<{
                 <div class="flex items-center justify-between mb-2">
                   <span class="text-sm font-semibold text-text-main">Murojaah</span>
                   <span class="text-sm font-semibold text-text-secondary">
-                    {todayMurojaah}/{target.murojaah_juz_daily} {t(lang, "juz")}
+                    {formatJuz(todayMurojaah, lang)} / {target.murojaah_juz_daily} juz
                   </span>
                 </div>
                 <div class="w-full h-3 rounded-full bg-slate-100 border border-slate-200 overflow-hidden">
@@ -199,7 +200,7 @@ export const AdminMemberDetailPage: FC<{
                 <p class="text-xs text-text-secondary mt-1">
                   {murojaahPercent >= 100
                     ? t(lang, "targetMet")
-                    : `${Math.max(0, target.murojaah_juz_daily - todayMurojaah).toFixed(1)} ${t(lang, "juzToGo")}`}
+                    : `${formatJuz(Math.max(0, target.murojaah_juz_daily - todayMurojaah), lang)} ${t(lang, "toGo")}`}
                 </p>
               </div>
             </div>
@@ -310,7 +311,7 @@ export const AdminMemberDetailPage: FC<{
                       </span>
                       <div>
                         <p class="text-sm font-semibold text-text-main">
-                          {log.juz_amount} {t(lang, "juz")}
+                          {formatLogAmount(log.juz_amount, log.log_unit, log.log_amount, lang)}
                           {log.repetition_count ? ` · ${log.repetition_count}x` : ""}
                         </p>
                         {surahName && (

@@ -17,6 +17,8 @@ export type RecentLogEntry = {
   type: "tilawah" | "murojaah";
   date_wib: string;
   juz_amount: number;
+  log_unit: string | null;
+  log_amount: number | null;
   end_surah: number | null;
   end_ayah: number | null;
   end_juz: number | null;
@@ -68,13 +70,13 @@ dashboard.get("/", (c) => {
   // Recent logs (last 8 entries across both types)
   const recentLogs = db
     .prepare(
-      `SELECT type, date_wib, juz_amount, end_surah, end_ayah, end_juz, repetition_count, created_at
+      `SELECT type, date_wib, juz_amount, log_unit, log_amount, end_surah, end_ayah, end_juz, repetition_count, created_at
        FROM (
-         SELECT 'tilawah' AS type, date_wib, juz_amount, end_surah, end_ayah, end_juz,
+         SELECT 'tilawah' AS type, date_wib, juz_amount, log_unit, log_amount, end_surah, end_ayah, end_juz,
                 NULL AS repetition_count, created_at
          FROM tilawah_logs WHERE user_id = ?
          UNION ALL
-         SELECT 'murojaah' AS type, date_wib, juz_amount, end_surah, end_ayah, end_juz,
+         SELECT 'murojaah' AS type, date_wib, juz_amount, log_unit, log_amount, end_surah, end_ayah, end_juz,
                 repetition_count, created_at
          FROM murojaah_logs WHERE user_id = ?
        )

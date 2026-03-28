@@ -6,11 +6,14 @@ import { SURAHS } from "../../data/quran-meta.ts";
 import { APP_NAME } from "../../config.ts";
 import type { UserTarget } from "../../lib/targets.ts";
 import { t, type Lang } from "../../lib/i18n.ts";
+import { formatJuz, formatLogAmount } from "../../lib/format-juz.ts";
 
 type LogEntry = {
   id: number;
   date_wib: string;
   juz_amount: number;
+  log_unit: string | null;
+  log_amount: number | null;
   repetition_count: number | null;
   end_surah: number | null;
   end_ayah: number | null;
@@ -73,12 +76,12 @@ export const MurojaahPage: FC<{
         <div class="w-full bg-white border border-border-light rounded-xl p-6 mb-6">
           <div class="flex items-center justify-between mb-3">
             <h2 class="text-text-main font-bold">{t(lang, "todayProgress")}</h2>
-            <span class="text-sm font-semibold text-text-secondary">{todayTotal}/{target.murojaah_juz_daily} {t(lang, "juz")}</span>
+            <span class="text-sm font-semibold text-text-secondary">{formatJuz(todayTotal, lang)} / {target.murojaah_juz_daily} juz</span>
           </div>
           <div class="w-full h-3 rounded-full bg-slate-100 border border-slate-200 overflow-hidden mb-1">
             <div class={`h-full rounded-full ${todayPercent >= 100 ? "bg-emerald-500" : "bg-primary"}`} style={`width: ${todayPercent}%`} />
           </div>
-          <p class="text-xs text-text-secondary">{todayPercent >= 100 ? t(lang, "dailyTargetMet") : `${target.murojaah_juz_daily - todayTotal > 0 ? (target.murojaah_juz_daily - todayTotal).toFixed(1) : 0} ${t(lang, "juzRemainingTarget")}`}</p>
+          <p class="text-xs text-text-secondary">{todayPercent >= 100 ? t(lang, "dailyTargetMet") : `${formatJuz(Math.max(0, target.murojaah_juz_daily - todayTotal), lang)} ${t(lang, "toGo")}`}</p>
         </div>
 
         {/* Last position */}
@@ -116,8 +119,20 @@ export const MurojaahPage: FC<{
                 </div>
                 <div>
                   <label class="block text-xs font-semibold text-text-secondary mb-1">{t(lang, "juzAmount")}</label>
-                  <input type="number" name="juz_amount" min="0.01" max="30" step="0.01" placeholder="e.g. 2.0"
+                  <div class="flex rounded-lg overflow-hidden border border-slate-200 bg-slate-50 mb-2">
+                    <button type="button" id="mur-btn-juz"
+                      class="flex-1 py-1.5 text-xs font-bold bg-primary text-white transition-colors rounded-l-lg">
+                      {t(lang, "inputModeJuz")}
+                    </button>
+                    <button type="button" id="mur-btn-pages"
+                      class="flex-1 py-1.5 text-xs font-bold text-text-secondary transition-colors rounded-r-lg">
+                      {t(lang, "inputModePages")}
+                    </button>
+                  </div>
+                  <input type="hidden" name="input_mode" id="mur-input-mode" value="juz" />
+                  <input type="number" name="amount" id="mur-amount-inp" min="1" max="30" step="1" placeholder="e.g. 1"
                     class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" required />
+                  <p id="mur-mode-hint" class="text-xs text-text-secondary mt-1"></p>
                 </div>
                 <div>
                   <label class="block text-xs font-semibold text-text-secondary mb-1">{t(lang, "repetitionCount")}</label>
@@ -156,7 +171,39 @@ export const MurojaahPage: FC<{
               </form>
             )}
             {todayPercent < 100 && (
-              <script dangerouslySetInnerHTML={{ __html: `(function(){var AC=${JSON.stringify(Object.fromEntries(SURAHS.map(s => [s.number, s.totalAyahs])))};var sel=document.getElementById('mur-surah-sel');var hint=document.getElementById('mur-ayah-hint');function upd(){var v=parseInt(sel.value,10);hint.textContent=v&&AC[v]?'max: '+AC[v]:'';}sel.addEventListener('change',upd);var last=sel.getAttribute('data-last');if(last){sel.value=last;upd();}})();` }} />
+              <script dangerouslySetInnerHTML={{ __html: `(function(){
+  var AC=${JSON.stringify(Object.fromEntries(SURAHS.map(s => [s.number, s.totalAyahs])))};
+  var sel=document.getElementById('mur-surah-sel');
+  var hint=document.getElementById('mur-ayah-hint');
+  function upd(){var v=parseInt(sel.value,10);hint.textContent=v&&AC[v]?'max: '+AC[v]:'';}
+  sel.addEventListener('change',upd);
+  var last=sel.getAttribute('data-last');
+  if(last){sel.value=last;upd();}
+  // Mode toggle
+  var btnJuz=document.getElementById('mur-btn-juz');
+  var btnPages=document.getElementById('mur-btn-pages');
+  var modeInp=document.getElementById('mur-input-mode');
+  var amountInp=document.getElementById('mur-amount-inp');
+  var modeHint=document.getElementById('mur-mode-hint');
+  var activeClass='flex-1 py-1.5 text-xs font-bold bg-primary text-white transition-colors';
+  var inactiveClass='flex-1 py-1.5 text-xs font-bold text-text-secondary transition-colors';
+  function setMode(m){
+    modeInp.value=m;
+    if(m==='pages'){
+      btnJuz.className=inactiveClass+' rounded-l-lg';
+      btnPages.className=activeClass+' rounded-r-lg';
+      amountInp.placeholder='e.g. 10';
+      modeHint.textContent='${lang === "id" ? "20 halaman = 1 juz (Mushaf Madinah)" : "20 pages = 1 juz (Medina Mushaf)"}';
+    }else{
+      btnJuz.className=activeClass+' rounded-l-lg';
+      btnPages.className=inactiveClass+' rounded-r-lg';
+      amountInp.placeholder='e.g. 1';
+      modeHint.textContent='';
+    }
+  }
+  btnJuz.addEventListener('click',function(){setMode('juz');});
+  btnPages.addEventListener('click',function(){setMode('pages');});
+})();` }} />
             )}
           </div>
 
@@ -201,7 +248,7 @@ export const MurojaahPage: FC<{
                     <div class="px-6 py-4 flex items-center justify-between gap-4">
                       <div class="flex-1 min-w-0">
                         <p class="text-sm font-semibold text-text-main">
-                          {log.juz_amount} {t(lang, "juz")}{log.repetition_count ? ` · ${log.repetition_count}x ${t(lang, "repetitionSuffix")}` : ""}
+                          {formatLogAmount(log.juz_amount, log.log_unit, log.log_amount, lang)}{log.repetition_count ? ` · ${log.repetition_count}x ${t(lang, "repetitionSuffix")}` : ""}
                         </p>
                         {surahName ? (
                           <p class="text-xs text-text-secondary">

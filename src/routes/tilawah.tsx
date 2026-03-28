@@ -21,6 +21,8 @@ type TilawahLog = {
   id: number;
   date_wib: string;
   juz_amount: number;
+  log_unit: string | null;
+  log_amount: number | null;
   end_surah: number | null;
   end_ayah: number | null;
   end_juz: number | null;
@@ -50,14 +52,14 @@ tilawah.get("/", (c) => {
     .get(user.id) as { cnt: number };
 
   const lastLog = db
-    .prepare("SELECT id, date_wib, juz_amount, end_surah, end_ayah, end_juz, created_at FROM tilawah_logs WHERE user_id = ? ORDER BY created_at DESC LIMIT 1")
+    .prepare("SELECT id, date_wib, juz_amount, log_unit, log_amount, end_surah, end_ayah, end_juz, created_at FROM tilawah_logs WHERE user_id = ? ORDER BY created_at DESC LIMIT 1")
     .get(user.id) as TilawahLog | null;
 
   const perPage = 15;
   const page = Math.max(1, parseInt(c.req.query("page") || "1", 10));
   const totalLogs = (db.prepare("SELECT COUNT(*) AS cnt FROM tilawah_logs WHERE user_id = ?").get(user.id) as { cnt: number }).cnt;
   const recentLogs = db
-    .prepare("SELECT id, date_wib, juz_amount, end_surah, end_ayah, end_juz, created_at FROM tilawah_logs WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?")
+    .prepare("SELECT id, date_wib, juz_amount, log_unit, log_amount, end_surah, end_ayah, end_juz, created_at FROM tilawah_logs WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?")
     .all(user.id, perPage, (page - 1) * perPage) as TilawahLog[];
 
   return c.html(
@@ -90,12 +92,33 @@ tilawah.post("/", async (c) => {
 
   const body = await c.req.parseBody();
 
-  // Validate juz amount
-  const juzRaw = (body.juz_amount as string)?.trim();
-  if (!/^\d+(\.\d{1,2})?$/.test(juzRaw || "")) return c.redirect(redirectWith("error", t(lang, "invalidJuzAmount")));
-  const juzAmount = Number(juzRaw);
-  if (!Number.isFinite(juzAmount) || juzAmount <= 0) return c.redirect(redirectWith("error", t(lang, "invalidJuzAmount")));
-  if (juzAmount > 30) return c.redirect(redirectWith("error", t(lang, "juzExceeds30")));
+  // Parse input mode (juz or pages)
+  const inputMode = (body.input_mode as string) === "pages" ? "pages" : "juz";
+  const amountRaw = (body.amount as string)?.trim();
+
+  if (!/^\d+$/.test(amountRaw || "")) {
+    return c.redirect(redirectWith("error", t(lang, inputMode === "pages" ? "invalidPagesAmount" : "invalidJuzAmount")));
+  }
+  const amountInt = parseInt(amountRaw, 10);
+  if (amountInt <= 0) {
+    return c.redirect(redirectWith("error", t(lang, inputMode === "pages" ? "invalidPagesAmount" : "invalidJuzAmount")));
+  }
+
+  let juzAmount: number;
+  let logUnit: "juz" | "pages";
+  let logAmount: number;
+
+  if (inputMode === "pages") {
+    if (amountInt > 30) return c.redirect(redirectWith("error", t(lang, "pagesExceed30")));
+    juzAmount = amountInt / 20;
+    logUnit = "pages";
+    logAmount = amountInt;
+  } else {
+    if (amountInt > 30) return c.redirect(redirectWith("error", t(lang, "juzExceeds30")));
+    juzAmount = amountInt;
+    logUnit = "juz";
+    logAmount = amountInt;
+  }
 
   // Daily cap check
   const target = getUserTarget(user.id);
@@ -132,8 +155,8 @@ tilawah.post("/", async (c) => {
 
   // Insert log
   db.prepare(
-    "INSERT INTO tilawah_logs (user_id, date_wib, juz_amount, end_surah, end_ayah, end_juz) VALUES (?, ?, ?, ?, ?, ?)"
-  ).run(user.id, dateCheck.date, juzAmount, endSurah, endAyah, endJuz);
+    "INSERT INTO tilawah_logs (user_id, date_wib, juz_amount, end_surah, end_ayah, end_juz, log_unit, log_amount) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+  ).run(user.id, dateCheck.date, juzAmount, endSurah, endAyah, endJuz, logUnit, logAmount);
 
   // Khatam detection — reached An-Nas (surah 114) ayah 6
   let khatamMsg = "";
@@ -155,7 +178,10 @@ tilawah.post("/", async (c) => {
     sendStreakMilestoneEmail(user, newStreak).catch(() => {});
   }
 
-  return c.redirect(redirectWith("success", `${t(lang, "tilawahLogged")} ${juzAmount} juz — ${t(lang, "endedAtMsg")} ${surahMeta.name} ayah ${endAyah} (Juz ${endJuz}).${khatamMsg}`));
+  const amountLabel = logUnit === "pages"
+    ? `${logAmount} ${lang === "id" ? "halaman" : "pages"}`
+    : `${logAmount} juz`;
+  return c.redirect(redirectWith("success", `${t(lang, "tilawahLogged")} ${amountLabel} — ${t(lang, "endedAtMsg")} ${surahMeta.name} ayah ${endAyah} (Juz ${endJuz}).${khatamMsg}`));
 });
 
 tilawah.post("/logs/:id/delete", (c) => {

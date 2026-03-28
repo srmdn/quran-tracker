@@ -9,6 +9,7 @@ import type { UserStreak } from "../../lib/streak.ts";
 import type { ActivityTotals, UserMonthlyActivityRank } from "../../lib/activity-calc.ts";
 import type { RecentLogEntry, HeatmapCell } from "../../routes/dashboard.tsx";
 import { t, type Lang } from "../../lib/i18n.ts";
+import { formatJuz, formatLogAmount } from "../../lib/format-juz.ts";
 
 export const DashboardPage: FC<{
   user: User;
@@ -102,7 +103,7 @@ export const DashboardPage: FC<{
             <div>
               <div class="flex items-center justify-between mb-2">
                 <span class="text-sm font-semibold text-text-main">Tilawah</span>
-                <span class="text-sm font-semibold text-text-secondary">{todayTilawah}/{target.tilawah_juz_daily} {t(lang, "juz")}</span>
+                <span class="text-sm font-semibold text-text-secondary">{formatJuz(todayTilawah, lang)} / {target.tilawah_juz_daily} juz</span>
               </div>
               <div class="w-full h-3 rounded-full bg-slate-100 border border-slate-200 overflow-hidden">
                 <div
@@ -111,14 +112,14 @@ export const DashboardPage: FC<{
                 />
               </div>
               <p class={`text-xs mt-1 font-semibold ${tilawahPercent >= 100 ? "text-emerald-600" : "text-text-secondary"}`}>
-                {tilawahPercent >= 100 ? t(lang, "targetMet") : `${Math.max(0, target.tilawah_juz_daily - todayTilawah).toFixed(1)} ${t(lang, "juzToGo")}`}
+                {tilawahPercent >= 100 ? t(lang, "targetMet") : `${formatJuz(Math.max(0, target.tilawah_juz_daily - todayTilawah), lang)} ${t(lang, "toGo")}`}
               </p>
             </div>
             {/* Murojaah bar */}
             <div>
               <div class="flex items-center justify-between mb-2">
                 <span class="text-sm font-semibold text-text-main">Murojaah</span>
-                <span class="text-sm font-semibold text-text-secondary">{todayMurojaah}/{target.murojaah_juz_daily} {t(lang, "juz")}</span>
+                <span class="text-sm font-semibold text-text-secondary">{formatJuz(todayMurojaah, lang)} / {target.murojaah_juz_daily} juz</span>
               </div>
               <div class="w-full h-3 rounded-full bg-slate-100 border border-slate-200 overflow-hidden">
                 <div
@@ -127,7 +128,7 @@ export const DashboardPage: FC<{
                 />
               </div>
               <p class={`text-xs mt-1 font-semibold ${murojaahPercent >= 100 ? "text-emerald-600" : "text-text-secondary"}`}>
-                {murojaahPercent >= 100 ? t(lang, "targetMet") : `${Math.max(0, target.murojaah_juz_daily - todayMurojaah).toFixed(1)} ${t(lang, "juzToGo")}`}
+                {murojaahPercent >= 100 ? t(lang, "targetMet") : `${formatJuz(Math.max(0, target.murojaah_juz_daily - todayMurojaah), lang)} ${t(lang, "toGo")}`}
               </p>
             </div>
           </div>
@@ -193,7 +194,7 @@ export const DashboardPage: FC<{
               {t(lang, "progressToNextKhatam")}
             </h2>
             <span class="text-sm font-semibold text-text-secondary">
-              {activityTotals.progressToNextKhatam}/30 {t(lang, "juz")}
+              {formatJuz(activityTotals.progressToNextKhatam, lang)} / 30 juz
             </span>
           </div>
           <div class="w-full h-3 rounded-full bg-slate-100 border border-slate-200 overflow-hidden mb-1">
@@ -205,7 +206,7 @@ export const DashboardPage: FC<{
           <p class="text-xs text-text-secondary">
             {khatamProgressPercent >= 100
               ? t(lang, "khatamCompleted")
-              : `${(30 - activityTotals.progressToNextKhatam).toFixed(1)} ${t(lang, "juzRemainingKhatam")}`}
+              : `${formatJuz(Math.max(0, 30 - activityTotals.progressToNextKhatam), lang)} ${t(lang, "toNextKhatam")}`}
           </p>
         </div>
 
@@ -301,7 +302,7 @@ export const DashboardPage: FC<{
                       </span>
                       <div>
                         <p class="text-sm font-semibold text-text-main">
-                          {log.juz_amount} {t(lang, "juz")}
+                          {formatLogAmount(log.juz_amount, log.log_unit, log.log_amount, lang)}
                           {log.repetition_count ? ` · ${log.repetition_count}x` : ""}
                         </p>
                         {surahName && (

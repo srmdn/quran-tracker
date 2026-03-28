@@ -130,10 +130,19 @@ const en = {
   scoreFormulaLabel: "Score formula",
   scoreFormulaPts: "pts per",
 
+  // Juz / pages input toggle
+  inputModeJuz: "Juz",
+  inputModePages: "Pages",
+  mushafHint: "20 pages = 1 juz (Medina Mushaf)",
+  toGo: "to go",
+  toNextKhatam: "remaining to next khatam",
+
   // Route messages
   tooManyRequests: "Too many requests. Please wait a minute.",
-  invalidJuzAmount: "Invalid juz amount.",
-  juzExceeds30: "Juz amount cannot exceed 30 (full Quran) per entry.",
+  invalidJuzAmount: "Invalid juz amount. Enter a whole number.",
+  juzExceeds30: "Juz amount cannot exceed 30 per entry.",
+  invalidPagesAmount: "Invalid pages amount. Enter a whole number.",
+  pagesExceed30: "Pages cannot exceed 30 per entry.",
   invalidDate: "Invalid date.",
   invalidSurah: "Invalid surah selected.",
   invalidLogId: "Invalid log ID.",
@@ -365,10 +374,19 @@ const id: typeof en = {
   scoreFormulaLabel: "Formula skor",
   scoreFormulaPts: "poin per",
 
+  // Juz / pages input toggle
+  inputModeJuz: "Juz",
+  inputModePages: "Halaman",
+  mushafHint: "20 halaman = 1 juz (Mushaf Madinah)",
+  toGo: "lagi",
+  toNextKhatam: "lagi ke khatam berikutnya",
+
   // Route messages
   tooManyRequests: "Terlalu banyak permintaan. Harap tunggu sebentar.",
-  invalidJuzAmount: "Jumlah juz tidak valid.",
+  invalidJuzAmount: "Jumlah juz tidak valid. Masukkan bilangan bulat.",
   juzExceeds30: "Jumlah juz tidak boleh lebih dari 30 per entri.",
+  invalidPagesAmount: "Jumlah halaman tidak valid. Masukkan bilangan bulat.",
+  pagesExceed30: "Halaman tidak boleh lebih dari 30 per entri.",
   invalidDate: "Tanggal tidak valid.",
   invalidSurah: "Surah tidak valid.",
   invalidLogId: "ID entri tidak valid.",
