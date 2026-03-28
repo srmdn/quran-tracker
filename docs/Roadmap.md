@@ -439,7 +439,7 @@ Security findings to be scoped in a dedicated session. Each finding must be clas
 - No auth required for submission (public form)
 - Rate limiting on `POST /enroll` to prevent spam
 
-**Status:** Discussed, design agreed, not yet started.
+**Status:** Done — `GET/POST /enroll` (public, no auth), `enrollments` SQLite table, rate limited (3/hr/IP), server-side validation on all fields. Admin panel: `GET /admin/enrollments` (paginated list) + `GET /admin/enrollments/:id` (full detail). Linked from admin panel home page.
 
 ---
 
