@@ -250,9 +250,9 @@ export const LandingPage: FC<{
                             </div>
                           )}
                           <div class="flex items-start justify-between mb-3">
-                            <div class="relative inline-block">
+                            <div class="flex items-center gap-2.5">
+                              <span class="text-2xl leading-none">{medal}</span>
                               <Avatar name={row.name} url={row.avatar_url} cls={highlight ? "w-14 h-14" : "w-12 h-12"} />
-                              <span class="absolute -bottom-1 -right-1 text-xl leading-none">{medal}</span>
                             </div>
                             <span class={`text-xs font-bold uppercase tracking-wide ${row.rank === 1 ? "text-yellow-600" : row.rank === 2 ? "text-slate-500" : "text-amber-700"}`}>
                               {rankLabel}

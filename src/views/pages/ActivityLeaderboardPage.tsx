@@ -130,11 +130,11 @@ export const ActivityLeaderboardPage: FC<{
               {podiumOrder.map((row) => (
                 <div class={`rounded-xl p-5 ${podiumCardClass(row.rank)} ${row.rank === 1 ? "md:-mt-4" : ""} ${row.id === user.id ? "ring-2 ring-primary/30" : ""}`}>
                   <div class="flex items-center justify-between mb-3">
-                    <div class="relative inline-block">
-                      <Avatar name={row.name} url={row.avatar_url} cls={row.rank === 1 ? "w-14 h-14" : "w-12 h-12"} />
-                      <span class={`absolute -bottom-1 -right-1 ${podiumMedalStyle(row.rank)}`}>
+                    <div class="flex items-center gap-2.5">
+                      <div class={podiumMedalStyle(row.rank)}>
                         {row.rank === 1 ? "🥇" : row.rank === 2 ? "🥈" : "🥉"}
-                      </span>
+                      </div>
+                      <Avatar name={row.name} url={row.avatar_url} cls={row.rank === 1 ? "w-14 h-14" : "w-12 h-12"} />
                     </div>
                     {row.current_streak > 0 && (
                       <span class="text-xs font-bold text-orange-500">🔥 {row.current_streak}</span>
@@ -156,11 +156,11 @@ export const ActivityLeaderboardPage: FC<{
               {topThree.map((row) => (
                 <div class={`rounded-xl p-4 ${podiumCardClass(row.rank)} ${row.id === user.id ? "ring-2 ring-primary/30" : ""}`}>
                   <div class="flex items-center gap-3">
-                    <div class="relative inline-block shrink-0">
-                      <Avatar name={row.name} url={row.avatar_url} cls="w-10 h-10" />
-                      <span class={`absolute -bottom-1 -right-1 ${podiumMedalStyle(row.rank)}`}>
+                    <div class="flex items-center gap-2 shrink-0">
+                      <div class={podiumMedalStyle(row.rank)}>
                         {row.rank === 1 ? "🥇" : row.rank === 2 ? "🥈" : "🥉"}
-                      </span>
+                      </div>
+                      <Avatar name={row.name} url={row.avatar_url} cls="w-10 h-10" />
                     </div>
                     <div class="flex-1 min-w-0">
                       <p class="font-black text-text-main truncate">
