@@ -141,9 +141,10 @@ This document tracks planned improvements, organized by topic. Items are discuss
 ## 5. Tilawah Anti-Cheat
 
 ### 5.1 Khatam requires cumulative juz to be plausible
-- Currently juz amount and ending position are independent — a user can log 0.1 juz but set end position to An-Nas 114:6 and receive a khatam + 300 leaderboard points.
-- Fix: only record a khatam event if the user's cumulative tilawah total (all-time juz mod 30) is within a reasonable threshold of 30 (e.g., >= 25 juz into the current cycle).
-- **Status:** Discussed, not yet implemented.
+- Previously: juz amount and ending position were independent — a user could log 0.1 juz but set end position to An-Nas 114:6 and receive a khatam event.
+- Fix implemented: khatam is only recorded if the current log crosses a 30-juz cycle boundary (`floor((preTotal + juzAmount) / 30) > floor(preTotal / 30)`). If not, a "not plausible" message is shown and no khatam event is inserted. Log is still saved.
+- Note: leaderboard khatam bonus is derived from `floor(tilawah_juz / 30)` independently of `khatam_events`, so it is already protected by the daily cap on tilawah logs.
+- **Status:** Done — plausibility check added to `POST /tilawah`.
 
 ### 5.2 Daily cap tied to target (see roadmap 1.1)
 - Limits how much a user can log per day without updating their target.
@@ -176,10 +177,15 @@ This document tracks planned improvements, organized by topic. Items are discuss
 - **Status:** Tracked under section 1.2, limit value to be decided.
 
 ### 6.4 Juz amount vs. position independence
-- Same gap as tilawah: juz amount and ending position are independent fields.
+- Juz amount and ending position are independent fields for murojaah.
 - For murojaah there is no khatam equivalent, so the score impact is limited to `juz_amount × 7`.
-- Lower priority than tilawah 5.1 but worth noting.
-- **Status:** Identified, low priority.
+- A fix would require tracking start + end position per session, which is a larger UX change.
+- The daily cap (1.1) is the primary guard against inflation.
+- **Status:** Deferred — no action; daily cap is sufficient protection.
+
+### 6.5 Murojaah khatam plausibility + once-per-day dedup
+- Murojaah khatam detection (introduced with 19.4) had no plausibility check and no deduplication, unlike tilawah.
+- **Status:** Done — same 30-juz cycle boundary check and once-per-day dedup added to `POST /murojaah`, mirroring tilawah.
 
 ---
 
