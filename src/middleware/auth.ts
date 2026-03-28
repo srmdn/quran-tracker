@@ -25,6 +25,9 @@ export const memberMiddleware = createMiddleware<Env>(async (c, next) => {
   if (isPendingRole(user.role)) {
     return c.redirect("/pending");
   }
+  if (user.suspended_at) {
+    return c.redirect("/suspended");
+  }
   await next();
 });
 

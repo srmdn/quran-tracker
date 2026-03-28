@@ -13,6 +13,7 @@ export interface User {
     | "santri"
     | "alumni"
     | "asatidz";
+  suspended_at?: string | null;
   created_at: string;
   updated_at: string;
 }

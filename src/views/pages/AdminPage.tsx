@@ -214,6 +214,7 @@ export const AdminPage: FC<{
                 <option value="member">member</option>
                 <option value="admin">admin</option>
                 <option value="super_admin">super_admin</option>
+                <option value="__suspended">suspended</option>
               </select>
             </div>
           </div>
@@ -224,6 +225,7 @@ export const AdminPage: FC<{
                 data-name={u.name.toLowerCase()}
                 data-email={u.email.toLowerCase()}
                 data-role={u.role}
+                data-suspended={u.suspended_at ? "1" : "0"}
               >
                 <div class="flex items-center gap-3">
                   {u.avatar_url ? (
@@ -265,6 +267,11 @@ export const AdminPage: FC<{
                   >
                     {u.role}
                   </span>
+                  {u.suspended_at && (
+                    <span class="text-xs font-bold px-2 py-1 rounded bg-red-50 text-red-600 border border-red-200">
+                      suspended
+                    </span>
+                  )}
                   {!isAdminRole(u.role) && u.id !== user.id && (
                     <form
                       method="POST"
@@ -293,6 +300,44 @@ export const AdminPage: FC<{
                     >
                       Edit
                     </a>
+                  )}
+                  {isSuperAdminRole(user.role) && !isAdminRole(u.role) && u.id !== user.id && (
+                    u.suspended_at ? (
+                      <form method="POST" action={`/admin/users/${u.id}/unsuspend`} class="inline">
+                        <button
+                          type="submit"
+                          class="text-text-secondary hover:text-emerald-600 text-xs font-medium transition-colors"
+                        >
+                          Unsuspend
+                        </button>
+                      </form>
+                    ) : (
+                      <span class="inline-flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          id={`sus-btn-${u.id}`}
+                          onclick={`showSus(${u.id})`}
+                          class="text-text-secondary hover:text-amber-600 text-xs font-medium transition-colors"
+                        >
+                          Suspend
+                        </button>
+                        <span id={`sus-confirm-${u.id}`} class="hidden inline-flex items-center gap-1.5">
+                          <span class="text-xs text-text-secondary">Sure?</span>
+                          <form method="POST" action={`/admin/users/${u.id}/suspend`} class="inline">
+                            <button type="submit" class="text-xs font-bold text-amber-600 hover:text-amber-700 transition-colors">
+                              Suspend
+                            </button>
+                          </form>
+                          <button
+                            type="button"
+                            onclick={`hideSus(${u.id})`}
+                            class="text-xs text-text-secondary hover:text-primary transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </span>
+                      </span>
+                    )
                   )}
                   {!isAdminRole(u.role) && u.id !== user.id && (
                     <span class="inline-flex items-center gap-1.5">
@@ -356,8 +401,8 @@ function filterMembers() {
   var rows = document.querySelectorAll('#member-list > div[data-name]');
   var visible = [];
   rows.forEach(function(row) {
-    var match = (!q || row.dataset.name.includes(q) || row.dataset.email.includes(q))
-      && (!role || row.dataset.role === role);
+    var roleMatch = !role || (role === '__suspended' ? row.dataset.suspended === '1' : row.dataset.role === role);
+    var match = (!q || row.dataset.name.includes(q) || row.dataset.email.includes(q)) && roleMatch;
     row.style.display = match ? '' : 'none';
     if (match) visible.push(row);
   });
@@ -398,6 +443,14 @@ function showDel(id) {
 function hideDel(id) {
   document.getElementById('del-confirm-' + id).classList.add('hidden');
   document.getElementById('del-btn-' + id).classList.remove('hidden');
+}
+function showSus(id) {
+  document.getElementById('sus-btn-' + id).classList.add('hidden');
+  document.getElementById('sus-confirm-' + id).classList.remove('hidden');
+}
+function hideSus(id) {
+  document.getElementById('sus-confirm-' + id).classList.add('hidden');
+  document.getElementById('sus-btn-' + id).classList.remove('hidden');
 }
 
 applyPagination();

@@ -114,9 +114,12 @@ export function initializeDatabase() {
   const userColumns = db
     .prepare("PRAGMA table_info(users)")
     .all() as Array<{ name: string }>;
-  const hasPasswordHash = userColumns.some((c) => c.name === "password_hash");
-  if (!hasPasswordHash) {
+  const userColNames = userColumns.map((c) => c.name);
+  if (!userColNames.includes("password_hash")) {
     db.exec("ALTER TABLE users ADD COLUMN password_hash TEXT");
+  }
+  if (!userColNames.includes("suspended_at")) {
+    db.exec("ALTER TABLE users ADD COLUMN suspended_at TEXT DEFAULT NULL");
   }
 
   // Position columns on tilawah_logs

@@ -259,7 +259,7 @@ This document tracks planned improvements, organized by topic. Items are discuss
 - Requires a new `suspended` role or a `suspended_at` flag on the `users` table.
 - Admin can unsuspend at any time.
 - Useful for handling cheating cases or inactive accounts without permanent deletion.
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done — `suspended_at` column on users table; super_admin can suspend/unsuspend non-admin members; suspended users see a /suspended page; suspended badge + filter in admin panel.
 
 ---
 

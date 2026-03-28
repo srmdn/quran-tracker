@@ -193,6 +193,40 @@ admin.post("/users/:id/role", async (c) => {
   return c.redirect("/admin?success=User role updated.");
 });
 
+admin.post("/users/:id/suspend", (c) => {
+  const currentUser = c.get("user");
+  if (!isSuperAdminRole(currentUser.role)) {
+    return c.redirect("/admin?error=Only super admin can suspend users.");
+  }
+  const userId = parseInt(c.req.param("id"), 10);
+  if (!Number.isInteger(userId)) {
+    return c.redirect("/admin?error=Invalid user id.");
+  }
+  if (userId === currentUser.id) {
+    return c.redirect("/admin?error=Cannot suspend your own account.");
+  }
+  const target = db.prepare("SELECT role FROM users WHERE id = ?").get(userId) as { role: string } | null;
+  if (!target) return c.redirect("/admin?error=User not found.");
+  if (isAdminRole(target.role)) {
+    return c.redirect("/admin?error=Cannot suspend an admin account.");
+  }
+  db.prepare("UPDATE users SET suspended_at = datetime('now'), updated_at = datetime('now') WHERE id = ?").run(userId);
+  return c.redirect("/admin?success=User suspended.");
+});
+
+admin.post("/users/:id/unsuspend", (c) => {
+  const currentUser = c.get("user");
+  if (!isSuperAdminRole(currentUser.role)) {
+    return c.redirect("/admin?error=Only super admin can unsuspend users.");
+  }
+  const userId = parseInt(c.req.param("id"), 10);
+  if (!Number.isInteger(userId)) {
+    return c.redirect("/admin?error=Invalid user id.");
+  }
+  db.prepare("UPDATE users SET suspended_at = NULL, updated_at = datetime('now') WHERE id = ?").run(userId);
+  return c.redirect("/admin?success=User unsuspended.");
+});
+
 admin.post("/users/:id/delete", (c) => {
   const currentUser = c.get("user");
   if (!isSuperAdminRole(currentUser.role)) {

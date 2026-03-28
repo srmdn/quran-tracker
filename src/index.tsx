@@ -14,6 +14,7 @@ import { langRoutes } from "./routes/lang.ts";
 import { landingRoutes } from "./routes/landing.tsx";
 import { LoginPage } from "./views/pages/LoginPage.tsx";
 import { PendingPage } from "./views/pages/PendingPage.tsx";
+import { SuspendedPage } from "./views/pages/SuspendedPage.tsx";
 import { Layout } from "./views/Layout.tsx";
 import { authMiddleware } from "./middleware/auth.ts";
 import { langMiddleware } from "./middleware/lang.ts";
@@ -66,6 +67,14 @@ app.get("/pending", authMiddleware, (c) => {
   if (!isPendingRole(user.role)) return c.redirect("/dashboard");
   const lang = c.get("lang");
   return c.html(<PendingPage user={user} lang={lang} />);
+});
+
+// Suspended page
+app.get("/suspended", authMiddleware, (c) => {
+  const user = c.get("user");
+  if (!user.suspended_at) return c.redirect("/dashboard");
+  const lang = c.get("lang");
+  return c.html(<SuspendedPage user={user} lang={lang} />);
 });
 
 // Mount routes

@@ -188,6 +188,11 @@ const en = {
   streakLabel: "Streak",
   bestStreakLabel: "Best Streak",
   joinedLabel: "Joined",
+
+  // Suspended
+  suspendedTitle: "Account Suspended",
+  suspendedDesc: "Your account has been suspended. Please contact your admin for more information.",
+  suspendedStatus: "Suspended",
 } as const;
 
 const id: typeof en = {
@@ -374,6 +379,11 @@ const id: typeof en = {
   streakLabel: "Streak",
   bestStreakLabel: "Streak Terbaik",
   joinedLabel: "Bergabung",
+
+  // Suspended
+  suspendedTitle: "Akun Ditangguhkan",
+  suspendedDesc: "Akunmu telah ditangguhkan. Hubungi adminmu untuk informasi lebih lanjut.",
+  suspendedStatus: "Ditangguhkan",
 };
 
 export type TranslationKey = keyof typeof en;
