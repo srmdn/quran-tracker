@@ -6,7 +6,7 @@ import { getWibDateYmd, validateWibLogDate } from "../lib/wib-date.ts";
 import { getUserTarget, getTodayMurojaahTotal } from "../lib/targets.ts";
 import { checkAndUpdateStreak, rebuildStreak } from "../lib/streak.ts";
 import { getUserActivityTotals } from "../lib/activity-calc.ts";
-import { sendStreakMilestoneEmail, isStreakMilestone } from "../lib/milestone-email.ts";
+import { sendKhatamEmail, sendStreakMilestoneEmail, isStreakMilestone } from "../lib/milestone-email.ts";
 import { SURAHS, getJuzForPosition } from "../data/quran-meta.ts";
 import { t } from "../lib/i18n.ts";
 import { MurojaahPage } from "../views/pages/MurojaahPage.tsx";
@@ -118,6 +118,17 @@ murojaah.post("/", async (c) => {
     "INSERT INTO murojaah_logs (user_id, date_wib, juz_amount, repetition_count, end_surah, end_ayah, end_juz) VALUES (?, ?, ?, ?, ?, ?, ?)"
   ).run(user.id, dateCheck.date, juzAmount, repetitionCount, endSurah, endAyah, endJuz);
 
+  // Khatam detection — reached An-Nas (surah 114) ayah 6
+  let khatamMsg = "";
+  if (endSurah === 114 && endAyah === 6) {
+    db.prepare("INSERT INTO khatam_events (user_id, type, date_wib) VALUES (?, 'murojaah', ?)")
+      .run(user.id, dateCheck.date);
+    khatamMsg = ` ${t(lang, "khatamRecorded")}`;
+    const khatamCount = (db.prepare("SELECT COUNT(*) AS cnt FROM khatam_events WHERE user_id = ? AND type = 'murojaah'")
+      .get(user.id) as { cnt: number }).cnt;
+    sendKhatamEmail(user, khatamCount).catch(() => {});
+  }
+
   // Update streak
   const newStreak = checkAndUpdateStreak(user.id, getWibDateYmd());
   if (newStreak > 0 && isStreakMilestone(newStreak)) {
@@ -125,7 +136,7 @@ murojaah.post("/", async (c) => {
   }
 
   const repMsg = repetitionCount ? ` · ${repetitionCount}x ${t(lang, "repetitionSuffix")}` : "";
-  return c.redirect(redirectWith("success", `${t(lang, "murojaahLogged")} ${juzAmount} juz — ${t(lang, "endedAtMsg")} ${surahMeta.name} ayah ${endAyah} (Juz ${endJuz}).${repMsg}`));
+  return c.redirect(redirectWith("success", `${t(lang, "murojaahLogged")} ${juzAmount} juz — ${t(lang, "endedAtMsg")} ${surahMeta.name} ayah ${endAyah} (Juz ${endJuz}).${repMsg}${khatamMsg}`));
 });
 
 murojaah.post("/logs/:id/delete", (c) => {

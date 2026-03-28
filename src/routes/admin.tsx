@@ -4,7 +4,7 @@ import { db } from "../db/connection.ts";
 import { sendMonthlySnapshotEmails, sendSnapshotPreviewEmail } from "../lib/monthly-email.ts";
 import { createPreviousMonthSnapshot } from "../lib/monthly-snapshot.ts";
 import { sendTestReminderEmail } from "../lib/reminder-email.ts";
-import { sendApprovalEmail, sendRejectionEmail, sendRoleChangeEmail } from "../lib/welcome-email.ts";
+import { sendApprovalEmail, sendRejectionEmail, sendRoleChangeEmail, sendWelcomeEmail, sendNewMemberAlertToAdmins } from "../lib/welcome-email.ts";
 import { isAdminRole, isAssignableRole, isSuperAdminRole } from "../lib/roles.ts";
 import { getWibDateYmd, getWibYearMonth } from "../lib/wib-date.ts";
 import { getUserTarget, getTodayTilawahTotal, getTodayMurojaahTotal } from "../lib/targets.ts";
@@ -92,6 +92,12 @@ admin.post("/users/create", async (c) => {
     ).run(`manual:${crypto.randomUUID()}`, email, name, role, passwordHash);
   } catch {
     return c.redirect("/admin?error=Failed to create user. Email may already exist.");
+  }
+
+  const created = db.prepare("SELECT * FROM users WHERE email = ?").get(email) as import("../types.ts").User | null;
+  if (created) {
+    sendWelcomeEmail(created).catch(() => {});
+    sendNewMemberAlertToAdmins(created).catch(() => {});
   }
 
   return c.redirect("/admin?success=User created successfully.");
