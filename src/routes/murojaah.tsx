@@ -154,6 +154,9 @@ murojaah.post("/", async (c) => {
   // Compute juz from surah+ayah — never trust user input
   const endJuz = getJuzForPosition(endSurah, endAyah);
 
+  // Capture pre-insert murojaah total for khatam plausibility check
+  const preMurojaahTotal = getUserActivityTotals(user.id).murojaahJuz;
+
   // Capture score before insert for overtaken detection
   const { year: wy, month: wm } = getWibYearMonth();
   const { from: mFrom, to: mTo } = getWibMonthRange(wy, wm);
@@ -167,12 +170,27 @@ murojaah.post("/", async (c) => {
   // Khatam detection — reached An-Nas (surah 114) ayah 6
   let khatamMsg = "";
   if (endSurah === 114 && endAyah === 6) {
-    db.prepare("INSERT INTO khatam_events (user_id, type, date_wib) VALUES (?, 'murojaah', ?)")
-      .run(user.id, dateCheck.date);
-    khatamMsg = ` ${t(lang, "khatamRecorded")}`;
-    const khatamCount = (db.prepare("SELECT COUNT(*) AS cnt FROM khatam_events WHERE user_id = ? AND type = 'murojaah'")
-      .get(user.id) as { cnt: number }).cnt;
-    sendKhatamEmail(user, khatamCount).catch(() => {});
+    // Plausibility: this log must cross a 30-juz cycle boundary
+    const cyclesBefore = Math.floor(preMurojaahTotal / 30);
+    const cyclesAfter = Math.floor((preMurojaahTotal + juzAmount) / 30);
+    if (cyclesAfter <= cyclesBefore) {
+      khatamMsg = ` ${t(lang, "khatamNotPlausible")}`;
+    } else {
+      // Once per day dedup
+      const alreadyToday = db
+        .prepare("SELECT 1 FROM khatam_events WHERE user_id = ? AND type = 'murojaah' AND date_wib = ? LIMIT 1")
+        .get(user.id, dateCheck.date);
+      if (!alreadyToday) {
+        db.prepare("INSERT INTO khatam_events (user_id, type, date_wib) VALUES (?, 'murojaah', ?)")
+          .run(user.id, dateCheck.date);
+        khatamMsg = ` ${t(lang, "khatamRecorded")}`;
+        const khatamCount = (db.prepare("SELECT COUNT(*) AS cnt FROM khatam_events WHERE user_id = ? AND type = 'murojaah'")
+          .get(user.id) as { cnt: number }).cnt;
+        sendKhatamEmail(user, khatamCount).catch(() => {});
+      } else {
+        khatamMsg = ` ${t(lang, "khatamAlreadyToday")}`;
+      }
+    }
   }
 
   // Notify overtaken users

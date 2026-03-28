@@ -148,6 +148,9 @@ tilawah.post("/", async (c) => {
   // Compute juz from surah+ayah — never trust user input
   const endJuz = getJuzForPosition(endSurah, endAyah);
 
+  // Capture pre-insert tilawah total for khatam plausibility check
+  const preTilawahTotal = getUserActivityTotals(user.id).tilawahJuz;
+
   // Capture score before insert for overtaken detection
   const { year: wy, month: wm } = getWibYearMonth();
   const { from: mFrom, to: mTo } = getWibMonthRange(wy, wm);
@@ -158,21 +161,29 @@ tilawah.post("/", async (c) => {
     "INSERT INTO tilawah_logs (user_id, date_wib, juz_amount, end_surah, end_ayah, end_juz, log_unit, log_amount) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
   ).run(user.id, dateCheck.date, juzAmount, endSurah, endAyah, endJuz, logUnit, logAmount);
 
-  // Khatam detection — reached An-Nas (surah 114) ayah 6, once per day per user
+  // Khatam detection — reached An-Nas (surah 114) ayah 6
   let khatamMsg = "";
   if (endSurah === 114 && endAyah === 6) {
-    const alreadyToday = db
-      .prepare("SELECT 1 FROM khatam_events WHERE user_id = ? AND type = 'tilawah' AND date_wib = ? LIMIT 1")
-      .get(user.id, dateCheck.date);
-    if (!alreadyToday) {
-      db.prepare("INSERT INTO khatam_events (user_id, type, date_wib) VALUES (?, 'tilawah', ?)")
-        .run(user.id, dateCheck.date);
-      khatamMsg = ` ${t(lang, "khatamRecorded")}`;
-      const khatamCount = (db.prepare("SELECT COUNT(*) AS cnt FROM khatam_events WHERE user_id = ? AND type = 'tilawah'")
-        .get(user.id) as { cnt: number }).cnt;
-      sendKhatamEmail(user, khatamCount).catch(() => {});
+    // Plausibility: this log must cross a 30-juz cycle boundary
+    const cyclesBefore = Math.floor(preTilawahTotal / 30);
+    const cyclesAfter = Math.floor((preTilawahTotal + juzAmount) / 30);
+    if (cyclesAfter <= cyclesBefore) {
+      khatamMsg = ` ${t(lang, "khatamNotPlausible")}`;
     } else {
-      khatamMsg = ` ${t(lang, "khatamAlreadyToday")}`;
+      // Once per day dedup
+      const alreadyToday = db
+        .prepare("SELECT 1 FROM khatam_events WHERE user_id = ? AND type = 'tilawah' AND date_wib = ? LIMIT 1")
+        .get(user.id, dateCheck.date);
+      if (!alreadyToday) {
+        db.prepare("INSERT INTO khatam_events (user_id, type, date_wib) VALUES (?, 'tilawah', ?)")
+          .run(user.id, dateCheck.date);
+        khatamMsg = ` ${t(lang, "khatamRecorded")}`;
+        const khatamCount = (db.prepare("SELECT COUNT(*) AS cnt FROM khatam_events WHERE user_id = ? AND type = 'tilawah'")
+          .get(user.id) as { cnt: number }).cnt;
+        sendKhatamEmail(user, khatamCount).catch(() => {});
+      } else {
+        khatamMsg = ` ${t(lang, "khatamAlreadyToday")}`;
+      }
     }
   }
 
