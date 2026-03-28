@@ -2,7 +2,7 @@ import type { FC } from "hono/jsx";
 import { Layout } from "../Layout.tsx";
 import { Header } from "../components/Header.tsx";
 import type { User } from "../../types.ts";
-import { SURAHS } from "../../data/quran-meta.ts";
+import { SURAHS, JUZ_BOUNDARIES } from "../../data/quran-meta.ts";
 import { APP_NAME } from "../../config.ts";
 import type { UserTarget } from "../../lib/targets.ts";
 import { t, type Lang } from "../../lib/i18n.ts";
@@ -25,6 +25,15 @@ function fmtWibTime(utcStr: string): string {
     hour12: false,
   });
 }
+
+// Compute surah→juz map (first juz the surah starts in)
+const surahToJuz: Record<number, number> = {};
+for (const juz of JUZ_BOUNDARIES) {
+  for (let s = juz.startSurah; s <= juz.endSurah; s++) {
+    if (!(s in surahToJuz)) surahToJuz[s] = juz.juzNumber;
+  }
+}
+const surahToJuzJson = JSON.stringify(surahToJuz);
 
 export const TilawahPage: FC<{
   user: User;
@@ -114,6 +123,7 @@ export const TilawahPage: FC<{
                     <label class="block text-xs font-semibold text-text-secondary mb-1">Surah</label>
                     <select name="end_surah" id="til-surah-sel"
                       data-last={String(lastLog?.end_surah ?? "")}
+                      data-last-juz={String(lastLog?.end_juz ?? "")}
                       class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" required>
                       <option value="">Select surah...</option>
                       {SURAHS.map((s) => (
@@ -136,7 +146,29 @@ export const TilawahPage: FC<{
                 {t(lang, "saveTilawah")}
               </button>
             </form>
-            <script dangerouslySetInnerHTML={{ __html: `(function(){var AC=${JSON.stringify(Object.fromEntries(SURAHS.map(s => [s.number, s.totalAyahs])))};var sel=document.getElementById('til-surah-sel');var hint=document.getElementById('til-ayah-hint');function upd(){var v=parseInt(sel.value,10);hint.textContent=v&&AC[v]?'max: '+AC[v]:'';}sel.addEventListener('change',upd);var last=sel.getAttribute('data-last');if(last){sel.value=last;upd();}})();` }} />
+            <script dangerouslySetInnerHTML={{ __html: `(function(){
+  var AC=${JSON.stringify(Object.fromEntries(SURAHS.map(s => [s.number, s.totalAyahs])))};
+  var SJ=${surahToJuzJson};
+  var sel=document.getElementById('til-surah-sel');
+  var hint=document.getElementById('til-ayah-hint');
+  var form=sel.closest('form');
+  var lastJuz=parseInt(sel.getAttribute('data-last-juz')||'',10);
+  function upd(){var v=parseInt(sel.value,10);hint.textContent=v&&AC[v]?'max: '+AC[v]:'';}
+  sel.addEventListener('change',upd);
+  var last=sel.getAttribute('data-last');
+  if(last){sel.value=last;upd();}
+  if(lastJuz&&form){
+    form.addEventListener('submit',function(e){
+      var v=parseInt(sel.value,10);
+      if(!v||!SJ[v])return;
+      var newJuz=SJ[v];
+      if(Math.abs(newJuz-lastJuz)>5){
+        var ok=confirm('Your last position was Juz '+lastJuz+'. You are now claiming Juz '+newJuz+'. Continue?');
+        if(!ok)e.preventDefault();
+      }
+    });
+  }
+})();` }} />
           </div>
 
           {/* Stats */}

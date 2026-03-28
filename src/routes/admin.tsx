@@ -5,6 +5,7 @@ import { sendMonthlySnapshotEmails, sendSnapshotPreviewEmail } from "../lib/mont
 import { createPreviousMonthSnapshot } from "../lib/monthly-snapshot.ts";
 import { sendTestReminderEmail } from "../lib/reminder-email.ts";
 import { sendApprovalEmail, sendRejectionEmail, sendRoleChangeEmail, sendWelcomeEmail, sendNewMemberAlertToAdmins, sendSuspendEmail, sendUnsuspendEmail } from "../lib/welcome-email.ts";
+import { sendKhatamEmail, sendStreakMilestoneEmail } from "../lib/milestone-email.ts";
 import { isAdminRole, isAssignableRole, isSuperAdminRole } from "../lib/roles.ts";
 import { getWibDateYmd, getWibYearMonth } from "../lib/wib-date.ts";
 import { getUserTarget, getTodayTilawahTotal, getTodayMurojaahTotal } from "../lib/targets.ts";
@@ -324,6 +325,36 @@ admin.post("/email/test-snapshot", async (c) => {
   } catch (err) {
     return c.redirect(
       `/admin?error=Failed to send test snapshot: ${err instanceof Error ? err.message : "Unknown error"}`
+    );
+  }
+});
+
+admin.post("/email/test-khatam", async (c) => {
+  const user = c.get("user");
+  if (!user.email) {
+    return c.redirect("/admin?error=Your account has no email address.");
+  }
+  try {
+    await sendKhatamEmail(user, 1);
+    return c.redirect("/admin?success=Test khatam email sent to " + user.email);
+  } catch (err) {
+    return c.redirect(
+      `/admin?error=Failed to send test khatam: ${err instanceof Error ? err.message : "Unknown error"}`
+    );
+  }
+});
+
+admin.post("/email/test-streak", async (c) => {
+  const user = c.get("user");
+  if (!user.email) {
+    return c.redirect("/admin?error=Your account has no email address.");
+  }
+  try {
+    await sendStreakMilestoneEmail(user, 7);
+    return c.redirect("/admin?success=Test streak email (7 days) sent to " + user.email);
+  } catch (err) {
+    return c.redirect(
+      `/admin?error=Failed to send test streak: ${err instanceof Error ? err.message : "Unknown error"}`
     );
   }
 });

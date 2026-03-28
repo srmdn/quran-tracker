@@ -127,6 +127,8 @@ const en = {
   nameCol: "Name",
   streakCol: "Streak",
   scoreCol: "Score",
+  scoreFormulaLabel: "Score formula",
+  scoreFormulaPts: "pts per",
 
   // Route messages
   tooManyRequests: "Too many requests. Please wait a minute.",
@@ -325,6 +327,8 @@ const id: typeof en = {
   nameCol: "Nama",
   streakCol: "Streak",
   scoreCol: "Skor",
+  scoreFormulaLabel: "Formula skor",
+  scoreFormulaPts: "poin per",
 
   // Route messages
   tooManyRequests: "Terlalu banyak permintaan. Harap tunggu sebentar.",

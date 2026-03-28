@@ -82,6 +82,30 @@ export const AdminPage: FC<{
                 Send Test Monthly Snapshot
               </button>
             </form>
+            <form method="POST" action="/admin/email/test-approval">
+              <button
+                type="submit"
+                class="px-4 py-2.5 bg-white text-primary border border-primary/30 rounded-lg font-bold text-sm hover:bg-primary-light transition-colors"
+              >
+                Send Test Approval
+              </button>
+            </form>
+            <form method="POST" action="/admin/email/test-khatam">
+              <button
+                type="submit"
+                class="px-4 py-2.5 bg-white text-primary border border-primary/30 rounded-lg font-bold text-sm hover:bg-primary-light transition-colors"
+              >
+                Send Test Khatam (#1)
+              </button>
+            </form>
+            <form method="POST" action="/admin/email/test-streak">
+              <button
+                type="submit"
+                class="px-4 py-2.5 bg-white text-primary border border-primary/30 rounded-lg font-bold text-sm hover:bg-primary-light transition-colors"
+              >
+                Send Test Streak (7 days)
+              </button>
+            </form>
           </div>
         </div>
 

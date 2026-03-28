@@ -18,6 +18,7 @@ export const ActivityLeaderboardPage: FC<{
 }> = ({ user, lang, year, month, rows, total }) => {
   const topThree = rows.slice(0, 3);
   const monthLabel = `${year}-${String(month).padStart(2, "0")}`;
+  const myRow = rows.find((r) => r.id === user.id);
 
   return (
     <Layout title={`Leaderboard - ${APP_NAME}`}>
@@ -26,16 +27,35 @@ export const ActivityLeaderboardPage: FC<{
         <div class="w-full flex flex-col md:flex-row justify-between items-start gap-3 mb-8">
           <div>
             <h1 class="text-text-main text-3xl font-black">{t(lang, "leaderboard")}</h1>
-            <p class="text-text-secondary text-sm">
-              {t(lang, "monthlyRankings")} · {monthLabel} (WIB) · Score = Tilawah×10 + Murojaah×7 + Khatam×300
-            </p>
+            <p class="text-text-secondary text-sm">{t(lang, "monthlyRankings")} · {monthLabel} (WIB)</p>
+            <details class="mt-1.5">
+              <summary class="text-xs text-primary cursor-pointer hover:underline select-none inline-flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm leading-none">info</span>
+                {t(lang, "scoreFormulaLabel")}
+              </summary>
+              <div class="mt-2 text-xs text-text-secondary bg-slate-50 border border-border-light rounded-lg px-4 py-3 max-w-xs">
+                <p class="font-bold text-text-main mb-2">Score = Tilawah×10 + Murojaah×7 + Khatam×300</p>
+                <ul class="space-y-1">
+                  <li>Tilawah: 10 {t(lang, "scoreFormulaPts")} juz</li>
+                  <li>Murojaah: 7 {t(lang, "scoreFormulaPts")} juz</li>
+                  <li>Khatam: 300 {t(lang, "scoreFormulaPts")} completion</li>
+                </ul>
+              </div>
+            </details>
           </div>
-          <a
-            href="/dashboard"
-            class="px-4 py-2 rounded-lg border border-border-light bg-white text-sm font-semibold text-text-main hover:bg-slate-50"
-          >
-            {t(lang, "backToDashboard")}
-          </a>
+          <div class="flex flex-col items-end gap-2">
+            {myRow && (
+              <a href="#my-rank" class="px-3 py-1.5 text-xs font-bold text-primary border border-primary/30 rounded-lg hover:bg-primary-light transition-colors">
+                ↑ My rank (#{myRow.rank})
+              </a>
+            )}
+            <a
+              href="/dashboard"
+              class="px-4 py-2 rounded-lg border border-border-light bg-white text-sm font-semibold text-text-main hover:bg-slate-50"
+            >
+              {t(lang, "backToDashboard")}
+            </a>
+          </div>
         </div>
 
         {/* Top 3 podium */}
@@ -86,7 +106,7 @@ export const ActivityLeaderboardPage: FC<{
               </thead>
               <tbody class="divide-y divide-border-light">
                 {rows.map((row) => (
-                  <tr class={`${row.id === user.id ? "bg-primary-light/30" : ""} hover:bg-slate-50 transition-colors`}>
+                  <tr id={row.id === user.id ? "my-rank" : undefined} class={`${row.id === user.id ? "bg-primary-light/30" : ""} hover:bg-slate-50 transition-colors`}>
                     <td class="px-4 py-3 font-bold text-text-secondary">
                       {row.rank <= 3 ? (
                         <span>{row.rank === 1 ? "🥇" : row.rank === 2 ? "🥈" : "🥉"}</span>

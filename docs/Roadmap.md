@@ -96,12 +96,12 @@ This document tracks planned improvements, organized by topic. Items are discuss
 ### 3.3 Score formula — collapsible explanation
 - The formula `Tilawah×10 + Murojaah×7 + Khatam×300` is shown as plain subtitle text.
 - A small collapsible section or tooltip would be cleaner and more discoverable.
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done — `<details>/<summary>` collapsible with per-type breakdown added below subtitle.
 
 ### 3.4 "Your rank" sticky indicator
 - If a user is ranked #15, they have to scroll to find themselves in the table.
 - Add a sticky banner or "jump to my rank" link so users can quickly locate themselves.
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done — "My rank (#N)" anchor button added in header; user's table row gets `id="my-rank"` for scroll target.
 
 ### 3.5 Old `/leaderboard` — keep for now
 - The old hafalan-based leaderboard is hidden from nav but still accessible.
@@ -177,7 +177,7 @@ This document tracks planned improvements, organized by topic. Items are discuss
 - No check that today's claimed position is plausible relative to the last log.
 - Hard block is too strict (users miss logging days legitimately).
 - Implement a soft warning: "Your last position was Juz X — you're now claiming Juz Y. Continue?" shown client-side before submit.
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done — client-side confirm() shown on tilawah form submit if new juz differs from last by more than 5. Surah-to-juz map embedded as inline JSON at render time.
 
 ---
 
@@ -560,7 +560,7 @@ When a super_admin suspends or unsuspends a member, send them a brief notificati
 Add test send buttons for: Approval, Khatam (#1), Streak milestone (7 days).
 These cover the most important transactional emails that currently have no test path from the UI.
 
-**Status:** Discussed, not yet started.
+**Status:** Done — routes and buttons added for Test Approval, Test Khatam (#1), and Test Streak (7 days).
 
 ---
 
