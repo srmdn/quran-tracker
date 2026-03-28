@@ -23,6 +23,7 @@ export const AdminMemberDetailPage: FC<{
   todayWib: string;
   monthlyRank: UserMonthlyActivityRank;
   recentLogs: RecentLogEntry[];
+  khatamEvents: { type: string; date_wib: string }[];
   success?: string;
   error?: string;
 }> = ({
@@ -37,6 +38,7 @@ export const AdminMemberDetailPage: FC<{
   todayWib,
   monthlyRank,
   recentLogs,
+  khatamEvents,
   success,
   error,
 }) => {
@@ -258,6 +260,26 @@ export const AdminMemberDetailPage: FC<{
           </div>
         )}
 
+        {/* Khatam history */}
+        {khatamEvents.length > 0 && (
+          <div class="w-full bg-white border border-border-light rounded-xl overflow-hidden mb-6">
+            <div class="px-6 py-4 border-b border-border-light bg-slate-50/50">
+              <h2 class="text-text-main font-bold flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-xl">menu_book</span>
+                {t(lang, "khatamHistory")}
+                <span class="text-xs font-normal text-text-secondary ml-auto">{khatamEvents.length}x</span>
+              </h2>
+            </div>
+            <div class="px-6 py-3 flex flex-wrap gap-2">
+              {khatamEvents.map((k) => (
+                <span class={`text-xs font-semibold px-2.5 py-1 rounded-full border ${k.type === "tilawah" ? "bg-primary/10 text-primary border-primary/20" : "bg-amber-50 text-amber-600 border-amber-200"}`}>
+                  {k.type === "tilawah" ? "Tilawah" : "Murojaah"} · {k.date_wib}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Log history */}
         <div class="w-full bg-white border border-border-light rounded-xl overflow-hidden">
           <div class="px-6 py-4 border-b border-border-light bg-slate-50/50">
@@ -267,19 +289,19 @@ export const AdminMemberDetailPage: FC<{
               <span class="text-xs font-normal text-text-secondary ml-auto">{t(lang, "last30entries")}</span>
             </h2>
           </div>
-          <div class="divide-y divide-border-light">
+          <div id="log-list" class="divide-y divide-border-light">
             {recentLogs.length === 0 ? (
               <div class="px-6 py-10 text-center text-text-secondary text-sm">
                 {t(lang, "noActivityLogged")}
               </div>
             ) : (
-              recentLogs.map((log) => {
+              recentLogs.map((log, idx) => {
                 const surahName = log.end_surah
                   ? SURAHS.find((s) => s.number === log.end_surah)?.name
                   : null;
                 const isTilawah = log.type === "tilawah";
                 return (
-                  <div class="px-6 py-3.5 flex items-center justify-between gap-3">
+                  <div class="px-6 py-3.5 flex items-center justify-between gap-3" data-log-idx={idx}>
                     <div class="flex items-center gap-3">
                       <span
                         class={`text-xs font-bold px-2 py-0.5 rounded-full ${isTilawah ? "bg-primary/10 text-primary" : "bg-amber-50 text-amber-600"}`}
@@ -304,7 +326,55 @@ export const AdminMemberDetailPage: FC<{
               })
             )}
           </div>
+          <div id="log-page-ctrl" class="px-6 py-3 border-t border-border-light flex items-center justify-between gap-3 hidden">
+            <button
+              id="log-prev"
+              type="button"
+              onclick="logChangePage(-1)"
+              class="text-xs font-semibold px-3 py-1.5 rounded-lg border border-border-light bg-white text-text-secondary hover:text-primary hover:border-primary/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              ← Prev
+            </button>
+            <span id="log-page-info" class="text-xs text-text-secondary" />
+            <button
+              id="log-next"
+              type="button"
+              onclick="logChangePage(1)"
+              class="text-xs font-semibold px-3 py-1.5 rounded-lg border border-border-light bg-white text-text-secondary hover:text-primary hover:border-primary/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Next →
+            </button>
+          </div>
         </div>
+        <script dangerouslySetInnerHTML={{ __html: `
+var LOG_PAGE_SIZE = 20;
+var logCurrentPage = 1;
+var logRows = Array.from(document.querySelectorAll('#log-list > div[data-log-idx]'));
+var logTotal = logRows.length;
+
+function logApplyPagination() {
+  var totalPages = Math.max(1, Math.ceil(logTotal / LOG_PAGE_SIZE));
+  if (logCurrentPage > totalPages) logCurrentPage = totalPages;
+  logRows.forEach(function(row, i) {
+    var inPage = i >= (logCurrentPage - 1) * LOG_PAGE_SIZE && i < logCurrentPage * LOG_PAGE_SIZE;
+    row.style.display = inPage ? '' : 'none';
+  });
+  var ctrl = document.getElementById('log-page-ctrl');
+  if (ctrl) {
+    ctrl.style.display = totalPages > 1 ? '' : 'none';
+    document.getElementById('log-page-info').textContent = 'Page ' + logCurrentPage + ' of ' + totalPages;
+    document.getElementById('log-prev').disabled = logCurrentPage <= 1;
+    document.getElementById('log-next').disabled = logCurrentPage >= totalPages;
+  }
+}
+
+function logChangePage(delta) {
+  logCurrentPage += delta;
+  logApplyPagination();
+}
+
+logApplyPagination();
+        `}} />
 
       </main>
     </Layout>

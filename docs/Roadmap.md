@@ -392,7 +392,7 @@ Overall the landing page is well built. Only minor items below.
 ### 14.1 Log history — add pagination
 - Capped at last 30 entries with no pagination.
 - For active members this will quickly become insufficient.
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done — limit raised to 100; client-side pagination at 20 per page added.
 
 ### 14.2 Stats row — missing murojaah all-time juz
 - Stats row shows tilawah all-time juz but not murojaah all-time juz.
@@ -407,7 +407,7 @@ Overall the landing page is well built. Only minor items below.
 ### 14.4 Khatam history
 - Only a khatam count is shown, not when each khatam occurred.
 - Show a small list of khatam dates from `khatam_events` for full context.
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done — khatam history section with type badge and date chips, shown above activity log.
 
 ---
 

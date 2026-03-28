@@ -366,9 +366,15 @@ admin.get("/members/:id", (c) => {
          FROM murojaah_logs WHERE user_id = ?
        )
        ORDER BY created_at DESC
-       LIMIT 30`
+       LIMIT 100`
     )
     .all(memberId, memberId) as RecentLogEntry[];
+
+  const khatamEvents = db
+    .prepare(
+      `SELECT type, date_wib FROM khatam_events WHERE user_id = ? ORDER BY created_at DESC`
+    )
+    .all(memberId) as { type: string; date_wib: string }[];
 
   return c.html(
     <AdminMemberDetailPage
@@ -383,6 +389,7 @@ admin.get("/members/:id", (c) => {
       todayWib={todayWib}
       monthlyRank={monthlyRank}
       recentLogs={recentLogs}
+      khatamEvents={khatamEvents}
       success={c.req.query("success")}
       error={c.req.query("error")}
     />
