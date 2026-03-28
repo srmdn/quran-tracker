@@ -102,7 +102,7 @@ export const DashboardPage: FC<{
             {/* Tilawah bar */}
             <div>
               <div class="flex items-center justify-between mb-2">
-                <a href="/tilawah" class="text-sm font-semibold text-text-main hover:text-primary transition-colors">Tilawah →</a>
+                <span class="text-sm font-semibold text-text-main">Tilawah</span>
                 <span class="text-sm font-semibold text-text-secondary">{todayTilawah}/{target.tilawah_juz_daily} {t(lang, "juz")}</span>
               </div>
               <div class="w-full h-3 rounded-full bg-slate-100 border border-slate-200 overflow-hidden">
@@ -111,14 +111,14 @@ export const DashboardPage: FC<{
                   style={`width: ${tilawahPercent}%`}
                 />
               </div>
-              <p class="text-xs text-text-secondary mt-1">
+              <p class={`text-xs mt-1 font-semibold ${tilawahPercent >= 100 ? "text-emerald-600" : "text-text-secondary"}`}>
                 {tilawahPercent >= 100 ? t(lang, "targetMet") : `${Math.max(0, target.tilawah_juz_daily - todayTilawah).toFixed(1)} ${t(lang, "juzToGo")}`}
               </p>
             </div>
             {/* Murojaah bar */}
             <div>
               <div class="flex items-center justify-between mb-2">
-                <a href="/murojaah" class="text-sm font-semibold text-text-main hover:text-primary transition-colors">Murojaah →</a>
+                <span class="text-sm font-semibold text-text-main">Murojaah</span>
                 <span class="text-sm font-semibold text-text-secondary">{todayMurojaah}/{target.murojaah_juz_daily} {t(lang, "juz")}</span>
               </div>
               <div class="w-full h-3 rounded-full bg-slate-100 border border-slate-200 overflow-hidden">
@@ -127,10 +127,27 @@ export const DashboardPage: FC<{
                   style={`width: ${murojaahPercent}%`}
                 />
               </div>
-              <p class="text-xs text-text-secondary mt-1">
+              <p class={`text-xs mt-1 font-semibold ${murojaahPercent >= 100 ? "text-emerald-600" : "text-text-secondary"}`}>
                 {murojaahPercent >= 100 ? t(lang, "targetMet") : `${Math.max(0, target.murojaah_juz_daily - todayMurojaah).toFixed(1)} ${t(lang, "juzToGo")}`}
               </p>
             </div>
+          </div>
+          {/* Quick-log buttons */}
+          <div class="grid grid-cols-2 gap-3 mt-5 pt-5 border-t border-border-light">
+            <a
+              href="/tilawah"
+              class="flex items-center justify-center gap-2 py-2.5 rounded-lg bg-primary text-white text-sm font-bold hover:bg-primary-dark transition-colors"
+            >
+              <span class="material-symbols-outlined text-lg">menu_book</span>
+              {t(lang, "logTilawah")}
+            </a>
+            <a
+              href="/murojaah"
+              class="flex items-center justify-center gap-2 py-2.5 rounded-lg bg-amber-500 text-white text-sm font-bold hover:bg-amber-600 transition-colors"
+            >
+              <span class="material-symbols-outlined text-lg">repeat</span>
+              {t(lang, "logMurojaah")}
+            </a>
           </div>
         </div>
 
@@ -234,8 +251,8 @@ export const DashboardPage: FC<{
           <div class="px-6 py-4 border-b border-border-light bg-slate-50/50 flex items-center justify-between">
             <h2 class="text-text-main font-bold">{t(lang, "recentActivity")}</h2>
             <div class="flex items-center gap-3">
-              <a href="/tilawah" class="text-xs font-semibold text-primary hover:underline">Tilawah</a>
-              <a href="/murojaah" class="text-xs font-semibold text-primary hover:underline">Murojaah</a>
+              <a href="/tilawah" class="text-xs font-semibold text-primary hover:underline">{t(lang, "allTilawah")}</a>
+              <a href="/murojaah" class="text-xs font-semibold text-primary hover:underline">{t(lang, "allMurojaah")}</a>
             </div>
           </div>
           <div class="divide-y divide-border-light">

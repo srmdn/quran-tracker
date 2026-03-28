@@ -183,9 +183,9 @@ export const MurojaahPage: FC<{
                         {canDelete && (
                           <form method="POST" action={`/murojaah/logs/${log.id}/delete`}
                             onsubmit="return confirm('Delete this entry?')">
-                            <button type="submit"
-                              class="text-xs text-red-400 hover:text-red-600 font-medium transition-colors">
-                              {t(lang, "delete")}
+                            <button type="submit" title={t(lang, "delete")}
+                              class="text-slate-400 hover:text-red-500 transition-colors">
+                              <span class="material-symbols-outlined text-lg">delete</span>
                             </button>
                           </form>
                         )}

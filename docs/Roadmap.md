@@ -41,7 +41,7 @@ This document tracks planned improvements, organized by topic. Items are discuss
 **Proposed change:**
 - Add a reasonable upper bound (e.g., max 100 repetitions).
 
-**Status:** Identified, not yet discussed in detail.
+**Status:** Done — backend rejects > 100, input gets max=100.
 
 ---
 
@@ -50,12 +50,12 @@ This document tracks planned improvements, organized by topic. Items are discuss
 ### 2.1 Quick-log shortcut buttons
 - Add prominent "Log Tilawah" and "Log Murojaah" buttons directly on the dashboard.
 - Saves navigation steps, especially on mobile.
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done — two full-width CTA buttons below the progress bars in today's progress card.
 
 ### 2.2 Target met state — visual feedback
 - When today's target is met, show a clear "Done for today" badge or message alongside the green bar.
 - Makes completion feel more satisfying and unambiguous.
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done — target met text is now green and bold when either target is reached.
 
 ### 2.3 Heatmap month labels
 - Add month name labels above the 90-day heatmap columns (GitHub-style).
@@ -65,7 +65,7 @@ This document tracks planned improvements, organized by topic. Items are discuss
 ### 2.4 Recent logs "see all" link
 - The recent logs section shows 8 entries with no link to full history.
 - Add a "See all" link to `/tilawah` and `/murojaah` history pages.
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done — "All Tilawah →" and "All Murojaah →" links in recent activity header (EN + ID).
 
 ### 2.5 Monthly score context: out of N users
 - Stats row shows rank and score as raw numbers with no total user count.
@@ -135,7 +135,7 @@ This document tracks planned improvements, organized by topic. Items are discuss
 ### 4.4 Delete button — clearer UI
 - Delete is a small red text link, easy to miss or accidentally tap on mobile.
 - Replace with a small trash icon button with slightly more visual weight.
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done — replaced text link with material-symbols delete icon button on tilawah and murojaah log rows.
 
 ### 4.5 Log history — show submission time
 - Log rows show `date_wib` only. Multiple entries on the same day look identical.
@@ -151,7 +151,7 @@ This document tracks planned improvements, organized by topic. Items are discuss
 ### 4.7 Repetition count — helper text (murojaah only)
 - The repetition count field has no explanation. New users may not understand what it means.
 - Add a small helper text: "how many times you reviewed this section in one session".
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done — helper text added below the repetition count input (EN + ID).
 
 ### 4.8 Repetition count — consider future scoring (murojaah only)
 - Currently repetition count is decorative — it does not affect leaderboard score.
@@ -522,7 +522,7 @@ CREATE TABLE IF NOT EXISTS email_log (
 
 ---
 
-### 19.2 Fix: welcome email + admin alert for manual registrations
+### 19.2 Fix: welcome email + admin alert for manual registrations (Done)
 
 When admin creates a user via `POST /admin/users/create`, if the created user has an email address:
 - Send them a welcome/registration confirmation email.
@@ -544,7 +544,7 @@ When a super_admin suspends or unsuspends a member, send them a brief notificati
 
 ---
 
-### 19.4 Fix: murojaah khatam detection
+### 19.4 Fix: murojaah khatam detection (Done)
 
 `POST /murojaah` currently does not check for khatam (endSurah=114, endAyah=6). It should:
 - Insert a row into `khatam_events` with `type = 'murojaah'` when An-Nas is reached.
