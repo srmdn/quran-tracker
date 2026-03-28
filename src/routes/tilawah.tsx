@@ -171,6 +171,8 @@ tilawah.post("/", async (c) => {
       const khatamCount = (db.prepare("SELECT COUNT(*) AS cnt FROM khatam_events WHERE user_id = ? AND type = 'tilawah'")
         .get(user.id) as { cnt: number }).cnt;
       sendKhatamEmail(user, khatamCount).catch(() => {});
+    } else {
+      khatamMsg = ` ${t(lang, "khatamAlreadyToday")}`;
     }
   }
 
