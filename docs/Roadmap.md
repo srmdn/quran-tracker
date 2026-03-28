@@ -347,17 +347,13 @@ Overall the landing page is well built. Only minor items below.
 
 ---
 
-## 11. Activity Page — Decision Required
+## 11. Activity Page
 
-The `/activity` page is a legacy logging page that predates `/tilawah` and `/murojaah`. It is no longer in the nav and is effectively orphaned. Key differences:
-- Posts to `/activity/tilawah` and `/activity/murojaah` (hard caps: 3 juz / 5 juz, no target-based logic)
-- No surah/ayah position fields
-- Stats grid has hardcoded English strings (not i18n)
-
-### 11.1 Decide: deprecate or keep as quick-log
-- **Option A:** Redirect `/activity` to `/tilawah` — removes duplication, simplifies codebase.
-- **Option B:** Keep as a minimal quick-log page (no position required) for users who want a faster entry.
-- **Status:** Decision needed before any work.
+### 11.1 Deprecate legacy logging page
+- **Decision:** Remove. Redirect `/activity` to `/tilawah`.
+- `ActivityPage.tsx` deleted. POST handlers for `/activity/tilawah` and `/activity/murojaah` removed.
+- `/activity/leaderboard` kept — it is the main authenticated leaderboard.
+- **Status:** Done.
 
 ---
 
