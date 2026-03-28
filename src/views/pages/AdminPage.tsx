@@ -11,10 +11,9 @@ export const AdminPage: FC<{
   lang: Lang;
   pendingUsers: User[];
   allUsers: User[];
-  editUser?: User;
   success?: string;
   error?: string;
-}> = ({ user, lang, pendingUsers, allUsers, editUser, success, error }) => {
+}> = ({ user, lang, pendingUsers, allUsers, success, error }) => {
   return (
     <Layout title={`Admin Panel - ${APP_NAME}`}>
       <Header user={user} currentPath="/admin" lang={lang} />
@@ -123,69 +122,6 @@ export const AdminPage: FC<{
                 class="px-4 py-2.5 bg-primary text-white rounded-lg font-bold text-sm hover:bg-primary-dark transition-colors shadow-sm"
               >
                 Create User
-              </button>
-            </form>
-          </div>
-        )}
-
-        {isSuperAdminRole(user.role) && editUser && (
-          <div class="w-full bg-white border border-border-light rounded-xl p-6 shadow-sm mb-8">
-            <div class="flex items-center justify-between gap-3 mb-4">
-              <h2 class="text-text-main text-lg font-bold">Edit User</h2>
-              <a href="/admin" class="text-sm text-text-secondary hover:text-primary">
-                Cancel
-              </a>
-            </div>
-            <form method="POST" action={`/admin/users/${editUser.id}/update`} class="grid md:grid-cols-5 gap-3">
-              <input
-                name="name"
-                value={editUser.name}
-                class="rounded-lg border-slate-200 bg-slate-50 text-sm"
-                required
-              />
-              <input
-                type="email"
-                name="email"
-                value={editUser.email}
-                class="rounded-lg border-slate-200 bg-slate-50 text-sm"
-                required
-              />
-              <input
-                type="password"
-                name="password"
-                placeholder="New password (optional)"
-                class="rounded-lg border-slate-200 bg-slate-50 text-sm"
-              />
-              <select name="role" class="rounded-lg border-slate-200 bg-slate-50 text-sm" required>
-                <option value="santri" selected={editUser.role === "santri"}>santri</option>
-                <option value="alumni" selected={editUser.role === "alumni"}>alumni</option>
-                <option value="asatidz" selected={editUser.role === "asatidz"}>asatidz</option>
-                <option value="member" selected={editUser.role === "member"}>member</option>
-                <option value="admin" selected={editUser.role === "admin"}>admin</option>
-                <option value="super_admin" selected={editUser.role === "super_admin"}>super_admin</option>
-              </select>
-              <button
-                type="submit"
-                class="px-4 py-2.5 bg-primary text-white rounded-lg font-bold text-sm hover:bg-primary-dark transition-colors shadow-sm"
-              >
-                Save Changes
-              </button>
-            </form>
-
-            <form method="POST" action={`/admin/users/${editUser.id}/password`} class="grid md:grid-cols-3 gap-3 mt-3">
-              <input
-                type="password"
-                name="password"
-                placeholder="Reset password (min 8 chars)"
-                class="rounded-lg border-slate-200 bg-slate-50 text-sm"
-                required
-                minlength={8}
-              />
-              <button
-                type="submit"
-                class="px-4 py-2.5 bg-white text-primary border border-primary/30 rounded-lg font-bold text-sm hover:bg-primary-light transition-colors"
-              >
-                Reset Password
               </button>
             </form>
           </div>
@@ -325,7 +261,7 @@ export const AdminPage: FC<{
                   </a>
                   {isSuperAdminRole(user.role) && u.id !== user.id && (
                     <a
-                      href={`/admin?edit=${u.id}`}
+                      href={`/admin/members/${u.id}/edit`}
                       class="text-text-secondary hover:text-primary text-xs font-medium transition-colors"
                     >
                       Edit

@@ -22,6 +22,8 @@ export const AdminMemberDetailPage: FC<{
   todayWib: string;
   monthlyRank: UserMonthlyActivityRank;
   recentLogs: RecentLogEntry[];
+  success?: string;
+  error?: string;
 }> = ({
   adminUser,
   member,
@@ -34,6 +36,8 @@ export const AdminMemberDetailPage: FC<{
   todayWib,
   monthlyRank,
   recentLogs,
+  success,
+  error,
 }) => {
   const tilawahPercent = target
     ? Math.min(100, Math.round((todayTilawah / target.tilawah_juz_daily) * 100))
@@ -48,7 +52,7 @@ export const AdminMemberDetailPage: FC<{
       <main class="flex-1 flex flex-col items-center w-full px-4 sm:px-6 lg:px-8 py-8 max-w-4xl mx-auto">
 
         {/* Back link */}
-        <div class="w-full mb-6">
+        <div class="w-full flex items-center justify-between mb-6">
           <a
             href="/admin"
             class="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-primary transition-colors"
@@ -56,7 +60,27 @@ export const AdminMemberDetailPage: FC<{
             <span class="material-symbols-outlined text-base">arrow_back</span>
             {t(lang, "backToAdmin")}
           </a>
+          <a
+            href={`/admin/members/${member.id}/edit`}
+            class="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary-dark transition-colors"
+          >
+            <span class="material-symbols-outlined text-base">edit</span>
+            Edit
+          </a>
         </div>
+
+        {success && (
+          <div class="w-full bg-emerald-50 text-emerald-700 text-sm px-4 py-3 rounded-lg mb-6 border border-emerald-200 flex items-center gap-2">
+            <span class="material-symbols-outlined text-lg">check_circle</span>
+            {success}
+          </div>
+        )}
+        {error && (
+          <div class="w-full bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg mb-6 border border-red-200 flex items-center gap-2">
+            <span class="material-symbols-outlined text-lg">error</span>
+            {error}
+          </div>
+        )}
 
         {/* Member header */}
         <div class="w-full bg-white border border-border-light rounded-xl p-6 mb-6 flex items-center gap-4">

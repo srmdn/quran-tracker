@@ -12,6 +12,7 @@ import { getUserStreak } from "../lib/streak.ts";
 import { getUserActivityTotals, getCurrentMonthUserActivityRank } from "../lib/activity-calc.ts";
 import { AdminPage } from "../views/pages/AdminPage.tsx";
 import { AdminMemberDetailPage } from "../views/pages/AdminMemberDetailPage.tsx";
+import { AdminEditMemberPage } from "../views/pages/AdminEditMemberPage.tsx";
 import type { RecentLogEntry } from "../routes/dashboard.tsx";
 import type { Env, User } from "../types.ts";
 
@@ -24,7 +25,6 @@ admin.get("/", (c) => {
   const lang = c.get("lang");
   const success = c.req.query("success");
   const error = c.req.query("error");
-  const editId = c.req.query("edit");
 
   const pendingUsers = db
     .prepare("SELECT * FROM users WHERE role = 'pending' ORDER BY created_at DESC")
@@ -34,18 +34,12 @@ admin.get("/", (c) => {
     .prepare("SELECT * FROM users WHERE role != 'pending' ORDER BY role DESC, name ASC")
     .all() as User[];
 
-  const editUser =
-    editId && /^\d+$/.test(editId)
-      ? ((db.prepare("SELECT * FROM users WHERE id = ?").get(parseInt(editId, 10)) as User | null) || undefined)
-      : undefined;
-
   return c.html(
     <AdminPage
       user={user}
       lang={lang}
       pendingUsers={pendingUsers}
       allUsers={allUsers}
-      editUser={editUser}
       success={success}
       error={error}
     />
@@ -126,13 +120,13 @@ admin.post("/users/:id/update", async (c) => {
   const password = ((body.password as string) || "").trim();
 
   if (!name || !email || !email.includes("@")) {
-    return c.redirect(`/admin?edit=${userId}&error=Name and a valid email are required.`);
+    return c.redirect(`/admin/members/${userId}/edit?error=Name and a valid email are required.`);
   }
   if (!isAssignableRole(role)) {
-    return c.redirect(`/admin?edit=${userId}&error=Invalid role.`);
+    return c.redirect(`/admin/members/${userId}/edit?error=Invalid role.`);
   }
   if (target.id === currentUser.id && isSuperAdminRole(target.role) && !isSuperAdminRole(role)) {
-    return c.redirect(`/admin?edit=${userId}&error=Cannot demote your own super admin role.`);
+    return c.redirect(`/admin/members/${userId}/edit?error=Cannot demote your own super admin role.`);
   }
 
   try {
@@ -147,7 +141,7 @@ admin.post("/users/:id/update", async (c) => {
       ).run(name, email, role, userId);
     }
   } catch {
-    return c.redirect(`/admin?edit=${userId}&error=Failed to update user. Email may already exist.`);
+    return c.redirect(`/admin/members/${userId}/edit?error=Failed to update user. Email may already exist.`);
   }
 
   if (target.role !== role) {
@@ -155,7 +149,7 @@ admin.post("/users/:id/update", async (c) => {
     if (updatedUser) sendRoleChangeEmail(updatedUser, role).catch(() => {});
   }
 
-  return c.redirect("/admin?success=User updated successfully.");
+  return c.redirect(`/admin/members/${userId}?success=User updated successfully.`);
 });
 
 admin.post("/users/:id/password", async (c) => {
@@ -172,12 +166,12 @@ admin.post("/users/:id/password", async (c) => {
   const body = await c.req.parseBody();
   const password = ((body.password as string) || "").trim();
   if (!password || password.length < 8) {
-    return c.redirect(`/admin?edit=${userId}&error=Password must be at least 8 characters.`);
+    return c.redirect(`/admin/members/${userId}/edit?error=Password must be at least 8 characters.`);
   }
 
   const hash = await Bun.password.hash(password);
   db.prepare("UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?").run(hash, userId);
-  return c.redirect(`/admin?edit=${userId}&success=Password updated.`);
+  return c.redirect(`/admin/members/${userId}/edit?success=Password updated.`);
 });
 
 admin.post("/users/:id/role", async (c) => {
@@ -290,6 +284,24 @@ admin.post("/email/test-snapshot", async (c) => {
   }
 });
 
+admin.get("/members/:id/edit", (c) => {
+  const adminUser = c.get("user");
+  const memberId = parseInt(c.req.param("id"), 10);
+  if (!Number.isInteger(memberId)) return c.redirect("/admin?error=Invalid member ID.");
+
+  const member = db.prepare("SELECT * FROM users WHERE id = ?").get(memberId) as User | null;
+  if (!member) return c.redirect("/admin?error=Member not found.");
+
+  return c.html(
+    <AdminEditMemberPage
+      adminUser={adminUser}
+      member={member}
+      error={c.req.query("error")}
+      success={c.req.query("success")}
+    />
+  );
+});
+
 admin.get("/members/:id", (c) => {
   const adminUser = c.get("user");
   const lang = c.get("lang");
@@ -337,6 +349,8 @@ admin.get("/members/:id", (c) => {
       todayWib={todayWib}
       monthlyRank={monthlyRank}
       recentLogs={recentLogs}
+      success={c.req.query("success")}
+      error={c.req.query("error")}
     />
   );
 });

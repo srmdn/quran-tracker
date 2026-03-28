@@ -211,7 +211,7 @@ This document tracks planned improvements, organized by topic. Items are discuss
 ### 7.1 Edit user — move to dedicated page
 - Currently edit form appears inline on `/admin?edit=ID`, pushing the page down and losing scroll position.
 - Move to `/admin/members/:id/edit` as a dedicated page, consistent with the existing member detail page.
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done — `/admin/members/:id/edit` page created; inline edit removed from admin list; Edit button added to member detail page; success redirects to detail page, errors stay on edit page.
 
 ### 7.2 Create user — field length limits
 - Name and email inputs have no `maxlength` attribute and no server-side length validation.
