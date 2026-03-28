@@ -457,6 +457,113 @@ Security findings to be scoped in a dedicated session. Each finding must be clas
 
 ---
 
+## 19. Email System
+
+### What currently exists
+
+**Infrastructure:**
+- Custom TLS SMTP client (`src/lib/smtp.ts`) — no external library, connects on port 465.
+- Config via `.env`: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`, `SMTP_FROM_NAME`.
+
+**Automated jobs (systemd timers):**
+- `quran-daily-reminder.timer` — fires 20:00 WIB daily (`src/jobs/daily-reminder.ts`).
+- `quran-monthly-snapshot.timer` — fires 1st of month 08:00 WIB (`src/jobs/monthly-snapshot.ts`).
+
+**Email types and wiring status (verified by code audit 2026-03-28):**
+
+| # | Type | File | Wired? | Trigger |
+|---|---|---|---|---|
+| 1 | Daily reminder | `reminder-email.ts` | Yes (systemd job) | Timer, skips users who met both targets |
+| 2 | Monthly snapshot | `monthly-email.ts` | Yes (systemd job + admin button) | Timer or manual admin panel |
+| 3 | Welcome (new member) | `welcome-email.ts` | Yes | Google OAuth callback only (`isNew`) |
+| 4 | Admin new-member alert | `welcome-email.ts` | Yes | Google OAuth callback only (`isNew`) |
+| 5 | Approval | `welcome-email.ts` | Yes | Admin `POST /admin/users/:id/approve` |
+| 6 | Rejection | `welcome-email.ts` | Yes | Admin `POST /admin/users/:id/reject` |
+| 7 | Role change | `welcome-email.ts` | Yes | Admin role update and edit endpoints |
+| 8 | Khatam | `milestone-email.ts` | Yes | `POST /tilawah` when endSurah=114 endAyah=6 |
+| 9 | Streak milestone | `milestone-email.ts` | Yes | `POST /tilawah` and `POST /murojaah` after streak update |
+
+**Known gaps identified:**
+
+- **Welcome + admin alert not sent for manual (email/password) registrations** — `sendWelcomeEmail` and `sendNewMemberAlertToAdmins` are only called in the Google OAuth callback. Manual user creation by admin (`POST /admin/users/create`) sends no notification to the created user.
+- **No suspended/unsuspended email** — users are not notified when their account is suspended or unsuspended.
+- **No email opt-out** — users cannot unsubscribe from any email type.
+- **No email log** — no record of what was sent, when, and whether it succeeded or failed.
+- **Admin panel test coverage incomplete** — only 2 of 9 email types have test buttons (daily reminder, monthly snapshot). Approval/khatam/streak/role-change have no test send.
+- **Daily reminder time is fixed** — 20:00 WIB for everyone, not per-user configurable.
+- **Murojaah khatam detection missing** — `POST /murojaah` does not insert into `khatam_events` and does not fire `sendKhatamEmail`. Murojaah reaching An-Nas is silently ignored.
+
+---
+
+### 19.1 Email log table
+
+Add an `email_log` table to record every email send attempt.
+
+**Schema:**
+```sql
+CREATE TABLE IF NOT EXISTS email_log (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id     INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  email_type  TEXT NOT NULL,
+  recipient   TEXT NOT NULL,
+  subject     TEXT NOT NULL,
+  status      TEXT NOT NULL CHECK (status IN ('sent', 'failed')),
+  error       TEXT,
+  sent_at     TEXT NOT NULL DEFAULT (datetime('now'))
+);
+```
+
+**Scope:**
+- All `sendSmtpMail` calls are fire-and-forget. The log should be written after each attempt (success or failure) inside the individual send functions or in a wrapper.
+- Admin panel: `GET /admin/email-log` — table view with type, recipient, status, date. Paginated. Filterable by status and type.
+- The log does not need to store email body content.
+
+**Status:** Discussed, not yet started.
+
+---
+
+### 19.2 Fix: welcome email + admin alert for manual registrations
+
+When admin creates a user via `POST /admin/users/create`, if the created user has an email address:
+- Send them a welcome/registration confirmation email.
+- Send the new-member alert to all other admins.
+
+Currently this only fires for Google OAuth sign-ups.
+
+**Status:** Discussed, not yet started.
+
+---
+
+### 19.3 Fix: suspended/unsuspended email notifications
+
+When a super_admin suspends or unsuspends a member, send them a brief notification email.
+- Suspension email: account has been suspended, contact admin.
+- Unsuspension email: account has been reinstated, link to app.
+
+**Status:** Discussed, not yet started.
+
+---
+
+### 19.4 Fix: murojaah khatam detection
+
+`POST /murojaah` currently does not check for khatam (endSurah=114, endAyah=6). It should:
+- Insert a row into `khatam_events` with `type = 'murojaah'` when An-Nas is reached.
+- Fire `sendKhatamEmail` with the updated murojaah khatam count.
+- Mirror the same pattern already used in `POST /tilawah`.
+
+**Status:** Discussed, not yet started.
+
+---
+
+### 19.5 Admin panel: more email test buttons
+
+Add test send buttons for: Approval, Khatam (#1), Streak milestone (7 days).
+These cover the most important transactional emails that currently have no test path from the UI.
+
+**Status:** Discussed, not yet started.
+
+---
+
 ## 18. Open Source Preparation
 
 - Strip internal/operational references from code and docs
