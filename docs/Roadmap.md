@@ -514,7 +514,7 @@ CREATE TABLE IF NOT EXISTS email_log (
 - Admin panel: `GET /admin/email-log` — table view with type, recipient, status, date. Paginated. Filterable by status and type.
 - The log does not need to store email body content.
 
-**Status:** Discussed, not yet started.
+**Status:** Done — `email_log` table added; `sendTrackedEmail` wrapper in `src/lib/email-log.ts` replaces all `sendSmtpMail` calls (14 call sites across 6 files); logs type, recipient, subject, status (sent/failed), error, sent_at, user_id. Admin panel: `GET /admin/email-log` with status filter (all/sent/failed) and type dropdown filter, paginated 50/page. Linked from admin home.
 
 ---
 
