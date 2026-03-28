@@ -189,15 +189,42 @@ export const AdminPage: FC<{
 
         {/* All members */}
         <div class="w-full bg-white border border-border-light rounded-xl overflow-hidden shadow-sm">
-          <div class="px-6 py-4 border-b border-border-light bg-slate-50/50">
-            <h2 class="text-text-main text-lg font-bold flex items-center gap-2">
+          <div class="px-6 py-4 border-b border-border-light bg-slate-50/50 flex flex-col sm:flex-row sm:items-center gap-3">
+            <h2 class="text-text-main text-lg font-bold flex items-center gap-2 shrink-0">
               <span class="material-symbols-outlined text-primary">group</span>
               All Members ({allUsers.length})
             </h2>
+            <div class="flex items-center gap-2 sm:ml-auto">
+              <input
+                id="member-search"
+                type="search"
+                placeholder="Search name or email..."
+                oninput="filterMembers()"
+                class="rounded-lg border-slate-200 bg-slate-50 text-xs h-8 px-3 w-44"
+              />
+              <select
+                id="role-filter"
+                onchange="filterMembers()"
+                class="rounded-lg border-slate-200 bg-slate-50 text-xs h-8 px-2"
+              >
+                <option value="">All roles</option>
+                <option value="santri">santri</option>
+                <option value="alumni">alumni</option>
+                <option value="asatidz">asatidz</option>
+                <option value="member">member</option>
+                <option value="admin">admin</option>
+                <option value="super_admin">super_admin</option>
+              </select>
+            </div>
           </div>
-          <div class="divide-y divide-border-light">
+          <div id="member-list" class="divide-y divide-border-light">
             {allUsers.map((u) => (
-              <div class="flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors">
+              <div
+                class="flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors"
+                data-name={u.name.toLowerCase()}
+                data-email={u.email.toLowerCase()}
+                data-role={u.role}
+              >
                 <div class="flex items-center gap-3">
                   {u.avatar_url ? (
                     <div
@@ -268,26 +295,113 @@ export const AdminPage: FC<{
                     </a>
                   )}
                   {!isAdminRole(u.role) && u.id !== user.id && (
-                    <form
-                      method="POST"
-                      action={`/admin/users/${u.id}/delete`}
-                      onsubmit="return confirm('Remove ' + this.dataset.name + '? This will delete all their progress data and cannot be undone.')"
-                      data-name={u.name}
-                    >
+                    <span class="inline-flex items-center gap-1.5">
                       <button
-                        type="submit"
+                        type="button"
+                        id={`del-btn-${u.id}`}
+                        onclick={`showDel(${u.id})`}
                         class="text-text-secondary hover:text-red-500 text-xs font-medium transition-colors"
                       >
                         Remove
                       </button>
-                    </form>
+                      <span id={`del-confirm-${u.id}`} class="hidden inline-flex items-center gap-1.5">
+                        <span class="text-xs text-text-secondary">Sure?</span>
+                        <form method="POST" action={`/admin/users/${u.id}/delete`} class="inline">
+                          <button type="submit" class="text-xs font-bold text-red-600 hover:text-red-700 transition-colors">
+                            Delete
+                          </button>
+                        </form>
+                        <button
+                          type="button"
+                          onclick={`hideDel(${u.id})`}
+                          class="text-xs text-text-secondary hover:text-primary transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </span>
+                    </span>
                   )}
                 </div>
               </div>
             ))}
           </div>
+          <div id="page-ctrl" class="px-6 py-3 border-t border-border-light flex items-center justify-between gap-3 hidden">
+            <button
+              id="page-prev"
+              type="button"
+              onclick="changePage(-1)"
+              class="text-xs font-semibold px-3 py-1.5 rounded-lg border border-border-light bg-white text-text-secondary hover:text-primary hover:border-primary/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              ← Prev
+            </button>
+            <span id="page-info" class="text-xs text-text-secondary" />
+            <button
+              id="page-next"
+              type="button"
+              onclick="changePage(1)"
+              class="text-xs font-semibold px-3 py-1.5 rounded-lg border border-border-light bg-white text-text-secondary hover:text-primary hover:border-primary/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Next →
+            </button>
+          </div>
         </div>
       </main>
+      <script dangerouslySetInnerHTML={{ __html: `
+var PAGE_SIZE = 20;
+var currentPage = 1;
+
+function filterMembers() {
+  var q = (document.getElementById('member-search').value || '').toLowerCase();
+  var role = document.getElementById('role-filter').value;
+  var rows = document.querySelectorAll('#member-list > div[data-name]');
+  var visible = [];
+  rows.forEach(function(row) {
+    var match = (!q || row.dataset.name.includes(q) || row.dataset.email.includes(q))
+      && (!role || row.dataset.role === role);
+    row.style.display = match ? '' : 'none';
+    if (match) visible.push(row);
+  });
+  currentPage = 1;
+  applyPagination(visible);
+}
+
+function applyPagination(visibleRows) {
+  if (!visibleRows) {
+    visibleRows = Array.from(document.querySelectorAll('#member-list > div[data-name]'))
+      .filter(function(r) { return r.style.display !== 'none'; });
+  }
+  var total = visibleRows.length;
+  var totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (currentPage > totalPages) currentPage = totalPages;
+  visibleRows.forEach(function(row, i) {
+    var inPage = i >= (currentPage - 1) * PAGE_SIZE && i < currentPage * PAGE_SIZE;
+    row.style.display = inPage ? '' : 'none';
+  });
+  var ctrl = document.getElementById('page-ctrl');
+  if (ctrl) {
+    ctrl.style.display = totalPages > 1 ? '' : 'none';
+    document.getElementById('page-info').textContent = 'Page ' + currentPage + ' of ' + totalPages;
+    document.getElementById('page-prev').disabled = currentPage <= 1;
+    document.getElementById('page-next').disabled = currentPage >= totalPages;
+  }
+}
+
+function changePage(delta) {
+  currentPage += delta;
+  applyPagination();
+}
+
+function showDel(id) {
+  document.getElementById('del-btn-' + id).classList.add('hidden');
+  document.getElementById('del-confirm-' + id).classList.remove('hidden');
+}
+function hideDel(id) {
+  document.getElementById('del-confirm-' + id).classList.add('hidden');
+  document.getElementById('del-btn-' + id).classList.remove('hidden');
+}
+
+applyPagination();
+      `}} />
     </Layout>
   );
 };

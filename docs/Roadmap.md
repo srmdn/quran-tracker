@@ -226,12 +226,12 @@ This document tracks planned improvements, organized by topic. Items are discuss
 ### 7.4 "Remove" — replace native confirm() dialog
 - Delete confirmation uses a browser `confirm()` dialog, inconsistent with the rest of the app UI.
 - Replace with an inline confirmation or a styled modal.
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done — inline two-step confirmation: Remove → "Sure? [Delete] [Cancel]".
 
 ### 7.5 Members list — pagination
 - All members load at once with no pagination.
 - Fine now, but will degrade as the community grows. Add pagination or at minimum a search/filter.
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done — client-side pagination (20 per page) with Prev/Next controls.
 
 ### 7.6 Members list — show joined date
 - List shows name, email, and role only. No joined date visible.
@@ -241,7 +241,7 @@ This document tracks planned improvements, organized by topic. Items are discuss
 ### 7.7 Members list — search and filter by role
 - No way to search by name or filter by role in the members list.
 - The leaderboard has this — the admin page should too.
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done — client-side search (name/email) and role filter dropdown added.
 
 ### 7.8 Pending approval — show registration date and auth method
 - Pending user rows show only name and email.
