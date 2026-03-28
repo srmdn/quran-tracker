@@ -81,3 +81,11 @@ PORT=3000                        # optional, defaults to 3000
 ## Writing Conventions
 - No em dashes (`—`) in commit messages, docs, or any written output.
 - Use a colon, semicolon, or rewrite the sentence instead.
+
+## Governance and AI Discipline
+
+- No AI co-author trailers in commit messages (`Co-authored-by: Claude ...`, `Generated with Claude Code`, etc.)
+- Run `scripts/check-commit-attribution.sh` before push.
+- Pre-commit hook installed at `.git/hooks/pre-commit` — it blocks banned attribution lines.
+- Security work must follow the risk rubric: classify with `docs/risk-assessment-rubric.md` before implementing. Tier 2+ changes require a decision record in `docs/decisions/`.
+- Full governance docs: `SECURITY.md`, `GOVERNANCE.md`, `CONTRIBUTING.md`, `AGENTS.md`, `docs/`
