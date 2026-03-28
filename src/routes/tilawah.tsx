@@ -158,15 +158,20 @@ tilawah.post("/", async (c) => {
     "INSERT INTO tilawah_logs (user_id, date_wib, juz_amount, end_surah, end_ayah, end_juz, log_unit, log_amount) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
   ).run(user.id, dateCheck.date, juzAmount, endSurah, endAyah, endJuz, logUnit, logAmount);
 
-  // Khatam detection — reached An-Nas (surah 114) ayah 6
+  // Khatam detection — reached An-Nas (surah 114) ayah 6, once per day per user
   let khatamMsg = "";
   if (endSurah === 114 && endAyah === 6) {
-    db.prepare("INSERT INTO khatam_events (user_id, type, date_wib) VALUES (?, 'tilawah', ?)")
-      .run(user.id, dateCheck.date);
-    khatamMsg = ` ${t(lang, "khatamRecorded")}`;
-    const khatamCount = (db.prepare("SELECT COUNT(*) AS cnt FROM khatam_events WHERE user_id = ? AND type = 'tilawah'")
-      .get(user.id) as { cnt: number }).cnt;
-    sendKhatamEmail(user, khatamCount).catch(() => {});
+    const alreadyToday = db
+      .prepare("SELECT 1 FROM khatam_events WHERE user_id = ? AND type = 'tilawah' AND date_wib = ? LIMIT 1")
+      .get(user.id, dateCheck.date);
+    if (!alreadyToday) {
+      db.prepare("INSERT INTO khatam_events (user_id, type, date_wib) VALUES (?, 'tilawah', ?)")
+        .run(user.id, dateCheck.date);
+      khatamMsg = ` ${t(lang, "khatamRecorded")}`;
+      const khatamCount = (db.prepare("SELECT COUNT(*) AS cnt FROM khatam_events WHERE user_id = ? AND type = 'tilawah'")
+        .get(user.id) as { cnt: number }).cnt;
+      sendKhatamEmail(user, khatamCount).catch(() => {});
+    }
   }
 
   // Notify overtaken users
