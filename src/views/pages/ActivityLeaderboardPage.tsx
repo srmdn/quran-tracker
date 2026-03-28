@@ -11,6 +11,12 @@ type EnrichedRow = MonthlyActivityRow & { current_streak: number };
 const MONTH_NAMES = ["", "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"];
 
+function Avatar({ name, url, cls }: { name: string; url: string | null; cls: string }) {
+  const initials = name.split(" ").filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("");
+  if (url) return <img src={url} alt={name} class={`${cls} rounded-full object-cover`} />;
+  return <div class={`${cls} rounded-full bg-primary/20 text-primary font-bold flex items-center justify-center text-xs shrink-0`}>{initials}</div>;
+}
+
 export const ActivityLeaderboardPage: FC<{
   user: User;
   lang: Lang;
@@ -124,8 +130,11 @@ export const ActivityLeaderboardPage: FC<{
               {podiumOrder.map((row) => (
                 <div class={`rounded-xl p-5 ${podiumCardClass(row.rank)} ${row.rank === 1 ? "md:-mt-4" : ""} ${row.id === user.id ? "ring-2 ring-primary/30" : ""}`}>
                   <div class="flex items-center justify-between mb-3">
-                    <div class={podiumMedalStyle(row.rank)}>
-                      {row.rank === 1 ? "🥇" : row.rank === 2 ? "🥈" : "🥉"}
+                    <div class="relative inline-block">
+                      <Avatar name={row.name} url={row.avatar_url} cls={row.rank === 1 ? "w-14 h-14" : "w-12 h-12"} />
+                      <span class={`absolute -bottom-1 -right-1 ${podiumMedalStyle(row.rank)}`}>
+                        {row.rank === 1 ? "🥇" : row.rank === 2 ? "🥈" : "🥉"}
+                      </span>
                     </div>
                     {row.current_streak > 0 && (
                       <span class="text-xs font-bold text-orange-500">🔥 {row.current_streak}</span>
@@ -147,8 +156,11 @@ export const ActivityLeaderboardPage: FC<{
               {topThree.map((row) => (
                 <div class={`rounded-xl p-4 ${podiumCardClass(row.rank)} ${row.id === user.id ? "ring-2 ring-primary/30" : ""}`}>
                   <div class="flex items-center gap-3">
-                    <div class={podiumMedalStyle(row.rank)}>
-                      {row.rank === 1 ? "🥇" : row.rank === 2 ? "🥈" : "🥉"}
+                    <div class="relative inline-block shrink-0">
+                      <Avatar name={row.name} url={row.avatar_url} cls="w-10 h-10" />
+                      <span class={`absolute -bottom-1 -right-1 ${podiumMedalStyle(row.rank)}`}>
+                        {row.rank === 1 ? "🥇" : row.rank === 2 ? "🥈" : "🥉"}
+                      </span>
                     </div>
                     <div class="flex-1 min-w-0">
                       <p class="font-black text-text-main truncate">
@@ -205,8 +217,13 @@ export const ActivityLeaderboardPage: FC<{
                         )}
                       </td>
                       <td class="px-4 py-3 text-text-main font-semibold">
-                        {row.name}
-                        {row.id === user.id ? <span class="ml-1.5 text-xs text-primary font-bold">{t(lang, "youLabel")}</span> : null}
+                        <div class="flex items-center gap-2.5">
+                          <Avatar name={row.name} url={row.avatar_url} cls="w-7 h-7" />
+                          <span>
+                            {row.name}
+                            {row.id === user.id ? <span class="ml-1.5 text-xs text-primary font-bold">{t(lang, "youLabel")}</span> : null}
+                          </span>
+                        </div>
                       </td>
                       {isCurrentMonth && (
                         <td class="px-4 py-3 text-right">

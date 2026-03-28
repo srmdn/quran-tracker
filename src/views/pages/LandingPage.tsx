@@ -11,6 +11,12 @@ type LeaderboardResult = {
   rows: MonthlyActivityRow[];
 };
 
+function Avatar({ name, url, cls }: { name: string; url: string | null; cls: string }) {
+  const initials = name.split(" ").filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("");
+  if (url) return <img src={url} alt={name} class={`${cls} rounded-full object-cover`} />;
+  return <div class={`${cls} rounded-full bg-primary/20 text-primary font-bold flex items-center justify-center text-xs shrink-0`}>{initials}</div>;
+}
+
 export const LandingPage: FC<{
   lang: Lang;
   leaderboard: LeaderboardResult;
@@ -244,7 +250,10 @@ export const LandingPage: FC<{
                             </div>
                           )}
                           <div class="flex items-start justify-between mb-3">
-                            <span class="text-2xl">{medal}</span>
+                            <div class="relative inline-block">
+                              <Avatar name={row.name} url={row.avatar_url} cls={highlight ? "w-14 h-14" : "w-12 h-12"} />
+                              <span class="absolute -bottom-1 -right-1 text-xl leading-none">{medal}</span>
+                            </div>
                             <span class={`text-xs font-bold uppercase tracking-wide ${row.rank === 1 ? "text-yellow-600" : row.rank === 2 ? "text-slate-500" : "text-amber-700"}`}>
                               {rankLabel}
                             </span>
@@ -284,7 +293,12 @@ export const LandingPage: FC<{
                           {rest.map((row) => (
                             <tr class="hover:bg-slate-50/70 transition-colors">
                               <td class="px-5 py-3.5 font-bold text-text-secondary">#{row.rank}</td>
-                              <td class="px-5 py-3.5 font-semibold text-text-main">{row.name}</td>
+                              <td class="px-5 py-3.5 font-semibold text-text-main">
+                                <div class="flex items-center gap-2.5">
+                                  <Avatar name={row.name} url={row.avatar_url} cls="w-7 h-7" />
+                                  {row.name}
+                                </div>
+                              </td>
                               <td class="px-5 py-3.5 text-right text-text-main">{row.tilawah_juz}</td>
                               <td class="px-5 py-3.5 text-right text-text-main">{row.murojaah_juz}</td>
                               <td class="px-5 py-3.5 text-right text-text-main">{row.khatam_count}</td>
@@ -298,8 +312,9 @@ export const LandingPage: FC<{
                     <div class="sm:hidden divide-y divide-border-light">
                       {rest.map((row) => (
                         <div class="flex items-center justify-between px-4 py-3.5 gap-3">
-                          <div class="flex items-center gap-3 min-w-0">
+                          <div class="flex items-center gap-2.5 min-w-0">
                             <span class="shrink-0 text-sm font-black text-text-secondary w-7">#{row.rank}</span>
+                            <Avatar name={row.name} url={row.avatar_url} cls="w-7 h-7 shrink-0" />
                             <p class="font-semibold text-text-main text-sm truncate">{row.name}</p>
                           </div>
                           <div class="shrink-0 text-right">
