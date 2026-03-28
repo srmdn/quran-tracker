@@ -81,6 +81,11 @@ This document tracks planned improvements, organized by topic. Items are discuss
 
 ## 3. Leaderboard Improvements
 
+### 3.0 Overtaken email notification (new)
+- When a user logs tilawah or murojaah and their score passes another member's score, the passed member receives an email: "X just passed you on this month's leaderboard."
+- Detection: capture logging user's score before insert; after insert, query all active users whose score was in the range (score_before, score_after]. Fire-and-forget emails to each.
+- **Status:** Done -- `src/lib/overtaken-email.ts`; wired into `POST /tilawah` and `POST /murojaah`.
+
 ### 3.1 Month navigation for activity leaderboard
 - `/activity/leaderboard` shows only the current month with no way to browse previous months.
 - Historical snapshots exist in `monthly_leaderboard_snapshots` but have no UI.

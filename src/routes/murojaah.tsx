@@ -2,7 +2,8 @@ import { Hono } from "hono";
 import { authMiddleware, memberMiddleware, targetMiddleware } from "../middleware/auth.ts";
 import { db } from "../db/connection.ts";
 import { consumeRateLimit } from "../lib/rate-limit.ts";
-import { getWibDateYmd, validateWibLogDate } from "../lib/wib-date.ts";
+import { getWibDateYmd, getWibYearMonth, getWibMonthRange, validateWibLogDate } from "../lib/wib-date.ts";
+import { getUserMonthScore, notifyOvertakenUsers } from "../lib/overtaken-email.ts";
 import { getUserTarget, getTodayMurojaahTotal } from "../lib/targets.ts";
 import { checkAndUpdateStreak, rebuildStreak } from "../lib/streak.ts";
 import { getUserActivityTotals } from "../lib/activity-calc.ts";
@@ -120,6 +121,11 @@ murojaah.post("/", async (c) => {
   // Compute juz from surah+ayah — never trust user input
   const endJuz = getJuzForPosition(endSurah, endAyah);
 
+  // Capture score before insert for overtaken detection
+  const { year: wy, month: wm } = getWibYearMonth();
+  const { from: mFrom, to: mTo } = getWibMonthRange(wy, wm);
+  const scoreBefore = getUserMonthScore(user.id, mFrom, mTo);
+
   // Insert log
   db.prepare(
     "INSERT INTO murojaah_logs (user_id, date_wib, juz_amount, repetition_count, end_surah, end_ayah, end_juz) VALUES (?, ?, ?, ?, ?, ?, ?)"
@@ -135,6 +141,9 @@ murojaah.post("/", async (c) => {
       .get(user.id) as { cnt: number }).cnt;
     sendKhatamEmail(user, khatamCount).catch(() => {});
   }
+
+  // Notify overtaken users
+  notifyOvertakenUsers(user, scoreBefore, mFrom, mTo).catch(() => {});
 
   // Update streak
   const newStreak = checkAndUpdateStreak(user.id, getWibDateYmd());
