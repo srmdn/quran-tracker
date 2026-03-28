@@ -23,6 +23,7 @@ export const DashboardPage: FC<{
   heatmap: HeatmapCell[];
   recentLogs: RecentLogEntry[];
   totalKhatam: number;
+  totalActiveUsers: number;
 }> = ({
   user,
   lang,
@@ -36,6 +37,7 @@ export const DashboardPage: FC<{
   heatmap,
   recentLogs,
   totalKhatam,
+  totalActiveUsers,
 }) => {
   const firstName = user.name.split(" ")[0];
   const tilawahPercent = Math.min(100, Math.round((todayTilawah / target.tilawah_juz_daily) * 100));
@@ -60,9 +62,6 @@ export const DashboardPage: FC<{
               <div class="flex items-center gap-2 mt-1.5">
                 <span class="text-xl leading-none">🔥</span>
                 <span class="text-base font-bold text-orange-500">{streak.current_streak} {t(lang, "dayStreak")}</span>
-                {streak.longest_streak > streak.current_streak && (
-                  <span class="text-sm text-text-secondary">· {t(lang, "best")} {streak.longest_streak}</span>
-                )}
               </div>
             ) : (
               <p class="text-text-secondary text-sm mt-1">{t(lang, "startLoggingStreak")}</p>
@@ -152,16 +151,27 @@ export const DashboardPage: FC<{
         </div>
 
         {/* Stats row */}
-        <div class="w-full grid grid-cols-3 md:grid-cols-5 gap-3 mb-6">
+        <div class="w-full grid grid-cols-3 md:grid-cols-6 gap-3 mb-6">
           <div class="bg-white border border-border-light rounded-xl p-4 text-center">
             <p class="text-text-secondary text-xs font-medium mb-1">{t(lang, "monthRank")}</p>
             <p class="text-2xl font-black text-primary">
               {monthlyRank ? `#${monthlyRank.rank}` : "-"}
             </p>
+            <p class="text-xs text-text-secondary">{t(lang, "of")} {totalActiveUsers}</p>
           </div>
           <div class="bg-white border border-border-light rounded-xl p-4 text-center">
             <p class="text-text-secondary text-xs font-medium mb-1">{t(lang, "monthScore")}</p>
             <p class="text-2xl font-black text-text-main">{monthlyRank?.score ?? 0}</p>
+          </div>
+          <div class="bg-white border border-border-light rounded-xl p-4 text-center">
+            <p class="text-text-secondary text-xs font-medium mb-1">{t(lang, "streakLabel")}</p>
+            <p class="text-2xl font-black text-orange-500">{streak.current_streak}</p>
+            <p class="text-xs text-text-secondary">{t(lang, "days")}</p>
+          </div>
+          <div class="bg-white border border-border-light rounded-xl p-4 text-center">
+            <p class="text-text-secondary text-xs font-medium mb-1">{t(lang, "bestStreakLabel")}</p>
+            <p class="text-2xl font-black text-text-main">{streak.longest_streak}</p>
+            <p class="text-xs text-text-secondary">{t(lang, "days")}</p>
           </div>
           <div class="bg-white border border-border-light rounded-xl p-4 text-center">
             <p class="text-text-secondary text-xs font-medium mb-1">{t(lang, "allTimeTilawah")}</p>
@@ -169,11 +179,6 @@ export const DashboardPage: FC<{
             <p class="text-xs text-text-secondary">{t(lang, "juz")}</p>
           </div>
           <div class="bg-white border border-border-light rounded-xl p-4 text-center">
-            <p class="text-text-secondary text-xs font-medium mb-1">{t(lang, "allTimeMurojaah")}</p>
-            <p class="text-2xl font-black text-text-main">{activityTotals.murojaahJuz}</p>
-            <p class="text-xs text-text-secondary">{t(lang, "juz")}</p>
-          </div>
-          <div class="bg-white border border-border-light rounded-xl p-4 text-center col-span-3 md:col-span-1">
             <p class="text-text-secondary text-xs font-medium mb-1">{t(lang, "totalKhatam")}</p>
             <p class="text-2xl font-black text-primary">{totalKhatam}</p>
             <p class="text-xs text-text-secondary">{t(lang, "times")}</p>
@@ -210,7 +215,27 @@ export const DashboardPage: FC<{
             <span class="material-symbols-outlined text-primary text-xl">grid_on</span>
             {t(lang, "ninetyDayActivity")}
           </h2>
-          {/* Day-of-week labels */}
+          {/* Month labels */}
+          {(() => {
+            const numCols = Math.ceil(heatmap.length / 7);
+            const labels = Array.from({ length: numCols }, (_, i) => {
+              for (let r = 0; r < 7; r++) {
+                const cell = heatmap[i * 7 + r];
+                if (cell && cell.state !== "filler" && cell.date.slice(-2) === "01") {
+                  return new Date(cell.date + "T00:00:00Z").toLocaleString("en-US", { month: "short", timeZone: "UTC" });
+                }
+              }
+              return "";
+            });
+            return (
+              <div style={`display:grid; grid-template-columns: repeat(${numCols}, 12px); gap: 3px; margin-bottom: 4px;`}>
+                {labels.map((label) => (
+                  <div style="width:12px; font-size:9px; color:#94a3b8; line-height:1; overflow:hidden;">{label}</div>
+                ))}
+              </div>
+            );
+          })()}
+          {/* Heatmap grid */}
           <div style="display:grid; grid-template-rows: repeat(7, minmax(0, 1fr)); grid-auto-flow: column; gap: 3px;">
             {heatmap.map((cell) => (
               cell.state === "filler" ? (

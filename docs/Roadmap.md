@@ -60,7 +60,7 @@ This document tracks planned improvements, organized by topic. Items are discuss
 ### 2.3 Heatmap month labels
 - Add month name labels above the 90-day heatmap columns (GitHub-style).
 - Currently the grid has no time orientation.
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done — month abbreviations rendered above columns where a new month starts.
 
 ### 2.4 Recent logs "see all" link
 - The recent logs section shows 8 entries with no link to full history.
@@ -70,12 +70,12 @@ This document tracks planned improvements, organized by topic. Items are discuss
 ### 2.5 Monthly score context: out of N users
 - Stats row shows rank and score as raw numbers with no total user count.
 - Show as "3 of 12" instead of just "#3" for more meaningful context.
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done — rank card now shows "of N" below the rank number.
 
 ### 2.6 Longest streak as a stat
 - Longest streak is currently a secondary note, only shown when it exceeds current streak.
 - Promote it to a proper stat card in the stats row.
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done — dedicated stat card added; stats row expanded to 6 columns.
 
 ---
 
@@ -141,7 +141,7 @@ This document tracks planned improvements, organized by topic. Items are discuss
 - Log rows show `date_wib` only. Multiple entries on the same day look identical.
 - Show `created_at` time alongside the date so entries are distinguishable.
 - **Note (murojaah):** More important here since users legitimately log the same section multiple times.
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done — `created_at` formatted as HH:MM WIB shown below date_wib in both tilawah and murojaah log rows.
 
 ### 4.6 Monthly summary in stats column
 - Stats column shows all-time totals only.

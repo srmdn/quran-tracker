@@ -5,6 +5,7 @@ import { getCurrentMonthUserActivityRank, getUserActivityTotals } from "../lib/a
 import { getUserTarget, getTodayTilawahTotal, getTodayMurojaahTotal } from "../lib/targets.ts";
 import { getUserStreak, getActivityHeatmap } from "../lib/streak.ts";
 import { getWibDateYmd } from "../lib/wib-date.ts";
+import { ACTIVE_MEMBER_ROLES } from "../lib/roles.ts";
 import { DashboardPage } from "../views/pages/DashboardPage.tsx";
 import type { Env } from "../types.ts";
 
@@ -87,6 +88,12 @@ dashboard.get("/", (c) => {
     .prepare("SELECT COUNT(*) AS cnt FROM khatam_events WHERE user_id = ? AND type = 'tilawah'")
     .get(user.id) as { cnt: number };
 
+  // Total active (non-suspended) members for rank context
+  const rolesSql = ACTIVE_MEMBER_ROLES.map((r) => `'${r}'`).join(", ");
+  const totalActiveUsers = (db
+    .prepare(`SELECT COUNT(*) AS cnt FROM users WHERE role IN (${rolesSql}) AND suspended_at IS NULL`)
+    .get() as { cnt: number }).cnt;
+
   return c.html(
     <DashboardPage
       user={user}
@@ -101,6 +108,7 @@ dashboard.get("/", (c) => {
       heatmap={heatmap}
       recentLogs={recentLogs}
       totalKhatam={khatamRow.cnt}
+      totalActiveUsers={totalActiveUsers}
     />
   );
 });

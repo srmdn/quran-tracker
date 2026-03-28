@@ -18,6 +18,15 @@ type LogEntry = {
   created_at: string;
 };
 
+function fmtWibTime(utcStr: string): string {
+  return new Date(utcStr.replace(" ", "T") + "Z").toLocaleString("en-GB", {
+    timeZone: "Asia/Jakarta",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
 export const MurojaahPage: FC<{
   user: User;
   lang: Lang;
@@ -179,7 +188,10 @@ export const MurojaahPage: FC<{
                         )}
                       </div>
                       <div class="flex items-center gap-3 flex-shrink-0">
-                        <span class="text-xs text-text-secondary">{log.date_wib}</span>
+                        <div class="text-right">
+                          <span class="text-xs text-text-secondary block">{log.date_wib}</span>
+                          <span class="text-xs text-text-secondary/60">{fmtWibTime(log.created_at)} WIB</span>
+                        </div>
                         {canDelete && (
                           <form method="POST" action={`/murojaah/logs/${log.id}/delete`}
                             onsubmit="return confirm('Delete this entry?')">
