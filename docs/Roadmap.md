@@ -216,12 +216,12 @@ This document tracks planned improvements, organized by topic. Items are discuss
 ### 7.2 Create user — field length limits
 - Name and email inputs have no `maxlength` attribute and no server-side length validation.
 - Add reasonable limits (e.g., name max 100 chars, email max 254 chars).
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done — `maxlength` added to name (100) and email (254) inputs.
 
 ### 7.3 "Make Admin" — add confirmation step
 - Clicking "Make Admin" immediately promotes a member and sends a role change email with no confirmation.
 - Add a confirmation dialog before executing the role change.
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done — confirmation dialog added via `onsubmit`.
 
 ### 7.4 "Remove" — replace native confirm() dialog
 - Delete confirmation uses a browser `confirm()` dialog, inconsistent with the rest of the app UI.
@@ -236,7 +236,7 @@ This document tracks planned improvements, organized by topic. Items are discuss
 ### 7.6 Members list — show joined date
 - List shows name, email, and role only. No joined date visible.
 - Add `created_at` (joined date) to each row for better context when reviewing members.
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done — joined date shown below email in each member row.
 
 ### 7.7 Members list — search and filter by role
 - No way to search by name or filter by role in the members list.
@@ -246,12 +246,12 @@ This document tracks planned improvements, organized by topic. Items are discuss
 ### 7.8 Pending approval — show registration date and auth method
 - Pending user rows show only name and email.
 - Add registration date and how they signed up (Google or email/password) to help verify legitimacy.
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done — registration date and auth method (Google / Email/Password) shown below email.
 
 ### 7.9 Bug: delete failure messages use ?success= param
 - `"Cannot delete a super admin account."` and `"User not found."` are passed as `?success=` query params instead of `?error=`.
 - Fix to use `?error=` so they render with the correct styling.
-- **Status:** Bug identified, not yet fixed.
+- **Status:** Done — all three delete failure redirects fixed to use `?error=`.
 
 ### 7.10 Suspend user (new feature)
 - Admin can suspend a user without deleting them or their data.
@@ -396,7 +396,7 @@ Overall the landing page is well built. Only minor items below.
 
 ### 14.2 Stats row — missing murojaah all-time juz
 - Stats row shows tilawah all-time juz but not murojaah all-time juz.
-- **Status:** Bug identified, not yet fixed.
+- **Status:** Done — Murojaah all-time card added; grid expanded to 6 columns.
 
 ### 14.3 Quick action buttons from detail page
 - Admin has to navigate back to the member list to edit or suspend a user.

@@ -208,14 +208,14 @@ admin.post("/users/:id/delete", (c) => {
 
   // Cannot delete yourself
   if (userId === currentUser.id) {
-    return c.redirect("/admin?success=Cannot delete your own account.");
+    return c.redirect("/admin?error=Cannot delete your own account.");
   }
 
   // Cannot delete other admins
   const target = db.prepare("SELECT role FROM users WHERE id = ?").get(userId) as { role: string } | null;
-  if (!target) return c.redirect("/admin?success=User not found.");
+  if (!target) return c.redirect("/admin?error=User not found.");
   if (isSuperAdminRole(target.role)) {
-    return c.redirect("/admin?success=Cannot delete a super admin account.");
+    return c.redirect("/admin?error=Cannot delete a super admin account.");
   }
 
   // ON DELETE CASCADE handles sessions, progress_entries, progress_log

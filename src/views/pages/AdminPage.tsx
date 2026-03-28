@@ -93,6 +93,7 @@ export const AdminPage: FC<{
               <input
                 name="name"
                 placeholder="Full name"
+                maxlength={100}
                 class="rounded-lg border-slate-200 bg-slate-50 text-sm"
                 required
               />
@@ -100,6 +101,7 @@ export const AdminPage: FC<{
                 type="email"
                 name="email"
                 placeholder="Email"
+                maxlength={254}
                 class="rounded-lg border-slate-200 bg-slate-50 text-sm"
                 required
               />
@@ -220,6 +222,9 @@ export const AdminPage: FC<{
                     <div>
                       <p class="text-text-main text-sm font-bold">{u.name}</p>
                       <p class="text-text-secondary text-xs">{u.email}</p>
+                      <p class="text-text-secondary/60 text-xs">
+                        {u.created_at.slice(0, 10)} · {u.google_id.startsWith("manual:") ? "Email/Password" : "Google"}
+                      </p>
                     </div>
                   </div>
                   <div class="flex items-center gap-2">
@@ -283,6 +288,7 @@ export const AdminPage: FC<{
                       )}
                     </p>
                     <p class="text-text-secondary text-xs">{u.email}</p>
+                    <p class="text-text-secondary/60 text-xs">Joined {u.created_at.slice(0, 10)}</p>
                   </div>
                 </div>
                 <div class="flex items-center gap-3">
@@ -297,7 +303,11 @@ export const AdminPage: FC<{
                     {u.role}
                   </span>
                   {!isAdminRole(u.role) && u.id !== user.id && (
-                    <form method="POST" action={`/admin/users/${u.id}/role`}>
+                    <form
+                      method="POST"
+                      action={`/admin/users/${u.id}/role`}
+                      onsubmit={`return confirm('Make ${u.name} an admin? This grants full admin access.')`}
+                    >
                       <input type="hidden" name="role" value="admin" />
                       <button
                         type="submit"

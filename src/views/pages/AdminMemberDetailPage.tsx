@@ -144,7 +144,7 @@ export const AdminMemberDetailPage: FC<{
         </div>
 
         {/* Stats row */}
-        <div class="w-full grid grid-cols-3 md:grid-cols-5 gap-3 mb-6">
+        <div class="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mb-6">
           <div class="bg-white border border-border-light rounded-xl p-4 text-center">
             <p class="text-text-secondary text-xs font-medium mb-1">{t(lang, "streakLabel")}</p>
             <p class="text-2xl font-black text-orange-500">{streak.current_streak}</p>
@@ -166,7 +166,12 @@ export const AdminMemberDetailPage: FC<{
             <p class="text-2xl font-black text-text-main">{activityTotals.tilawahJuz}</p>
             <p class="text-xs text-text-secondary">{t(lang, "juz")} all-time</p>
           </div>
-          <div class="bg-white border border-border-light rounded-xl p-4 text-center col-span-3 md:col-span-1">
+          <div class="bg-white border border-border-light rounded-xl p-4 text-center">
+            <p class="text-text-secondary text-xs font-medium mb-1">Murojaah</p>
+            <p class="text-2xl font-black text-amber-500">{activityTotals.murojaahJuz}</p>
+            <p class="text-xs text-text-secondary">{t(lang, "juz")} all-time</p>
+          </div>
+          <div class="bg-white border border-border-light rounded-xl p-4 text-center">
             <p class="text-text-secondary text-xs font-medium mb-1">Khatam</p>
             <p class="text-2xl font-black text-primary">{activityTotals.totalKhatam}</p>
             <p class="text-xs text-text-secondary">{t(lang, "times")}</p>
