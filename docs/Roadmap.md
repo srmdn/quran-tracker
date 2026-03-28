@@ -8,28 +8,9 @@ This document tracks planned improvements, organized by topic. Items are discuss
 
 ## 1. User Input Limits
 
-### 1.1 Daily cap tied to user target (planned)
+### 1.1 Daily cap tied to user target
 
-**Current behavior:**
-- Tilawah and murojaah have no daily total cap beyond the arbitrary 30 juz per-entry guard.
-- Rate limit is 20 submissions per 60 seconds (abuse guard only).
-
-**Proposed change:**
-- Once a user's daily total reaches their target (set in `/setup`), block further submissions for that day.
-- Target is self-set and can be updated anytime in `/setup` — so the cap is self-governed.
-- Primary benefit: UX guard against accidental double-logging, not a strict anti-cheat measure.
-
-**Rules:**
-- Check: `todayTotal + newJuzAmount > target` on POST to `/tilawah` and `/murojaah`.
-- If exceeded: reject with a clear error message ("You have reached your daily target").
-- If user wants to log more: they must update their target in `/setup` first.
-
-**Fields involved:**
-- `getTodayTilawahTotal(userId, date)` — already exists
-- `getTodayMurojaahTotal(userId, date)` — already exists
-- `getUserTarget(userId)` — already exists
-
-**Status:** Discussed, not yet implemented.
+**Status:** Done — backend rejects submissions when `todayTotal + newJuzAmount > target`; tilawah and murojaah forms replaced with a "target met" panel when daily cap is reached (roadmap 4.3 co-implemented).
 
 ---
 
@@ -87,16 +68,10 @@ This document tracks planned improvements, organized by topic. Items are discuss
 - **Status:** Done -- `src/lib/overtaken-email.ts`; wired into `POST /tilawah` and `POST /murojaah`.
 
 ### 3.1 Month navigation for activity leaderboard
-- `/activity/leaderboard` shows only the current month with no way to browse previous months.
-- Historical snapshots exist in `monthly_leaderboard_snapshots` but have no UI.
-- Add prev/next month navigation (or a month selector dropdown).
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done -- prev/next month nav added; current month shows live data; past months show `monthly_leaderboard_snapshots`; streak column hidden for archived months.
 
 ### 3.2 Top 3 podium visual polish
-- Current top 3 cards are flat, identical in style with only emoji medals to distinguish them.
-- Improve to a proper elevated podium: 1st place raised, distinct borders/colors per rank.
-- Reference: the old `/leaderboard` podium has a better visual hierarchy.
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done -- proper podium: 2nd/1st/3rd desktop order, elevated 1st-place card, gold/silver/bronze medal colors and borders.
 
 ### 3.3 Score formula — collapsible explanation
 - The formula `Tilawah×10 + Murojaah×7 + Khatam×300` is shown as plain subtitle text.
@@ -132,10 +107,7 @@ This document tracks planned improvements, organized by topic. Items are discuss
 - **Status:** Done — "max: N" hint shown below ayah input when a surah is selected; ayah counts embedded in page as inline JSON (tilawah + murojaah).
 
 ### 4.3 Form disabled when daily target is met
-- Currently the form is fully open even after the user has met today's target.
-- After implementing roadmap 1.1, visually disable or replace the form with a "You've reached your target for today" message.
-- UX should match the backend rule.
-- **Status:** Depends on 1.1, not yet implemented.
+- **Status:** Done (co-implemented with 1.1) -- form replaced with a "target met" panel showing a check icon and link to /setup when daily cap is reached.
 
 ### 4.4 Delete button — clearer UI
 - Delete is a small red text link, easy to miss or accidentally tap on mobile.
@@ -273,36 +245,48 @@ This document tracks planned improvements, organized by topic. Items are discuss
 There is currently no profile page. The desktop dropdown only has a logout button.
 
 ### 8.1 Create /profile route and page
-- New page at `/profile` accessible to all authenticated members.
-- Link it from the desktop dropdown and mobile menu (replace the bare logout with a proper user menu).
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done -- `/profile` page with name edit, password change (email users only), avatar URL (non-Google), account info. Linked from desktop dropdown and mobile menu.
 
 ### 8.2 Display name — editable for all users
-- All users (Google and email/password) can update their display name.
-- Simple `POST /profile/name` endpoint, updates `users.name`.
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done -- `POST /profile/name`, updates `users.name` for all auth methods.
 
 ### 8.3 Password change — only for email/password users
-- Only shown if `user.password_hash` is set (manually created accounts).
-- Google OAuth users have no password — show "Signed in with Google" badge instead.
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done -- shown only when `user.password_hash` is set; Google users see "Signed in with Google" badge.
 
 ### 8.4 Auth method indicator
-- Show a read-only badge: "Google" or "Email/Password" so users know how their account is authenticated.
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done -- "Google" or "Email/Password" badge shown on profile page.
 
 ### 8.5 Account info — read-only fields
-- Email: read-only, tied to auth, cannot be changed by user.
-- Role: read-only display.
-- Joined date: read-only display.
-- **Status:** Discussed, not yet implemented.
+- **Status:** Done -- email, role, joined date shown as read-only on profile page.
 
-### 8.6 Avatar — why it's not showing for some users
-- The header already renders `avatar_url` correctly via `background-image`.
-- Avatar is `null` for manually-created users (no Google login) — fallback to initials is working as intended.
-- Google OAuth users get avatar synced on every login automatically.
-- Fix: allow users with no `avatar_url` to set a custom avatar URL on the profile page (link to any image URL, e.g. Gravatar). No file upload needed.
-- **Status:** Discussed, not yet implemented.
+### 8.6 Avatar — custom URL for non-Google users
+- **Status:** Done -- `POST /profile/avatar` allows any https:// URL (max 500 chars); shown as editable field for non-Google users.
+
+---
+
+## 8.7 Juz/Pages Dual Input Mode
+
+Users can log tilawah and murojaah in either whole juz or whole pages (never decimals).
+
+**System rules:**
+- Medina Mushaf standard: 20 pages = 1 juz (conversion ratio used for all scoring).
+- Juz 30 has ~22-23 pages in practice, but the 20-page standard is used for simplicity; slight over-count is accepted.
+- Input: user selects "Juz" or "Pages" mode via toggle button; integer only (no decimals).
+- Max per entry: 30 juz or 30 pages.
+- Storage: `log_unit TEXT` and `log_amount INTEGER` columns on both log tables store the original input; `juz_amount REAL` stores the converted value for scoring.
+- Legacy records (pre-feature): `log_amount` is NULL; display falls back to `formatJuz(juz_amount)`.
+- Target (in /setup) stays as pure juz -- no change needed.
+- Daily cap check is unchanged: pages convert to juz before comparison.
+
+**Display:**
+- `formatJuz(juz, lang)` -- converts any juz decimal to human-readable integers only (1.6 -> "1 juz 12 pages", 0.5 -> "10 pages").
+- `formatLogAmount(juzAmount, logUnit, logAmount, lang)` -- uses stored unit for new records; falls back to formatJuz for legacy.
+- No decimal juz shown anywhere in the app.
+
+**Documentation:**
+- The conversion system (20 pages = 1 juz, Medina Mushaf, scoring rules) must be explained in section 9.4 "About the program".
+
+**Status:** Done -- schema migration, `src/lib/format-juz.ts`, all display points, tilawah/murojaah POST handlers updated.
 
 ---
 
@@ -329,6 +313,7 @@ Overall the landing page is well built. Only minor items below.
 ### 9.4 Add "about the program" section
 - The page explains what the tracker does but nothing about Markaz Talaqqi itself or the 2-year program.
 - Low priority if the landing is primarily for existing community members, but worth adding for outsiders.
+- **Must include:** explanation of the juz/pages input system -- 20 pages = 1 juz (Medina Mushaf standard), why decimals are avoided, how scoring conversion works, and the accepted approximation for Juz 30.
 - **Status:** Discussed, low priority, not yet implemented.
 
 ### 9.5 "Join note" text is duplicated
