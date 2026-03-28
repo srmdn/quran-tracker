@@ -152,6 +152,11 @@ export const Header: FC<{ user: User | null; currentPath: string; lang: Lang }> 
                       <p class="text-sm font-semibold text-text-main truncate">{user.name}</p>
                       <p class="text-xs text-text-secondary">{t(lang, "signedIn")}</p>
                     </div>
+                    <a href="/profile"
+                      class="flex items-center gap-2 px-4 py-2.5 text-sm text-text-main hover:bg-slate-50 transition-colors">
+                      <span class="material-symbols-outlined text-lg">account_circle</span>
+                      {t(lang, "profileLink")}
+                    </a>
                     <form method="post" action="/auth/logout" class="my-0 py-0">
                       <button
                         type="submit"
@@ -252,6 +257,11 @@ export const Header: FC<{ user: User | null; currentPath: string; lang: Lang }> 
                     <p class="text-text-secondary text-xs">{t(lang, "signedIn")}</p>
                   </div>
                 </div>
+                <a href="/profile"
+                  class="flex items-center gap-2 text-text-main bg-white hover:bg-slate-50 transition-colors text-sm font-bold px-4 py-3 rounded-xl border border-border-light shadow-sm">
+                  <span class="material-symbols-outlined text-xl">account_circle</span>
+                  {t(lang, "profileLink")}
+                </a>
                 <div class="flex gap-2">
                   <LangToggle lang={lang} />
                   <form method="post" action="/auth/logout" class="flex-1">

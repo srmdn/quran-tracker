@@ -105,48 +105,62 @@ export const TilawahPage: FC<{
           {/* Log form */}
           <div class="bg-white border border-border-light rounded-xl p-6">
             <h3 class="text-text-main text-lg font-bold mb-4">{t(lang, "logTilawah")}</h3>
-            <form method="post" action="/tilawah" class="space-y-4">
-              <div>
-                <label class="block text-xs font-semibold text-text-secondary mb-1">{t(lang, "dateWib")}</label>
-                <input type="date" name="date_wib" value={todayWib}
-                  class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" required />
+            {todayPercent >= 100 ? (
+              <div class="flex flex-col items-center justify-center gap-4 py-6 text-center">
+                <div class="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-emerald-600 text-3xl">check_circle</span>
+                </div>
+                <div>
+                  <p class="font-bold text-text-main">{t(lang, "targetMetForToday")}</p>
+                  <p class="text-xs text-text-secondary mt-1 max-w-xs">{t(lang, "targetMetForTodayDesc")}</p>
+                </div>
+                <a href="/setup" class="text-xs font-semibold text-primary hover:underline">{t(lang, "updateTargetLink")}</a>
               </div>
-              <div>
-                <label class="block text-xs font-semibold text-text-secondary mb-1">{t(lang, "juzAmount")}</label>
-                <input type="number" name="juz_amount" min="0.01" max="30" step="0.01" placeholder="e.g. 1.5"
-                  class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" required />
-              </div>
-              <div class="border-t border-border-light pt-4">
-                <p class="text-xs font-bold text-text-secondary mb-3">{t(lang, "endingPosition")}</p>
-                <div class="space-y-3">
-                  <div>
-                    <label class="block text-xs font-semibold text-text-secondary mb-1">Surah</label>
-                    <select name="end_surah" id="til-surah-sel"
-                      data-last={String(lastLog?.end_surah ?? "")}
-                      data-last-juz={String(lastLog?.end_juz ?? "")}
-                      class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" required>
-                      <option value="">Select surah...</option>
-                      {SURAHS.map((s) => (
-                        <option value={String(s.number)}>
-                          {s.number}. {s.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label class="block text-xs font-semibold text-text-secondary mb-1">Ayah</label>
-                    <input type="number" name="end_ayah" id="til-ayah-inp" min="1" step="1" placeholder="e.g. 25"
-                      class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" required />
-                    <p id="til-ayah-hint" class="text-xs text-text-secondary mt-1"></p>
+            ) : (
+              <form method="post" action="/tilawah" class="space-y-4">
+                <div>
+                  <label class="block text-xs font-semibold text-text-secondary mb-1">{t(lang, "dateWib")}</label>
+                  <input type="date" name="date_wib" value={todayWib}
+                    class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" required />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-text-secondary mb-1">{t(lang, "juzAmount")}</label>
+                  <input type="number" name="juz_amount" min="0.01" max="30" step="0.01" placeholder="e.g. 1.5"
+                    class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" required />
+                </div>
+                <div class="border-t border-border-light pt-4">
+                  <p class="text-xs font-bold text-text-secondary mb-3">{t(lang, "endingPosition")}</p>
+                  <div class="space-y-3">
+                    <div>
+                      <label class="block text-xs font-semibold text-text-secondary mb-1">Surah</label>
+                      <select name="end_surah" id="til-surah-sel"
+                        data-last={String(lastLog?.end_surah ?? "")}
+                        data-last-juz={String(lastLog?.end_juz ?? "")}
+                        class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" required>
+                        <option value="">Select surah...</option>
+                        {SURAHS.map((s) => (
+                          <option value={String(s.number)}>
+                            {s.number}. {s.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block text-xs font-semibold text-text-secondary mb-1">Ayah</label>
+                      <input type="number" name="end_ayah" id="til-ayah-inp" min="1" step="1" placeholder="e.g. 25"
+                        class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" required />
+                      <p id="til-ayah-hint" class="text-xs text-text-secondary mt-1"></p>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <button type="submit"
-                class="w-full py-2.5 rounded-lg bg-primary text-white font-bold text-sm hover:bg-primary-dark transition-colors">
-                {t(lang, "saveTilawah")}
-              </button>
-            </form>
-            <script dangerouslySetInnerHTML={{ __html: `(function(){
+                <button type="submit"
+                  class="w-full py-2.5 rounded-lg bg-primary text-white font-bold text-sm hover:bg-primary-dark transition-colors">
+                  {t(lang, "saveTilawah")}
+                </button>
+              </form>
+            )}
+            {todayPercent < 100 && (
+              <script dangerouslySetInnerHTML={{ __html: `(function(){
   var AC=${JSON.stringify(Object.fromEntries(SURAHS.map(s => [s.number, s.totalAyahs])))};
   var SJ=${surahToJuzJson};
   var sel=document.getElementById('til-surah-sel');
@@ -169,6 +183,7 @@ export const TilawahPage: FC<{
     });
   }
 })();` }} />
+            )}
           </div>
 
           {/* Stats */}

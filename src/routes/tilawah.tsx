@@ -97,6 +97,16 @@ tilawah.post("/", async (c) => {
   if (!Number.isFinite(juzAmount) || juzAmount <= 0) return c.redirect(redirectWith("error", t(lang, "invalidJuzAmount")));
   if (juzAmount > 30) return c.redirect(redirectWith("error", t(lang, "juzExceeds30")));
 
+  // Daily cap check
+  const target = getUserTarget(user.id);
+  if (target) {
+    const todayWibPost = getWibDateYmd();
+    const todayTotalPost = getTodayTilawahTotal(user.id, todayWibPost);
+    if (todayTotalPost + juzAmount > target.tilawah_juz_daily) {
+      return c.redirect(redirectWith("error", t(lang, "dailyCapReached")));
+    }
+  }
+
   // Validate date
   const inputDate = ((body.date_wib as string) || getWibDateYmd()).trim();
   const dateCheck = validateWibLogDate(inputDate);
