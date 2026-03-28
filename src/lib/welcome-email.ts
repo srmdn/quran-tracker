@@ -1,6 +1,6 @@
 import { db } from "../db/connection.ts";
 import { ORG_NAME, PRODUCT_NAME, PUBLIC_BASE_URL } from "../config.ts";
-import { sendSmtpMail } from "./smtp.ts";
+import { sendTrackedEmail } from "./email-log.ts";
 import { escapeHtml, ctaButton, baseEmailHtml } from "./email-base.ts";
 import type { User } from "../types.ts";
 
@@ -43,7 +43,7 @@ export async function sendWelcomeEmail(user: User): Promise<void> {
 
   const html = baseEmailHtml({ subtitle: `Welcome to ${PRODUCT_NAME}`, bodyHtml });
 
-  await sendSmtpMail({ to: user.email, subject, text, html });
+  await sendTrackedEmail({ to: user.email, subject, text, html, emailType: "welcome", userId: user.id });
 }
 
 export async function sendApprovalEmail(user: User): Promise<void> {
@@ -82,7 +82,7 @@ export async function sendApprovalEmail(user: User): Promise<void> {
 
   const html = baseEmailHtml({ subtitle: "Account Approved", bodyHtml });
 
-  await sendSmtpMail({ to: user.email, subject, text, html });
+  await sendTrackedEmail({ to: user.email, subject, text, html, emailType: "approval", userId: user.id });
 }
 
 export async function sendRoleChangeEmail(user: User, newRole: string): Promise<void> {
@@ -119,7 +119,7 @@ export async function sendRoleChangeEmail(user: User, newRole: string): Promise<
 
   const html = baseEmailHtml({ subtitle: "Account Role Updated", bodyHtml });
 
-  await sendSmtpMail({ to: user.email, subject, text, html });
+  await sendTrackedEmail({ to: user.email, subject, text, html, emailType: "role_change", userId: user.id });
 }
 
 export async function sendRejectionEmail(user: User): Promise<void> {
@@ -153,7 +153,7 @@ export async function sendRejectionEmail(user: User): Promise<void> {
 
   const html = baseEmailHtml({ subtitle: "Registration Update", bodyHtml });
 
-  await sendSmtpMail({ to: user.email, subject, text, html });
+  await sendTrackedEmail({ to: user.email, subject, text, html, emailType: "rejection", userId: user.id });
 }
 
 export async function sendSuspendEmail(user: User): Promise<void> {
@@ -179,7 +179,7 @@ export async function sendSuspendEmail(user: User): Promise<void> {
     </p>
   `;
   const html = baseEmailHtml({ subtitle: "Account Suspended", bodyHtml });
-  await sendSmtpMail({ to: user.email, subject, text, html });
+  await sendTrackedEmail({ to: user.email, subject, text, html, emailType: "suspend", userId: user.id });
 }
 
 export async function sendUnsuspendEmail(user: User): Promise<void> {
@@ -212,16 +212,16 @@ export async function sendUnsuspendEmail(user: User): Promise<void> {
     <p style="margin:0;color:#475569;font-size:14px;">May Allah bless your Quran journey.</p>
   `;
   const html = baseEmailHtml({ subtitle: "Account Reinstated", bodyHtml });
-  await sendSmtpMail({ to: user.email, subject, text, html });
+  await sendTrackedEmail({ to: user.email, subject, text, html, emailType: "unsuspend", userId: user.id });
 }
 
 export async function sendNewMemberAlertToAdmins(user: User): Promise<void> {
   const admins = db
     .prepare(
-      `SELECT email, name FROM users
+      `SELECT id, email, name FROM users
        WHERE role IN ('super_admin', 'admin') AND email IS NOT NULL AND id != ?`
     )
-    .all(user.id) as Array<{ email: string; name: string }>;
+    .all(user.id) as Array<{ id: number; email: string; name: string }>;
 
   if (admins.length === 0) return;
 
@@ -256,7 +256,7 @@ export async function sendNewMemberAlertToAdmins(user: User): Promise<void> {
 
   for (const admin of admins) {
     try {
-      await sendSmtpMail({ to: admin.email, subject, text, html });
+      await sendTrackedEmail({ to: admin.email, subject, text, html, emailType: "new_member_alert_admin", userId: admin.id });
     } catch {
       // Best-effort — don't fail if one admin email bounces
     }

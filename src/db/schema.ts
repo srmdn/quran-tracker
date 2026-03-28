@@ -166,6 +166,23 @@ export function initializeDatabase() {
     );
   `);
 
+  // email_log — record of every email send attempt
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS email_log (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id     INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      email_type  TEXT NOT NULL,
+      recipient   TEXT NOT NULL,
+      subject     TEXT NOT NULL,
+      status      TEXT NOT NULL CHECK (status IN ('sent', 'failed')),
+      error       TEXT,
+      sent_at     TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_email_log_sent_at ON email_log(sent_at);
+    CREATE INDEX IF NOT EXISTS idx_email_log_status ON email_log(status);
+  `);
+
   // enrollments — public enrollment form submissions
   db.exec(`
     CREATE TABLE IF NOT EXISTS enrollments (

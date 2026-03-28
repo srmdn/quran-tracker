@@ -1,7 +1,7 @@
 import { db } from "../db/connection.ts";
 import { ACTIVE_MEMBER_ROLES } from "./roles.ts";
 import { ORG_NAME, PRODUCT_NAME, PUBLIC_BASE_URL } from "../config.ts";
-import { sendSmtpMail } from "./smtp.ts";
+import { sendTrackedEmail } from "./email-log.ts";
 import { escapeHtml, ctaButton, baseEmailHtml } from "./email-base.ts";
 import type { User } from "../types.ts";
 import { TILAWAH_POINT_PER_JUZ, MUROJAAH_POINT_PER_JUZ, KHATAM_BONUS_POINT } from "./activity-calc.ts";
@@ -24,7 +24,7 @@ export function getUserMonthScore(userId: number, from: string, to: string): num
 }
 
 async function sendOvertakenEmail(
-  recipient: { email: string; name: string },
+  recipient: { id: number; email: string; name: string },
   overtakenByName: string
 ): Promise<void> {
   const firstName = recipient.name.split(" ")[0]!;
@@ -55,7 +55,7 @@ async function sendOvertakenEmail(
   `;
 
   const html = baseEmailHtml({ subtitle: "You've been overtaken", bodyHtml });
-  await sendSmtpMail({ to: recipient.email, subject, text, html });
+  await sendTrackedEmail({ to: recipient.email, subject, text, html, emailType: "overtaken", userId: recipient.id });
 }
 
 export async function notifyOvertakenUsers(

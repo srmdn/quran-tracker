@@ -1,7 +1,7 @@
 import { db } from "../db/connection.ts";
 import { ACTIVE_MEMBER_ROLES } from "./roles.ts";
 import { ORG_NAME, PRODUCT_NAME, PUBLIC_BASE_URL } from "../config.ts";
-import { sendSmtpMail } from "./smtp.ts";
+import { sendTrackedEmail } from "./email-log.ts";
 import { escapeHtml, ctaButton, baseEmailHtml } from "./email-base.ts";
 import { getMonthlyActivityLeaderboard, getMonthlyUserActivityRank } from "./activity-calc.ts";
 import { getUserStreak } from "./streak.ts";
@@ -185,11 +185,13 @@ export async function sendMonthlySnapshotEmails(params: {
         recipientName: recipient.name,
         topThree,
       });
-      await sendSmtpMail({
+      await sendTrackedEmail({
         to: recipient.email,
         subject: message.subject,
         text: message.text,
         html: message.html,
+        emailType: "monthly_snapshot",
+        userId: recipient.id,
       });
       sent += 1;
     } catch (err) {
@@ -240,10 +242,12 @@ export async function sendSnapshotPreviewEmail(params: {
     topThree,
   });
 
-  await sendSmtpMail({
+  await sendTrackedEmail({
     to: params.to,
     subject: `[TEST] ${message.subject}`,
     text: message.text,
     html: message.html,
+    emailType: "monthly_snapshot_preview",
+    userId: user?.id ?? null,
   });
 }

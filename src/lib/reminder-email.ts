@@ -1,5 +1,5 @@
 import { ORG_NAME, PRODUCT_NAME, PUBLIC_BASE_URL } from "../config.ts";
-import { sendSmtpMail } from "./smtp.ts";
+import { sendTrackedEmail } from "./email-log.ts";
 import { escapeHtml, ctaButton, baseEmailHtml } from "./email-base.ts";
 import { getUserTarget, getTodayTilawahTotal, getTodayMurojaahTotal } from "./targets.ts";
 import { getUserStreak } from "./streak.ts";
@@ -116,10 +116,12 @@ export async function sendTestReminderEmail(user: {
     currentStreak: streak.current_streak,
   });
 
-  await sendSmtpMail({
+  await sendTrackedEmail({
     to: user.email,
     subject: `[TEST] ${message.subject}`,
     text: message.text,
     html: message.html,
+    emailType: "test_daily_reminder",
+    userId: user.id,
   });
 }

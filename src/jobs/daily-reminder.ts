@@ -4,7 +4,7 @@ import { ACTIVE_MEMBER_ROLES } from "../lib/roles.ts";
 import { getUserTarget, getTodayTilawahTotal, getTodayMurojaahTotal } from "../lib/targets.ts";
 import { getUserStreak } from "../lib/streak.ts";
 import { getWibDateYmd } from "../lib/wib-date.ts";
-import { sendSmtpMail } from "../lib/smtp.ts";
+import { sendTrackedEmail } from "../lib/email-log.ts";
 import { buildReminderEmail } from "../lib/reminder-email.ts";
 
 initializeDatabase();
@@ -56,7 +56,7 @@ for (const user of recipients) {
       targetMurojaah: target.murojaah_juz_daily,
       currentStreak: streak.current_streak,
     });
-    await sendSmtpMail({ to: user.email, subject: message.subject, text: message.text, html: message.html });
+    await sendTrackedEmail({ to: user.email, subject: message.subject, text: message.text, html: message.html, emailType: "daily_reminder", userId: user.id });
     sent++;
     console.log(`[daily-reminder] sent to ${user.email}`);
   } catch (err) {

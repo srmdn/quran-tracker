@@ -41,6 +41,22 @@ export const AdminPage: FC<{
           </div>
         )}
 
+        {/* Email log link */}
+        <div class="w-full bg-white border border-border-light rounded-xl p-6 shadow-sm mb-8">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div>
+              <h2 class="text-text-main text-lg font-bold">Email Log</h2>
+              <p class="text-text-secondary text-sm">Record of all email send attempts — sent and failed.</p>
+            </div>
+            <a
+              href="/admin/email-log"
+              class="px-4 py-2.5 bg-primary text-white rounded-lg font-bold text-sm hover:bg-primary-dark transition-colors shadow-sm inline-block text-center"
+            >
+              View Email Log
+            </a>
+          </div>
+        </div>
+
         {/* Enrollment submissions link */}
         <div class="w-full bg-white border border-border-light rounded-xl p-6 shadow-sm mb-8">
           <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">

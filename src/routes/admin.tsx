@@ -16,8 +16,10 @@ import { AdminMemberDetailPage } from "../views/pages/AdminMemberDetailPage.tsx"
 import { AdminEditMemberPage } from "../views/pages/AdminEditMemberPage.tsx";
 import { AdminEnrollmentsPage } from "../views/pages/AdminEnrollmentsPage.tsx";
 import { AdminEnrollmentDetailPage } from "../views/pages/AdminEnrollmentDetailPage.tsx";
-import type { EnrollmentRow, } from "../views/pages/AdminEnrollmentsPage.tsx";
+import { AdminEmailLogPage } from "../views/pages/AdminEmailLogPage.tsx";
+import type { EnrollmentRow } from "../views/pages/AdminEnrollmentsPage.tsx";
 import type { Enrollment } from "../views/pages/AdminEnrollmentDetailPage.tsx";
+import type { EmailLogRow } from "../views/pages/AdminEmailLogPage.tsx";
 import type { RecentLogEntry } from "../routes/dashboard.tsx";
 import type { Env, User } from "../types.ts";
 
@@ -437,6 +439,51 @@ admin.get("/members/:id", (c) => {
       khatamEvents={khatamEvents}
       success={c.req.query("success")}
       error={c.req.query("error")}
+    />
+  );
+});
+
+admin.get("/email-log", (c) => {
+  const user = c.get("user");
+  const lang = c.get("lang");
+  const perPage = 50;
+  const page = Math.max(1, parseInt(c.req.query("page") || "1", 10));
+  const filterStatus = c.req.query("status") || "";
+  const filterType = c.req.query("type") || "";
+
+  const conditions: string[] = [];
+  const args: (string | number)[] = [];
+  if (filterStatus === "sent" || filterStatus === "failed") {
+    conditions.push("status = ?");
+    args.push(filterStatus);
+  }
+  if (filterType) {
+    conditions.push("email_type = ?");
+    args.push(filterType);
+  }
+  const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+
+  const total = (db.prepare(`SELECT COUNT(*) AS cnt FROM email_log ${where}`).get(...args) as { cnt: number }).cnt;
+  const rows = db
+    .prepare(`SELECT id, user_id, email_type, recipient, subject, status, error, sent_at FROM email_log ${where} ORDER BY sent_at DESC LIMIT ? OFFSET ?`)
+    .all(...args, perPage, (page - 1) * perPage) as EmailLogRow[];
+
+  const allTypes = (db
+    .prepare("SELECT DISTINCT email_type FROM email_log ORDER BY email_type")
+    .all() as Array<{ email_type: string }>)
+    .map((r) => r.email_type);
+
+  return c.html(
+    <AdminEmailLogPage
+      user={user}
+      lang={lang}
+      rows={rows}
+      total={total}
+      page={page}
+      perPage={perPage}
+      filterStatus={filterStatus}
+      filterType={filterType}
+      allTypes={allTypes}
     />
   );
 });

@@ -1,5 +1,5 @@
 import { ORG_NAME, PRODUCT_NAME, PUBLIC_BASE_URL } from "../config.ts";
-import { sendSmtpMail } from "./smtp.ts";
+import { sendTrackedEmail } from "./email-log.ts";
 import { escapeHtml, ctaButton, baseEmailHtml } from "./email-base.ts";
 import type { User } from "../types.ts";
 
@@ -48,7 +48,7 @@ export async function sendKhatamEmail(user: User, khatamNumber: number): Promise
 
   const html = baseEmailHtml({ subtitle: `Khatam #${khatamNumber} — Alhamdulillah!`, bodyHtml });
 
-  await sendSmtpMail({ to: user.email, subject, text, html });
+  await sendTrackedEmail({ to: user.email, subject, text, html, emailType: "khatam", userId: user.id });
 }
 
 export async function sendStreakMilestoneEmail(user: User, streak: number): Promise<void> {
@@ -86,5 +86,5 @@ export async function sendStreakMilestoneEmail(user: User, streak: number): Prom
 
   const html = baseEmailHtml({ subtitle: `${streak}-Day Streak Milestone`, bodyHtml });
 
-  await sendSmtpMail({ to: user.email, subject, text, html });
+  await sendTrackedEmail({ to: user.email, subject, text, html, emailType: "streak_milestone", userId: user.id });
 }
