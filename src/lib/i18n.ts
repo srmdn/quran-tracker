@@ -202,7 +202,7 @@ const en = {
   // Landing page — About the Program section
   landingAboutTitle: "About the Program",
   landingAboutProgramTitle: "Markaz Talaqqi",
-  landingAboutProgramDesc: "A structured 2-year Quran program focused on consistent tilawah and murojaah. Members track daily progress together, keeping each other accountable through community and friendly competition.",
+  landingAboutProgramDesc: "Quran program focused on consistent tilawah and murojaah. Members track daily progress together, keeping each other accountable through community and friendly competition.",
   landingAboutScoringTitle: "How Scores Are Calculated",
   landingAboutScoringDesc: "Each month starts fresh. Points: Tilawah ×10, Murojaah ×7, Khatam ×300. The Khatam bonus is derived from your cumulative tilawah total crossing each 30-juz cycle — not from self-reported completions.",
   landingAboutInputTitle: "Juz and Pages Input",
@@ -458,7 +458,7 @@ const id: typeof en = {
   // Landing page — About the Program section
   landingAboutTitle: "Tentang Program",
   landingAboutProgramTitle: "Markaz Talaqqi",
-  landingAboutProgramDesc: "Program Quran terstruktur selama 2 tahun yang berfokus pada tilawah dan murojaah secara konsisten. Anggota melacak kemajuan harian bersama, saling menjaga akuntabilitas melalui komunitas dan kompetisi.",
+  landingAboutProgramDesc: "Program Quran yang berfokus pada tilawah dan murojaah secara konsisten. Anggota melacak kemajuan harian bersama, saling menjaga akuntabilitas melalui komunitas dan kompetisi.",
   landingAboutScoringTitle: "Cara Penghitungan Skor",
   landingAboutScoringDesc: "Setiap bulan dimulai dari awal. Poin: Tilawah ×10, Murojaah ×7, Khatam ×300. Bonus Khatam dihitung dari total tilawah kumulatif yang melewati setiap siklus 30 juz — bukan dari khatam yang dilaporkan sendiri.",
   landingAboutInputTitle: "Input Juz dan Halaman",
