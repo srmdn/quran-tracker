@@ -30,6 +30,7 @@ export type RecentLogEntry = {
 export type HeatmapCell = {
   date: string;
   state: "met" | "logged" | "empty" | "filler";
+  count: number;
 };
 
 dashboard.get("/", (c) => {
@@ -42,30 +43,32 @@ dashboard.get("/", (c) => {
   const streak = getUserStreak(user.id);
   const activityTotals = getUserActivityTotals(user.id);
   const monthlyRank = getCurrentMonthUserActivityRank(user.id);
-  const heatmapRaw = getActivityHeatmap(user.id, 90);
+  const heatmapRaw = getActivityHeatmap(user.id, 365);
 
-  // Build full 90-day heatmap grid (oldest → newest), padded to start on Sunday
+  // Build full 365-day rolling heatmap grid (oldest → newest), padded to start on Sunday
   const metSet = new Set(heatmapRaw.filter((e) => e.met_target).map((e) => e.date));
-  const loggedSet = new Set(heatmapRaw.map((e) => e.date));
+  const countByDate = new Map(heatmapRaw.map((e) => [e.date, e.total_juz]));
 
   const [ty, tm, td] = todayWib.split("-").map(Number);
   const todayUtcMs = Date.UTC(ty!, tm! - 1, td!);
 
-  const days90: HeatmapCell[] = [];
-  for (let i = 89; i >= 0; i--) {
+  const days365: HeatmapCell[] = [];
+  for (let i = 364; i >= 0; i--) {
     const ms = todayUtcMs - i * 86400000;
     const ymd = new Date(ms).toISOString().slice(0, 10);
-    days90.push({
+    const count = countByDate.get(ymd) ?? 0;
+    days365.push({
       date: ymd,
-      state: metSet.has(ymd) ? "met" : loggedSet.has(ymd) ? "logged" : "empty",
+      state: metSet.has(ymd) ? "met" : count > 0 ? "logged" : "empty",
+      count,
     });
   }
 
   // Pad front with filler cells so grid starts on Sunday
-  const firstDow = new Date(days90[0]!.date + "T00:00:00Z").getDay();
+  const firstDow = new Date(days365[0]!.date + "T00:00:00Z").getDay();
   const heatmap: HeatmapCell[] = [
-    ...Array.from({ length: firstDow }, () => ({ date: "", state: "filler" as const })),
-    ...days90,
+    ...Array.from({ length: firstDow }, () => ({ date: "", state: "filler" as const, count: 0 })),
+    ...days365,
   ];
 
   // Recent logs (last 8 entries across both types)

@@ -11,6 +11,7 @@ export type UserStreak = {
 export type HeatmapEntry = {
   date: string;
   met_target: boolean;
+  total_juz: number;
 };
 
 function ymdToEpochDay(ymd: string): number {
@@ -151,50 +152,47 @@ export function rebuildStreak(userId: number): void {
   ).run(userId, streak, newLongest, metDates[0]);
 }
 
-export function getActivityHeatmap(userId: number, days = 90): HeatmapEntry[] {
+export function getActivityHeatmap(userId: number, days = 365): HeatmapEntry[] {
+  const todayWib = getWibDateYmd();
   const target = getUserTarget(userId);
 
-  // Get all dates with logs in range
-  const rows = db.prepare(`
-    SELECT date_wib, SUM(juz_amount) AS total
-    FROM (
-      SELECT date_wib, juz_amount FROM tilawah_logs WHERE user_id = ?
-      UNION ALL
-      SELECT date_wib, juz_amount FROM murojaah_logs WHERE user_id = ?
+  const [ty, tm, td] = todayWib.split("-").map(Number);
+  const startMs = Date.UTC(ty!, tm! - 1, td!) - (days - 1) * 86400000;
+  const startDate = new Date(startMs).toISOString().slice(0, 10);
+
+  const tilawahRows = db
+    .prepare(
+      `SELECT date_wib, SUM(juz_amount) AS total
+       FROM tilawah_logs
+       WHERE user_id = ? AND date_wib BETWEEN ? AND ?
+       GROUP BY date_wib`
     )
-    GROUP BY date_wib
-    ORDER BY date_wib DESC
-    LIMIT ?
-  `).all(userId, userId, days * 2) as Array<{ date_wib: string; total: number }>;
+    .all(userId, startDate, todayWib) as Array<{ date_wib: string; total: number }>;
 
-  if (!target) {
-    return rows.slice(0, days).map((r) => ({ date: r.date_wib, met_target: false }));
-  }
+  const murojaahRows = db
+    .prepare(
+      `SELECT date_wib, SUM(juz_amount) AS total
+       FROM murojaah_logs
+       WHERE user_id = ? AND date_wib BETWEEN ? AND ?
+       GROUP BY date_wib`
+    )
+    .all(userId, startDate, todayWib) as Array<{ date_wib: string; total: number }>;
 
-  // For each date check if both targets were met
   const tilawahByDate = new Map<string, number>();
   const murojaahByDate = new Map<string, number>();
-
-  const tilawahRows = db.prepare(
-    "SELECT date_wib, SUM(juz_amount) AS total FROM tilawah_logs WHERE user_id = ? GROUP BY date_wib"
-  ).all(userId) as Array<{ date_wib: string; total: number }>;
-
-  const murojaahRows = db.prepare(
-    "SELECT date_wib, SUM(juz_amount) AS total FROM murojaah_logs WHERE user_id = ? GROUP BY date_wib"
-  ).all(userId) as Array<{ date_wib: string; total: number }>;
 
   for (const r of tilawahRows) tilawahByDate.set(r.date_wib, r.total);
   for (const r of murojaahRows) murojaahByDate.set(r.date_wib, r.total);
 
   const allDates = new Set([...tilawahByDate.keys(), ...murojaahByDate.keys()]);
-  const sorted = [...allDates].sort().reverse().slice(0, days);
 
-  return sorted.map((date) => {
+  return [...allDates].sort().map((date) => {
     const t = tilawahByDate.get(date) ?? 0;
     const m = murojaahByDate.get(date) ?? 0;
     return {
       date,
-      met_target: t >= target.tilawah_juz_daily && m >= target.murojaah_juz_daily,
+      total_juz: Math.round((t + m) * 100) / 100,
+      met_target: target ? t >= target.tilawah_juz_daily && m >= target.murojaah_juz_daily : false,
     };
   });
 }

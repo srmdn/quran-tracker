@@ -219,45 +219,58 @@ export const DashboardPage: FC<{
             <span class="material-symbols-outlined text-primary text-xl">grid_on</span>
             {t(lang, "ninetyDayActivity")}
           </h2>
-          {/* Month labels */}
-          {(() => {
-            const numCols = Math.ceil(heatmap.length / 7);
-            const labels = Array.from({ length: numCols }, (_, i) => {
-              for (let r = 0; r < 7; r++) {
-                const cell = heatmap[i * 7 + r];
-                if (cell && cell.state !== "filler" && cell.date.slice(-2) === "01") {
-                  return new Date(cell.date + "T00:00:00Z").toLocaleString("en-US", { month: "short", timeZone: "UTC" });
-                }
-              }
-              return "";
-            });
-            return (
-              <div style={`display:grid; grid-template-columns: repeat(${numCols}, 12px); gap: 3px; margin-bottom: 4px;`}>
-                {labels.map((label) => (
-                  <div style="width:12px; font-size:9px; color:#94a3b8; line-height:1; overflow:hidden;">{label}</div>
+          <div class="flex gap-1.5">
+            {/* Day-of-week label column (Mon / Wed / Fri) */}
+            <div class="shrink-0 flex flex-col" style="padding-top:16px; gap:2px;">
+              {(["", "Mon", "", "Wed", "", "Fri", ""] as string[]).map((lbl) => (
+                <div style="height:12px; width:26px; font-size:9px; color:#94a3b8; line-height:12px; text-align:right; padding-right:4px;">{lbl}</div>
+              ))}
+            </div>
+            {/* Scrollable area: month labels + grid */}
+            <div class="overflow-x-auto min-w-0 flex-1 pb-1">
+              {(() => {
+                const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+                const numCols = Math.ceil(heatmap.length / 7);
+                const labels = Array.from({ length: numCols }, (_, i) => {
+                  const cell = heatmap[i * 7];
+                  if (!cell || cell.state === "filler") return "";
+                  const prevCell = i > 0 ? heatmap[(i - 1) * 7] : null;
+                  const prevMonth = prevCell && prevCell.state !== "filler" ? prevCell.date.slice(0, 7) : null;
+                  if (cell.date.slice(0, 7) !== prevMonth) {
+                    return MONTHS[new Date(cell.date + "T00:00:00Z").getUTCMonth()]!;
+                  }
+                  return "";
+                });
+                return (
+                  <div style={`display:grid; grid-template-columns: repeat(${numCols}, 12px); gap:2px; margin-bottom:4px; height:12px;`}>
+                    {labels.map((label) => (
+                      <div style="font-size:9px; color:#94a3b8; line-height:12px; overflow:visible; white-space:nowrap;">{label}</div>
+                    ))}
+                  </div>
+                );
+              })()}
+              {/* Heatmap grid */}
+              <div style="display:grid; grid-template-rows: repeat(7, 12px); grid-auto-flow: column; gap:2px;">
+                {heatmap.map((cell) => (
+                  cell.state === "filler" ? (
+                    <div style="width:12px; height:12px;" />
+                  ) : (
+                    <div
+                      data-hdate={cell.date}
+                      data-hcount={String(cell.count)}
+                      style="width:12px; height:12px; border-radius:2px;"
+                      class={
+                        cell.state === "met"
+                          ? "bg-emerald-500"
+                          : cell.state === "logged"
+                            ? "bg-primary/40"
+                            : "bg-slate-100 border border-slate-200"
+                      }
+                    />
+                  )
                 ))}
               </div>
-            );
-          })()}
-          {/* Heatmap grid */}
-          <div style="display:grid; grid-template-rows: repeat(7, minmax(0, 1fr)); grid-auto-flow: column; gap: 3px;">
-            {heatmap.map((cell) => (
-              cell.state === "filler" ? (
-                <div style="width:12px; height:12px;" />
-              ) : (
-                <div
-                  title={cell.date}
-                  style="width:12px; height:12px; border-radius:2px;"
-                  class={
-                    cell.state === "met"
-                      ? "bg-emerald-500"
-                      : cell.state === "logged"
-                        ? "bg-primary/40"
-                        : "bg-slate-100 border border-slate-200"
-                  }
-                />
-              )
-            ))}
+            </div>
           </div>
           <div class="flex items-center gap-4 mt-3 text-xs text-text-secondary">
             <div class="flex items-center gap-1.5">
@@ -274,6 +287,13 @@ export const DashboardPage: FC<{
             </div>
           </div>
         </div>
+
+        {/* Heatmap tooltip (shared, positioned on hover via JS) */}
+        <div
+          id="heatmap-tip"
+          style="display:none; position:fixed; background:#1e293b; color:#f1f5f9; font-size:11px; font-weight:500; padding:5px 9px; border-radius:5px; pointer-events:none; z-index:50; white-space:nowrap; box-shadow:0 2px 8px rgba(0,0,0,0.25);"
+        />
+        <script dangerouslySetInnerHTML={{ __html: `(function(){var t=document.getElementById('heatmap-tip');if(!t)return;var M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],D=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];function pos(e){var x=e.clientX+12,y=e.clientY-36;if(x+t.offsetWidth>window.innerWidth-8)x=e.clientX-t.offsetWidth-12;if(y<8)y=e.clientY+12;t.style.left=x+'px';t.style.top=y+'px';}document.querySelectorAll('[data-hdate]').forEach(function(el){el.addEventListener('mouseenter',function(e){var d=el.getAttribute('data-hdate'),c=parseFloat(el.getAttribute('data-hcount')||'0'),dt=new Date(d+'T00:00:00Z'),lbl=D[dt.getUTCDay()]+', '+dt.getUTCDate()+' '+M[dt.getUTCMonth()]+' '+dt.getUTCFullYear();t.textContent=(c>0?c+' juz':'No activity')+' \u00b7 '+lbl;t.style.display='block';pos(e);});el.addEventListener('mousemove',pos);el.addEventListener('mouseleave',function(){t.style.display='none';});});})();` }} />
 
         {/* Recent logs */}
         <div class="w-full bg-white border border-border-light rounded-xl overflow-hidden">
