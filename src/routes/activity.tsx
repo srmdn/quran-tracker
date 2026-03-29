@@ -93,21 +93,22 @@ activity.get("/leaderboard", (c) => {
     // Read from snapshot
     const snapshotRows = db
       .prepare(
-        `SELECT user_id AS id, user_name_snapshot AS name, role_snapshot AS role,
-                tilawah_juz, murojaah_juz, khatam_count, score, rank
-         FROM monthly_leaderboard_snapshots
-         WHERE period_year = ? AND period_month = ?
-         ORDER BY rank ASC`
+        `SELECT s.user_id AS id, s.user_name_snapshot AS name, s.role_snapshot AS role,
+                s.tilawah_juz, s.murojaah_juz, s.khatam_count, s.score, s.rank,
+                u.avatar_url
+         FROM monthly_leaderboard_snapshots s
+         LEFT JOIN users u ON u.id = s.user_id
+         WHERE s.period_year = ? AND s.period_month = ?
+         ORDER BY s.rank ASC`
       )
       .all(viewYear, viewMonth) as Array<{
         id: number; name: string; role: string;
         tilawah_juz: number; murojaah_juz: number; khatam_count: number;
-        score: number; rank: number;
+        score: number; rank: number; avatar_url: string | null;
       }>;
 
     enrichedRows = snapshotRows.map((r) => ({
       ...r,
-      avatar_url: null,
       current_streak: 0,
     }));
     total = enrichedRows.length;
