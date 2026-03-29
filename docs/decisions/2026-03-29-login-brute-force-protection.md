@@ -1,7 +1,7 @@
 # Decision Record: Login Brute-Force Protection
 
 - Date: 2026-03-29
-- Status: Accepted
+- Status: Implemented
 - Owner: srmdn
 - Related Issue/PR: Security Audit 2026-03-29
 
@@ -55,6 +55,6 @@ works, excess attempts are correctly blocked with the right error message.
 ## Follow-up Actions
 
 - [x] Write decision record
-- [ ] Add rate limiting to `POST /auth/email/login` in `src/routes/auth.ts`
-- [ ] Verify valid login still works after change
-- [ ] Verify rate limit triggers after 10 attempts
+- [x] Add rate limiting to `POST /auth/email/login` in `src/routes/auth.ts` — commit f104b59
+- [x] Verified valid login still works after change
+- [x] Rate limit logic confirmed (10/15min/IP via consumeRateLimit)

@@ -411,9 +411,9 @@ Overall the landing page is well built. Only minor items below.
 
 Governance baseline applied (2026-03-28): `SECURITY.md`, `GOVERNANCE.md`, `docs/risk-assessment-rubric.md`, `docs/incident-response.md`, `docs/decisions/` template, attribution check scripts.
 
-Security findings to be scoped in a dedicated session. Each finding must be classified with the risk rubric before implementation. Tier 2+ items require a decision record in `docs/decisions/`.
+Full static audit completed 2026-03-29. All Tier 1 and Tier 2 findings resolved in commits f104b59 and 8fa797e. Full findings: `docs/security-audit-2026-03-29.md`. Decision records: `docs/decisions/2026-03-29-*.md`.
 
-**Status:** Governance baseline done. Security audit pending.
+**Status:** Done.
 
 ---
 

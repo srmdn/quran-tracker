@@ -1,7 +1,7 @@
 # Decision Record: Session Cookie Secure Flag
 
 - Date: 2026-03-29
-- Status: Accepted
+- Status: Implemented
 - Owner: srmdn
 - Related Issue/PR: Security Audit 2026-03-29
 
@@ -47,6 +47,6 @@ but must be verified in production to confirm sessions still work post-deploy.
 ## Follow-up Actions
 
 - [x] Write decision record
-- [ ] Fix `secure` flag in `src/routes/auth.ts` (both setCookie calls)
-- [ ] Add `NODE_ENV=production` to `.env`
-- [ ] Restart service and verify login still works
+- [x] Fix `secure` flag in `src/routes/auth.ts` (both setCookie calls) — commit f104b59
+- [x] Add `NODE_ENV=production` to `.env`
+- [x] Restart service and verified login still works

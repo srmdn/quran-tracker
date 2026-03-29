@@ -176,9 +176,12 @@ periodically reclaim memory. Add a periodic cleanup if memory growth becomes obs
 
 ## Actions Required Before Closing Audit
 
-- [ ] Fix: Session cookie Secure flag (Tier 2) — `src/routes/auth.ts`
-- [ ] Fix: Login rate limiting (Tier 2) — `src/routes/auth.ts`
-- [ ] Fix: userId parseInt validation — `src/routes/admin.tsx` lines 57, 67
-- [ ] Fix: Error message disclosure — `src/routes/admin.tsx` multiple locations
-- [ ] Fix: Float coercion in setup — `src/routes/setup.tsx` lines 25-26
-- [ ] Update `quran-tracker.md` memory: mark task 15 complete after above fixes are committed
+- [x] Fix: Session cookie Secure flag (Tier 2) — `src/routes/auth.ts` (commit f104b59)
+- [x] Fix: Login rate limiting (Tier 2) — `src/routes/auth.ts` (commit f104b59)
+- [x] Fix: userId parseInt validation — `src/routes/admin.tsx` lines 57, 67 (commit f104b59)
+- [x] Fix: Error message disclosure — `src/routes/admin.tsx` multiple locations (commit f104b59)
+- [x] Fix: Float coercion in setup — `src/routes/setup.tsx` lines 25-26 (commit f104b59)
+- [x] Fix: Session invalidation on OAuth binding — `src/lib/session.ts` (commit 8fa797e)
+- [x] Update `quran-tracker.md` memory: task 15 marked complete
+
+**Audit closed: 2026-03-29. All Tier 1 and Tier 2 findings resolved.**
