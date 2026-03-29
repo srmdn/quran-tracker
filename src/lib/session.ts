@@ -59,6 +59,7 @@ export function upsertUser(params: {
     .get(params.email) as User | null;
 
   if (existingByEmail) {
+    db.prepare("DELETE FROM sessions WHERE user_id = ?").run(existingByEmail.id);
     db.prepare(
       "UPDATE users SET google_id = ?, name = ?, avatar_url = ?, updated_at = datetime('now') WHERE id = ?"
     ).run(params.googleId, params.name, params.avatarUrl, existingByEmail.id);
