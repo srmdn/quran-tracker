@@ -5,6 +5,7 @@ import { upsertUser, createSession, deleteSession } from "../lib/session.ts";
 import { GOOGLE_REDIRECT_URI } from "../config.ts";
 import { isPendingRole } from "../lib/roles.ts";
 import { sendWelcomeEmail, sendNewMemberAlertToAdmins } from "../lib/welcome-email.ts";
+import { consumeRateLimit } from "../lib/rate-limit.ts";
 import type { User } from "../types.ts";
 
 const auth = new Hono();
@@ -32,6 +33,15 @@ auth.get("/google", (c) => {
 });
 
 auth.post("/email/login", async (c) => {
+  const ip =
+    c.req.header("cf-connecting-ip") ||
+    c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ||
+    "unknown";
+  const rl = consumeRateLimit(`login:${ip}`, { max: 10, windowMs: 15 * 60 * 1000 });
+  if (!rl.allowed) {
+    return c.redirect("/login?error=Too many login attempts. Please try again later.");
+  }
+
   const body = await c.req.parseBody();
   const email = ((body.email as string) || "").trim().toLowerCase();
   const password = (body.password as string) || "";
@@ -56,7 +66,7 @@ auth.post("/email/login", async (c) => {
   const sessionId = createSession(user.id);
   setCookie(c, "session", sessionId, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: true,
     sameSite: "Lax",
     maxAge: 60 * 60 * 24 * 7,
     path: "/",
@@ -124,7 +134,7 @@ auth.get("/google/callback", async (c) => {
 
   setCookie(c, "session", sessionId, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: true,
     sameSite: "Lax",
     maxAge: 60 * 60 * 24 * 7,
     path: "/",

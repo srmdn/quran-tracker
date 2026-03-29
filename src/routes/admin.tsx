@@ -54,7 +54,8 @@ admin.get("/", (c) => {
 });
 
 admin.post("/users/:id/approve", (c) => {
-  const userId = c.req.param("id");
+  const userId = parseInt(c.req.param("id"), 10);
+  if (!Number.isFinite(userId)) return c.redirect("/admin?error=Invalid user ID.");
   db.prepare("UPDATE users SET role = 'santri', updated_at = datetime('now') WHERE id = ? AND role = 'pending'").run(
     userId
   );
@@ -64,7 +65,8 @@ admin.post("/users/:id/approve", (c) => {
 });
 
 admin.post("/users/:id/reject", (c) => {
-  const userId = c.req.param("id");
+  const userId = parseInt(c.req.param("id"), 10);
+  if (!Number.isFinite(userId)) return c.redirect("/admin?error=Invalid user ID.");
   const rejected = db.prepare("SELECT * FROM users WHERE id = ? AND role = 'pending'").get(userId) as User | null;
   // Delete the user and their sessions
   db.prepare("DELETE FROM sessions WHERE user_id = ?").run(userId);
@@ -188,7 +190,8 @@ admin.post("/users/:id/password", async (c) => {
 });
 
 admin.post("/users/:id/role", async (c) => {
-  const userId = c.req.param("id");
+  const userId = parseInt(c.req.param("id"), 10);
+  if (!Number.isFinite(userId)) return c.redirect("/admin?error=Invalid user ID.");
   const body = await c.req.parseBody();
   const role = body.role as string;
   const currentUser = c.get("user");
@@ -281,7 +284,8 @@ admin.post("/snapshots/run", async (c) => {
     const mail = await sendMonthlySnapshotEmails({ year: result.year, month: result.month });
     emailMsg = ` Email result: sent ${mail.sent}/${mail.attempted}, failed ${mail.failed}.`;
   } catch (err) {
-    emailMsg = ` Email failed to run: ${err instanceof Error ? err.message : "Unknown error"}.`;
+    console.error("[admin] snapshot email failed:", err);
+    emailMsg = " Email failed to send. Check server logs.";
   }
 
   return c.redirect(
@@ -298,9 +302,8 @@ admin.post("/email/test-approval", async (c) => {
     await sendApprovalEmail(user);
     return c.redirect("/admin?success=Test approval email sent to " + user.email);
   } catch (err) {
-    return c.redirect(
-      `/admin?error=Failed to send test approval: ${err instanceof Error ? err.message : "Unknown error"}`
-    );
+    console.error("[admin] test-approval email failed:", err);
+    return c.redirect("/admin?error=Failed to send test approval email. Check server logs.");
   }
 });
 
@@ -313,9 +316,8 @@ admin.post("/email/test-reminder", async (c) => {
     await sendTestReminderEmail({ id: user.id, name: user.name, email: user.email });
     return c.redirect("/admin?success=Test reminder email sent to " + user.email);
   } catch (err) {
-    return c.redirect(
-      `/admin?error=Failed to send test reminder: ${err instanceof Error ? err.message : "Unknown error"}`
-    );
+    console.error("[admin] test-reminder email failed:", err);
+    return c.redirect("/admin?error=Failed to send test reminder email. Check server logs.");
   }
 });
 
@@ -329,9 +331,8 @@ admin.post("/email/test-snapshot", async (c) => {
     await sendSnapshotPreviewEmail({ to: user.email, year, month });
     return c.redirect("/admin?success=Test snapshot email sent to " + user.email);
   } catch (err) {
-    return c.redirect(
-      `/admin?error=Failed to send test snapshot: ${err instanceof Error ? err.message : "Unknown error"}`
-    );
+    console.error("[admin] test-snapshot email failed:", err);
+    return c.redirect("/admin?error=Failed to send test snapshot email. Check server logs.");
   }
 });
 
@@ -344,9 +345,8 @@ admin.post("/email/test-khatam", async (c) => {
     await sendKhatamEmail(user, 1);
     return c.redirect("/admin?success=Test khatam email sent to " + user.email);
   } catch (err) {
-    return c.redirect(
-      `/admin?error=Failed to send test khatam: ${err instanceof Error ? err.message : "Unknown error"}`
-    );
+    console.error("[admin] test-khatam email failed:", err);
+    return c.redirect("/admin?error=Failed to send test khatam email. Check server logs.");
   }
 });
 
@@ -359,9 +359,8 @@ admin.post("/email/test-streak", async (c) => {
     await sendStreakMilestoneEmail(user, 7);
     return c.redirect("/admin?success=Test streak email (7 days) sent to " + user.email);
   } catch (err) {
-    return c.redirect(
-      `/admin?error=Failed to send test streak: ${err instanceof Error ? err.message : "Unknown error"}`
-    );
+    console.error("[admin] test-streak email failed:", err);
+    return c.redirect("/admin?error=Failed to send test streak email. Check server logs.");
   }
 });
 

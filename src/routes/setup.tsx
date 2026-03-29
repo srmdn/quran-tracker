@@ -22,8 +22,12 @@ setup.post("/", async (c) => {
   const lang = c.get("lang");
   const body = await c.req.parseBody();
 
-  const tilawah = parseFloat((body.tilawah_juz_daily as string) || "");
-  const murojaah = parseFloat((body.murojaah_juz_daily as string) || "");
+  const tilawahRaw = (body.tilawah_juz_daily as string) || "";
+  const murojaahRaw = (body.murojaah_juz_daily as string) || "";
+  const numericPattern = /^\d+(\.\d{1,2})?$/;
+
+  const tilawah = numericPattern.test(tilawahRaw) ? parseFloat(tilawahRaw) : NaN;
+  const murojaah = numericPattern.test(murojaahRaw) ? parseFloat(murojaahRaw) : NaN;
 
   if (!Number.isFinite(tilawah) || tilawah <= 0 || tilawah > 30) {
     const msg = encodeURIComponent(t(lang, "dailyTilawahTargetError"));
