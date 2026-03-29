@@ -5,6 +5,7 @@ import { getCurrentMonthActivityLeaderboard } from "../lib/activity-calc.ts";
 import { getLang } from "../lib/i18n.ts";
 import { getCookie } from "hono/cookie";
 import { LandingPage } from "../views/pages/LandingPage.tsx";
+import { getRandomFastabiqEntry } from "../lib/fastabiq-verses.ts";
 import type { Env } from "../types.ts";
 
 const landing = new Hono<Env>();
@@ -35,6 +36,7 @@ landing.get("/", (c) => {
   ).total;
 
   const { year, month } = getWibYearMonth();
+  const fastabiqEntry = getRandomFastabiqEntry();
 
   return c.html(
     <LandingPage
@@ -45,6 +47,7 @@ landing.get("/", (c) => {
       totalMembers={totalMembers}
       totalTilawahJuz={Math.round(totalTilawah * 10) / 10}
       totalMurojaahJuz={Math.round(totalMurojaah * 10) / 10}
+      fastabiqEntry={fastabiqEntry}
     />
   );
 });

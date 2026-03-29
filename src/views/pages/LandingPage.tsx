@@ -3,6 +3,7 @@ import { Layout } from "../Layout.tsx";
 import { t, type Lang } from "../../lib/i18n.ts";
 import { APP_NAME } from "../../config.ts";
 import type { MonthlyActivityRow } from "../../lib/activity-calc.ts";
+import type { FastabiqEntry } from "../../lib/fastabiq-verses.ts";
 
 type LeaderboardResult = {
   year: number;
@@ -25,7 +26,8 @@ export const LandingPage: FC<{
   totalMembers: number;
   totalTilawahJuz: number;
   totalMurojaahJuz: number;
-}> = ({ lang, leaderboard, year, month, totalMembers, totalTilawahJuz, totalMurojaahJuz }) => {
+  fastabiqEntry: FastabiqEntry;
+}> = ({ lang, leaderboard, year, month, totalMembers, totalTilawahJuz, totalMurojaahJuz, fastabiqEntry }) => {
   const monthLabel = new Date(year, month - 1).toLocaleString(lang === "id" ? "id-ID" : "en-US", {
     month: "long",
     year: "numeric",
@@ -132,15 +134,15 @@ export const LandingPage: FC<{
             <div class="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
               {/* Quran verse */}
               <div class="flex-1 text-center lg:text-left">
-                <p class="text-white/50 text-xs font-bold uppercase tracking-widest mb-3">QS. Al-Baqarah: 148</p>
+                <p class="text-white/50 text-xs font-bold uppercase tracking-widest mb-3">{fastabiqEntry.verseRef}</p>
                 <p
                   class="text-white text-2xl sm:text-3xl font-black leading-relaxed mb-3"
                   style="font-family: 'Amiri', 'Traditional Arabic', serif; direction: rtl;"
                 >
-                  فَاسْتَبِقُوا الْخَيْرَاتِ
+                  {fastabiqEntry.verseArabic}
                 </p>
                 <p class="text-white/80 text-base sm:text-lg font-semibold italic">
-                  "{t(lang, "fastabiqQuranTranslation")}"
+                  "{lang === "en" ? fastabiqEntry.verseEn : fastabiqEntry.verseId}"
                 </p>
               </div>
 
@@ -155,20 +157,23 @@ export const LandingPage: FC<{
                   class="text-white text-xl sm:text-2xl font-black leading-relaxed mb-3"
                   style="font-family: 'Amiri', 'Traditional Arabic', serif; direction: rtl;"
                 >
-                  خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ
+                  {fastabiqEntry.hadithArabic}
                 </p>
                 <p class="text-white/80 text-sm sm:text-base font-semibold italic mb-1">
-                  "{t(lang, "fastabiqHadithTranslation")}"
+                  "{lang === "en" ? fastabiqEntry.hadithEn : fastabiqEntry.hadithId}"
                 </p>
-                <p class="text-white/50 text-xs">{t(lang, "fastabiqHadithRef")}</p>
+                <p class="text-white/50 text-xs">{fastabiqEntry.hadithRef}</p>
               </div>
             </div>
           </div>
         </section>
 
         {/* ── Stats ── */}
-        <section class="w-full bg-white border-b border-border-light">
-          <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <section class="w-full bg-slate-50/70 border-b border-border-light">
+          <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+            <div class="max-w-2xl mb-10 mx-auto lg:mx-0 text-center lg:text-left">
+              <h2 class="text-2xl sm:text-3xl font-black text-text-main mb-2">{t(lang, "landingStatTitle")}</h2>
+            </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
               <div class="flex flex-col items-center lg:items-start gap-4 bg-slate-50 rounded-2xl border border-border-light p-6 text-center lg:text-left">
                 <div class="shrink-0 size-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
