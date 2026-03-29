@@ -10,6 +10,7 @@ import type { ActivityTotals, UserMonthlyActivityRank } from "../../lib/activity
 import type { RecentLogEntry, HeatmapCell } from "../../routes/dashboard.tsx";
 import { t, type Lang } from "../../lib/i18n.ts";
 import { formatJuz, formatLogAmount } from "../../lib/format-juz.ts";
+import type { FastabiqEntry } from "../../lib/fastabiq-verses.ts";
 
 export const DashboardPage: FC<{
   user: User;
@@ -25,6 +26,7 @@ export const DashboardPage: FC<{
   recentLogs: RecentLogEntry[];
   totalKhatam: number;
   totalActiveUsers: number;
+  fastabiqEntry: FastabiqEntry;
 }> = ({
   user,
   lang,
@@ -39,6 +41,7 @@ export const DashboardPage: FC<{
   recentLogs,
   totalKhatam,
   totalActiveUsers,
+  fastabiqEntry,
 }) => {
   const firstName = user.name.split(" ")[0];
   const tilawahPercent = Math.min(100, Math.round((todayTilawah / target.tilawah_juz_daily) * 100));
@@ -85,9 +88,9 @@ export const DashboardPage: FC<{
           <div class="flex-1 min-w-0">
             <p class="text-xs font-bold text-primary uppercase tracking-wider mb-0.5">{t(lang, "fastabiqDashboardLabel")}</p>
             <p class="text-text-main text-sm font-semibold" style="font-family: 'Amiri', 'Traditional Arabic', serif; direction: rtl;">
-              فَاسْتَبِقُوا الْخَيْرَاتِ
+              {fastabiqEntry.verseArabic}
             </p>
-            <p class="text-text-secondary text-xs mt-0.5 italic">"{t(lang, "fastabiqQuranTranslation")}" — QS. Al-Baqarah: 148</p>
+            <p class="text-text-secondary text-xs mt-0.5 italic">"{lang === "en" ? fastabiqEntry.verseEn : fastabiqEntry.verseId}" — {fastabiqEntry.verseRef}</p>
           </div>
         </div>
 
