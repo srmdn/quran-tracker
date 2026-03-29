@@ -1,7 +1,7 @@
 import type { FC } from "hono/jsx";
 import { Layout } from "../Layout.tsx";
 import { t, type Lang } from "../../lib/i18n.ts";
-import { APP_NAME } from "../../config.ts";
+import { APP_NAME, PUBLIC_BASE_URL } from "../../config.ts";
 import type { MonthlyActivityRow } from "../../lib/activity-calc.ts";
 import type { FastabiqEntry } from "../../lib/fastabiq-verses.ts";
 
@@ -41,8 +41,9 @@ export const LandingPage: FC<{
 
   return (
     <Layout
-      title={`${APP_NAME} — ${t(lang, "landingTagline")}`}
+      title={`${APP_NAME} | ${t(lang, "landingTagline")}`}
       description={t(lang, "landingAboutMarkaz")}
+      url={`${PUBLIC_BASE_URL}/landing`}
     >
       {/* ── Navbar ── */}
       <header class="sticky top-0 z-20 w-full bg-white/90 backdrop-blur border-b border-border-light">

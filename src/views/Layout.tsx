@@ -1,9 +1,11 @@
 import type { FC, Child } from "hono/jsx";
-import { APP_NAME } from "../config.ts";
+import { APP_NAME, PUBLIC_BASE_URL } from "../config.ts";
 
-export const Layout: FC<{ title?: string; description?: string; children: Child }> = ({ title, description, children }) => {
+export const Layout: FC<{ title?: string; description?: string; url?: string; children: Child }> = ({ title, description, url, children }) => {
   const resolvedTitle = title || APP_NAME;
   const resolvedDesc = description || "Track your daily Tilawah and Murojaah, build streaks, and compete with your community.";
+  const resolvedUrl = url || PUBLIC_BASE_URL;
+  const ogImage = `${PUBLIC_BASE_URL}/public/logo.png`;
   return (
     <html lang="en">
       <head>
@@ -14,10 +16,14 @@ export const Layout: FC<{ title?: string; description?: string; children: Child 
         <meta property="og:title" content={resolvedTitle} />
         <meta property="og:description" content={resolvedDesc} />
         <meta property="og:type" content="website" />
-        <meta property="og:image" content="/public/logo.png" />
+        <meta property="og:url" content={resolvedUrl} />
+        <meta property="og:image" content={ogImage} />
+        <meta property="og:image:width" content="320" />
+        <meta property="og:image:height" content="320" />
         <meta name="twitter:card" content="summary" />
         <meta name="twitter:title" content={resolvedTitle} />
         <meta name="twitter:description" content={resolvedDesc} />
+        <meta name="twitter:image" content={ogImage} />
         <link rel="icon" type="image/png" href="/public/logo.png" />
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
