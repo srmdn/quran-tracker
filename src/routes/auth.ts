@@ -5,7 +5,7 @@ import { upsertUser, createSession, deleteSession } from "../lib/session.ts";
 import { GOOGLE_REDIRECT_URI } from "../config.ts";
 import { isPendingRole } from "../lib/roles.ts";
 import { sendWelcomeEmail, sendNewMemberAlertToAdmins } from "../lib/welcome-email.ts";
-import { consumeRateLimit } from "../lib/rate-limit.ts";
+import { consumeRateLimit, resetRateLimit } from "../lib/rate-limit.ts";
 import type { User } from "../types.ts";
 
 const auth = new Hono();
@@ -37,9 +37,10 @@ auth.post("/email/login", async (c) => {
     c.req.header("cf-connecting-ip") ||
     c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ||
     "unknown";
-  const rl = consumeRateLimit(`login:${ip}`, { max: 10, windowMs: 15 * 60 * 1000 });
+  const rlKey = `login:${ip}`;
+  const rl = consumeRateLimit(rlKey, { max: 4, windowMs: 30 * 60 * 1000 });
   if (!rl.allowed) {
-    return c.redirect("/login?error=Too many login attempts. Please try again later.");
+    return c.redirect("/login?error=Too many failed login attempts. Please try again in 30 minutes.");
   }
 
   const body = await c.req.parseBody();
@@ -54,16 +55,19 @@ auth.post("/email/login", async (c) => {
     .prepare("SELECT * FROM users WHERE email = ?")
     .get(email) as User | null;
 
-  if (!user || !user.password_hash) {
-    return c.redirect("/login?error=Invalid email or password.");
-  }
+  const valid = user?.password_hash
+    ? await Bun.password.verify(password, user.password_hash)
+    : false;
 
-  const valid = await Bun.password.verify(password, user.password_hash);
   if (!valid) {
-    return c.redirect("/login?error=Invalid email or password.");
+    const warning = rl.remaining === 0
+      ? " Warning: next failed attempt will lock you out for 30 minutes."
+      : "";
+    return c.redirect(`/login?error=${encodeURIComponent("Invalid email or password." + warning)}`);
   }
 
-  const sessionId = createSession(user.id);
+  resetRateLimit(rlKey);
+  const sessionId = createSession(user!.id);
   setCookie(c, "session", sessionId, {
     httpOnly: true,
     secure: true,
@@ -72,7 +76,7 @@ auth.post("/email/login", async (c) => {
     path: "/",
   });
 
-  if (isPendingRole(user.role)) return c.redirect("/pending");
+  if (isPendingRole(user!.role)) return c.redirect("/pending");
   return c.redirect("/dashboard");
 });
 

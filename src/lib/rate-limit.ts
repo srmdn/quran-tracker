@@ -5,6 +5,10 @@ type Entry = {
 
 const buckets = new Map<string, Entry>();
 
+export function resetRateLimit(key: string): void {
+  buckets.delete(key);
+}
+
 export function consumeRateLimit(
   key: string,
   options: { max: number; windowMs: number }
