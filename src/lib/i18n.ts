@@ -198,6 +198,15 @@ const en = {
   landingAsOf: "as of",
   landingViewFullLeaderboard: "View full leaderboard",
 
+  // Landing page — About the Program section
+  landingAboutTitle: "About the Program",
+  landingAboutProgramTitle: "Markaz Talaqqi",
+  landingAboutProgramDesc: "A structured 2-year Quran program focused on consistent tilawah and murojaah. Members track daily progress together, keeping each other accountable through community and friendly competition.",
+  landingAboutScoringTitle: "How Scores Are Calculated",
+  landingAboutScoringDesc: "Each month starts fresh. Points: Tilawah ×10, Murojaah ×7, Khatam ×300. The Khatam bonus is derived from your cumulative tilawah total crossing each 30-juz cycle — not from self-reported completions.",
+  landingAboutInputTitle: "Juz and Pages Input",
+  landingAboutInputDesc: "Log in juz or pages. 20 pages = 1 juz, based on the Medina Mushaf standard. Decimals are avoided to keep logging simple and consistent. Juz 30 uses the same 20-page rule as an accepted approximation.",
+
   // Admin member detail
   backToAdmin: "Back to Admin Panel",
   todayProgressLabel: "Today's Progress",
@@ -443,6 +452,15 @@ const id: typeof en = {
   landingCtaJoinNote: "Anggota baru memerlukan persetujuan admin. Hubungi ustadz kamu untuk mendaftar.",
   landingAsOf: "per",
   landingViewFullLeaderboard: "Lihat semua peringkat",
+
+  // Landing page — About the Program section
+  landingAboutTitle: "Tentang Program",
+  landingAboutProgramTitle: "Markaz Talaqqi",
+  landingAboutProgramDesc: "Program Quran terstruktur selama 2 tahun yang berfokus pada tilawah dan murojaah secara konsisten. Anggota melacak kemajuan harian bersama, saling menjaga akuntabilitas melalui komunitas dan kompetisi.",
+  landingAboutScoringTitle: "Cara Penghitungan Skor",
+  landingAboutScoringDesc: "Setiap bulan dimulai dari awal. Poin: Tilawah ×10, Murojaah ×7, Khatam ×300. Bonus Khatam dihitung dari total tilawah kumulatif yang melewati setiap siklus 30 juz — bukan dari khatam yang dilaporkan sendiri.",
+  landingAboutInputTitle: "Input Juz dan Halaman",
+  landingAboutInputDesc: "Catat dalam juz atau halaman. 20 halaman = 1 juz, berdasarkan standar Mushaf Madinah. Desimal dihindari agar pencatatan tetap sederhana dan konsisten. Juz 30 menggunakan aturan 20 halaman yang sama sebagai perkiraan yang diterima.",
 
   // Admin member detail
   backToAdmin: "Kembali ke Panel Admin",

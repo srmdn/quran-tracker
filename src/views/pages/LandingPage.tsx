@@ -201,6 +201,48 @@ export const LandingPage: FC<{
           </div>
         </section>
 
+        {/* ── About the Program ── */}
+        <section class="w-full bg-white border-b border-border-light">
+          <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+            <div class="max-w-2xl mb-10 mx-auto lg:mx-0 text-center lg:text-left">
+              <h2 class="text-2xl sm:text-3xl font-black text-text-main mb-2">{t(lang, "landingAboutTitle")}</h2>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left: About Markaz */}
+              <div class="flex flex-col gap-4 p-6 bg-slate-50 rounded-2xl border border-border-light">
+                <div class="size-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+                  <span class="material-symbols-outlined" style="font-size:22px">mosque</span>
+                </div>
+                <div>
+                  <h3 class="font-black text-text-main text-base mb-2">{t(lang, "landingAboutProgramTitle")}</h3>
+                  <p class="text-text-secondary text-sm leading-relaxed">{t(lang, "landingAboutProgramDesc")}</p>
+                </div>
+              </div>
+              {/* Right: two stacked info cards */}
+              <div class="flex flex-col gap-4">
+                <div class="flex gap-4 p-5 bg-slate-50 rounded-2xl border border-border-light">
+                  <div class="size-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+                    <span class="material-symbols-outlined" style="font-size:20px">emoji_events</span>
+                  </div>
+                  <div>
+                    <h3 class="font-black text-text-main text-sm mb-1">{t(lang, "landingAboutScoringTitle")}</h3>
+                    <p class="text-text-secondary text-sm leading-relaxed">{t(lang, "landingAboutScoringDesc")}</p>
+                  </div>
+                </div>
+                <div class="flex gap-4 p-5 bg-slate-50 rounded-2xl border border-border-light">
+                  <div class="size-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+                    <span class="material-symbols-outlined" style="font-size:20px">menu_book</span>
+                  </div>
+                  <div>
+                    <h3 class="font-black text-text-main text-sm mb-1">{t(lang, "landingAboutInputTitle")}</h3>
+                    <p class="text-text-secondary text-sm leading-relaxed">{t(lang, "landingAboutInputDesc")}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* ── Leaderboard ── */}
         <section id="leaderboard" class="w-full bg-slate-50/70 border-b border-border-light">
           <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
