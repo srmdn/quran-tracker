@@ -44,7 +44,7 @@ for (const user of recipients) {
     continue;
   }
 
-  const streak = getUserStreak(user.id);
+  const streak = getUserStreak(user.id, todayWib);
 
   try {
     const message = buildReminderEmail({

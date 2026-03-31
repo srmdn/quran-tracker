@@ -393,7 +393,7 @@ admin.get("/members/:id", (c) => {
 
   const todayWib = getWibDateYmd();
   const target = getUserTarget(memberId);
-  const streak = getUserStreak(memberId);
+  const streak = getUserStreak(memberId, todayWib);
   const activityTotals = getUserActivityTotals(memberId);
   const todayTilawah = getTodayTilawahTotal(memberId, todayWib);
   const todayMurojaah = getTodayMurojaahTotal(memberId, todayWib);

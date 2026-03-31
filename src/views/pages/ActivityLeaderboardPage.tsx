@@ -6,7 +6,7 @@ import type { MonthlyActivityRow } from "../../lib/activity-calc.ts";
 import { APP_NAME } from "../../config.ts";
 import { t, type Lang } from "../../lib/i18n.ts";
 
-type EnrichedRow = MonthlyActivityRow & { current_streak: number };
+type EnrichedRow = MonthlyActivityRow & { current_streak: number; streak_active: boolean };
 
 const MONTH_NAMES = ["", "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"];
@@ -137,7 +137,9 @@ export const ActivityLeaderboardPage: FC<{
                       <Avatar name={row.name} url={row.avatar_url} cls={row.rank === 1 ? "w-14 h-14" : "w-12 h-12"} />
                     </div>
                     {row.current_streak > 0 && (
-                      <span class="text-xs font-bold text-orange-500">🔥 {row.current_streak}</span>
+                      <span class={`text-xs font-bold ${row.streak_active ? "text-orange-500" : "text-text-secondary"}`}>
+                        <span style={row.streak_active ? "" : "filter: grayscale(1) opacity(0.5)"}>🔥</span> {row.current_streak}
+                      </span>
                     )}
                   </div>
                   <p class={`font-black text-text-main mb-0.5 ${row.rank === 1 ? "text-xl" : "text-lg"}`}>
@@ -228,7 +230,9 @@ export const ActivityLeaderboardPage: FC<{
                       {isCurrentMonth && (
                         <td class="px-4 py-3 text-right">
                           {row.current_streak > 0 ? (
-                            <span class="text-orange-500 font-bold">🔥 {row.current_streak}</span>
+                            <span class={`font-bold ${row.streak_active ? "text-orange-500" : "text-text-secondary"}`}>
+                              <span style={row.streak_active ? "" : "filter: grayscale(1) opacity(0.5)"}>🔥</span> {row.current_streak}
+                            </span>
                           ) : (
                             <span class="text-text-secondary">—</span>
                           )}

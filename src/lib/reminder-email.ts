@@ -102,7 +102,7 @@ export async function sendTestReminderEmail(user: {
 }): Promise<void> {
   const todayWib = getWibDateYmd();
   const target = getUserTarget(user.id);
-  const streak = getUserStreak(user.id);
+  const streak = getUserStreak(user.id, todayWib);
   const todayTilawah = getTodayTilawahTotal(user.id, todayWib);
   const todayMurojaah = getTodayMurojaahTotal(user.id, todayWib);
 

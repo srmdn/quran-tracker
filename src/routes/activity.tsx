@@ -4,7 +4,8 @@ import { db } from "../db/connection.ts";
 import {
   getMonthlyActivityLeaderboard,
 } from "../lib/activity-calc.ts";
-import { getWibYearMonth } from "../lib/wib-date.ts";
+import { getWibYearMonth, getWibDateYmd } from "../lib/wib-date.ts";
+import { isStreakActive } from "../lib/streak.ts";
 import { ActivityLeaderboardPage } from "../views/pages/ActivityLeaderboardPage.tsx";
 import type { Env } from "../types.ts";
 
@@ -69,6 +70,7 @@ activity.get("/leaderboard", (c) => {
     score: number;
     rank: number;
     current_streak: number;
+    streak_active: boolean;
   };
 
   let enrichedRows: EnrichedRow[];
@@ -78,15 +80,22 @@ activity.get("/leaderboard", (c) => {
     const data = getMonthlyActivityLeaderboard({ year: viewYear, month: viewMonth, page: 1, perPage: 1000 });
 
     // Enrich rows with current streak from user_streaks
-    const streakMap = new Map<number, number>();
+    const todayWib = getWibDateYmd();
+    const streakMap = new Map<number, { current_streak: number; streak_active: boolean }>();
     const streakRows = db
-      .prepare("SELECT user_id, current_streak FROM user_streaks")
-      .all() as Array<{ user_id: number; current_streak: number }>;
-    for (const s of streakRows) streakMap.set(s.user_id, s.current_streak);
+      .prepare("SELECT user_id, current_streak, last_active_date FROM user_streaks")
+      .all() as Array<{ user_id: number; current_streak: number; last_active_date: string | null }>;
+    for (const s of streakRows) {
+      streakMap.set(s.user_id, {
+        current_streak: s.current_streak,
+        streak_active: isStreakActive(s.last_active_date, todayWib),
+      });
+    }
 
     enrichedRows = data.rows.map((r) => ({
       ...r,
-      current_streak: streakMap.get(r.id) ?? 0,
+      current_streak: streakMap.get(r.id)?.current_streak ?? 0,
+      streak_active: streakMap.get(r.id)?.streak_active ?? false,
     }));
     total = data.total;
   } else {
@@ -110,6 +119,7 @@ activity.get("/leaderboard", (c) => {
     enrichedRows = snapshotRows.map((r) => ({
       ...r,
       current_streak: 0,
+      streak_active: false,
     }));
     total = enrichedRows.length;
   }

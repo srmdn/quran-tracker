@@ -19,11 +19,28 @@ function ymdToEpochDay(ymd: string): number {
   return Math.floor(Date.UTC(year!, month! - 1, day!) / 86400000);
 }
 
-export function getUserStreak(userId: number): UserStreak {
+export function getUserStreak(userId: number, todayWib?: string): UserStreak {
   const row = db
     .prepare("SELECT current_streak, longest_streak, last_active_date FROM user_streaks WHERE user_id = ?")
     .get(userId) as UserStreak | null;
-  return row ?? { current_streak: 0, longest_streak: 0, last_active_date: null };
+  const stored = row ?? { current_streak: 0, longest_streak: 0, last_active_date: null };
+
+  // Return effective streak: if the last active date is more than 1 day in the past
+  // (gap > 2 = missed 2+ consecutive days), the streak is broken — show 0.
+  if (todayWib && stored.last_active_date && stored.current_streak > 0) {
+    const gap = ymdToEpochDay(todayWib) - ymdToEpochDay(stored.last_active_date);
+    if (gap >= 2) {
+      return { ...stored, current_streak: 0 };
+    }
+  }
+
+  return stored;
+}
+
+// Returns true if the streak is currently active (last active date is within 1 day of today)
+export function isStreakActive(lastActiveDate: string | null, todayWib: string): boolean {
+  if (!lastActiveDate) return false;
+  return ymdToEpochDay(todayWib) - ymdToEpochDay(lastActiveDate) < 2;
 }
 
 // Returns the new streak value if it changed, 0 if no change (already counted today or target not met)
@@ -34,7 +51,7 @@ export function checkAndUpdateStreak(userId: number, todayWib: string): number {
   const metToday = hasMetTargetToday(userId, todayWib, target);
   if (!metToday) return 0;
 
-  const existing = getUserStreak(userId);
+  const existing = getUserStreak(userId, todayWib);
   const todayEpoch = ymdToEpochDay(todayWib);
 
   let newCurrent = existing.current_streak;
@@ -98,7 +115,7 @@ export function rebuildStreak(userId: number): void {
     .filter((date) => hasMetTargetToday(userId, date, target));
 
   if (metDates.length === 0) {
-    const existing = getUserStreak(userId);
+    const existing = getUserStreak(userId, todayWib);
     db.prepare(
       `INSERT INTO user_streaks (user_id, current_streak, longest_streak, last_active_date, updated_at)
        VALUES (?, 0, ?, NULL, datetime('now'))
@@ -115,7 +132,7 @@ export function rebuildStreak(userId: number): void {
 
   // If last active day is too far in the past, streak is 0
   if (todayEpoch - mostRecentEpoch > 2) {
-    const existing = getUserStreak(userId);
+    const existing = getUserStreak(userId, todayWib);
     db.prepare(
       `INSERT INTO user_streaks (user_id, current_streak, longest_streak, last_active_date, updated_at)
        VALUES (?, 0, ?, ?, datetime('now'))
@@ -138,7 +155,7 @@ export function rebuildStreak(userId: number): void {
     }
   }
 
-  const existing = getUserStreak(userId);
+  const existing = getUserStreak(userId, todayWib);
   const newLongest = Math.max(streak, existing.longest_streak);
 
   db.prepare(

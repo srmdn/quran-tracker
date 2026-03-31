@@ -5,6 +5,7 @@ import { sendTrackedEmail } from "./email-log.ts";
 import { escapeHtml, ctaButton, baseEmailHtml } from "./email-base.ts";
 import { getMonthlyActivityLeaderboard, getMonthlyUserActivityRank } from "./activity-calc.ts";
 import { getUserStreak } from "./streak.ts";
+import { getWibDateYmd } from "./wib-date.ts";
 
 export type MonthlyEmailResult = {
   year: number;
@@ -52,7 +53,7 @@ function buildMessage(params: {
   const ctaUrl = `${PUBLIC_BASE_URL}/activity/leaderboard`;
 
   const recipientStats = getMonthlyUserActivityRank(recipientId, year, month);
-  const streak = getUserStreak(recipientId);
+  const streak = getUserStreak(recipientId, getWibDateYmd());
 
   const subject = `${ORG_NAME} | Monthly Snapshot | ${monthLabel}`;
 
