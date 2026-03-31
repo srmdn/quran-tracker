@@ -6,6 +6,7 @@ import { createPreviousMonthSnapshot } from "../lib/monthly-snapshot.ts";
 import { sendTestReminderEmail } from "../lib/reminder-email.ts";
 import { sendApprovalEmail, sendRejectionEmail, sendRoleChangeEmail, sendWelcomeEmail, sendNewMemberAlertToAdmins, sendSuspendEmail, sendUnsuspendEmail } from "../lib/welcome-email.ts";
 import { sendKhatamEmail, sendStreakMilestoneEmail } from "../lib/milestone-email.ts";
+import { sendNoTargetNudgeEmail } from "../lib/no-target-email.ts";
 import { isAdminRole, isAssignableRole, isSuperAdminRole } from "../lib/roles.ts";
 import { getWibDateYmd, getWibYearMonth } from "../lib/wib-date.ts";
 import { getUserTarget, getTodayTilawahTotal, getTodayMurojaahTotal } from "../lib/targets.ts";
@@ -449,6 +450,8 @@ admin.get("/email-log", (c) => {
   const page = Math.max(1, parseInt(c.req.query("page") || "1", 10));
   const filterStatus = c.req.query("status") || "";
   const filterType = c.req.query("type") || "";
+  const flashSuccess = c.req.query("success") || "";
+  const flashError = c.req.query("error") || "";
 
   const conditions: string[] = [];
   const args: (string | number)[] = [];
@@ -483,8 +486,43 @@ admin.get("/email-log", (c) => {
       filterStatus={filterStatus}
       filterType={filterType}
       allTypes={allTypes}
+      flashSuccess={flashSuccess}
+      flashError={flashError}
     />
   );
+});
+
+admin.post("/email-log/:id/resend", async (c) => {
+  const logId = parseInt(c.req.param("id"), 10);
+  if (!Number.isInteger(logId)) return c.redirect("/admin/email-log?error=Invalid+log+id.");
+
+  const row = db
+    .prepare("SELECT id, user_id, email_type, status FROM email_log WHERE id = ?")
+    .get(logId) as { id: number; user_id: number | null; email_type: string; status: string } | null;
+
+  if (!row) return c.redirect("/admin/email-log?error=Log+entry+not+found.");
+  if (row.status !== "failed") return c.redirect("/admin/email-log?error=Only+failed+emails+can+be+resent.");
+  if (!row.user_id) return c.redirect("/admin/email-log?error=Cannot+resend:+no+user+linked+to+this+log+entry.");
+
+  const user = db.prepare("SELECT * FROM users WHERE id = ?").get(row.user_id) as User | null;
+  if (!user) return c.redirect("/admin/email-log?error=User+not+found.");
+
+  try {
+    switch (row.email_type) {
+      case "approval":        await sendApprovalEmail(user); break;
+      case "welcome":         await sendWelcomeEmail(user); break;
+      case "rejection":       await sendRejectionEmail(user); break;
+      case "suspend":         await sendSuspendEmail(user); break;
+      case "unsuspend":       await sendUnsuspendEmail(user); break;
+      case "no_target_nudge": await sendNoTargetNudgeEmail(user); break;
+      default:
+        return c.redirect("/admin/email-log?error=This+email+type+cannot+be+resent+manually.");
+    }
+  } catch {
+    return c.redirect("/admin/email-log?error=Resend+failed:+check+SMTP+config.");
+  }
+
+  return c.redirect("/admin/email-log?success=Email+resent+successfully.");
 });
 
 admin.get("/enrollments", (c) => {

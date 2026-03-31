@@ -27,11 +27,19 @@ const TYPE_LABELS: Record<string, string> = {
   khatam: "Khatam",
   streak_milestone: "Streak Milestone",
   daily_reminder: "Daily Reminder",
+  no_target_nudge: "No Target Nudge",
   test_daily_reminder: "Test Reminder",
   monthly_snapshot: "Monthly Snapshot",
   monthly_snapshot_preview: "Snapshot Preview",
   overtaken: "Overtaken",
 };
+
+const RESENDABLE_TYPES = new Set(["approval", "welcome", "rejection", "suspend", "unsuspend", "no_target_nudge"]);
+
+function toWib(utcStr: string): string {
+  const ms = new Date(utcStr.replace(" ", "T") + "Z").getTime();
+  return new Date(ms + 7 * 3600000).toISOString().slice(0, 16).replace("T", " ");
+}
 
 export const AdminEmailLogPage: FC<{
   user: User;
@@ -43,7 +51,9 @@ export const AdminEmailLogPage: FC<{
   filterStatus: string;
   filterType: string;
   allTypes: string[];
-}> = ({ user, lang, rows, total, page, perPage, filterStatus, filterType, allTypes }) => {
+  flashSuccess?: string;
+  flashError?: string;
+}> = ({ user, lang, rows, total, page, perPage, filterStatus, filterType, allTypes, flashSuccess, flashError }) => {
   const totalPages = Math.ceil(total / perPage);
 
   function buildUrl(overrides: Record<string, string>) {
@@ -72,6 +82,13 @@ export const AdminEmailLogPage: FC<{
             ← Admin Panel
           </a>
         </div>
+
+        {flashSuccess && (
+          <div class="w-full mb-4 px-4 py-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm rounded-lg">{flashSuccess}</div>
+        )}
+        {flashError && (
+          <div class="w-full mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-800 text-sm rounded-lg">{flashError}</div>
+        )}
 
         {/* Filters */}
         <div class="w-full flex flex-wrap gap-3 mb-5">
@@ -113,7 +130,8 @@ export const AdminEmailLogPage: FC<{
                     <th class="px-4 py-3 text-left font-semibold">Recipient</th>
                     <th class="px-4 py-3 text-left font-semibold">Subject</th>
                     <th class="px-4 py-3 text-left font-semibold">Status</th>
-                    <th class="px-4 py-3 text-left font-semibold">Sent At</th>
+                    <th class="px-4 py-3 text-left font-semibold">Sent At (WIB)</th>
+                    <th class="px-4 py-3 text-left font-semibold"></th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-border-light">
@@ -137,7 +155,16 @@ export const AdminEmailLogPage: FC<{
                         )}
                       </td>
                       <td class="px-4 py-3 text-text-secondary text-xs whitespace-nowrap">
-                        {row.sent_at.slice(0, 16).replace("T", " ")}
+                        {toWib(row.sent_at)}
+                      </td>
+                      <td class="px-4 py-3">
+                        {row.status === "failed" && RESENDABLE_TYPES.has(row.email_type) && (
+                          <form method="POST" action={`/admin/email-log/${row.id}/resend`}>
+                            <button type="submit" class="px-2.5 py-1 text-xs font-semibold border border-primary/30 text-primary rounded hover:bg-primary-light transition-colors">
+                              Resend
+                            </button>
+                          </form>
+                        )}
                       </td>
                     </tr>
                   ))}

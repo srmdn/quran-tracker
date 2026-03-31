@@ -6,17 +6,23 @@ import { getUserStreak } from "../lib/streak.ts";
 import { getWibDateYmd } from "../lib/wib-date.ts";
 import { sendTrackedEmail } from "../lib/email-log.ts";
 import { buildReminderEmail } from "../lib/reminder-email.ts";
+import { sendNoTargetNudgeEmail } from "../lib/no-target-email.ts";
+import type { User } from "../types.ts";
 
 initializeDatabase();
+
+// Purge email log entries older than 3 months
+const purged = db.prepare("DELETE FROM email_log WHERE sent_at < datetime('now', '-3 months')").run();
+if (purged.changes > 0) console.log(`[daily-reminder] purged ${purged.changes} old email log entries`);
 
 const todayWib = getWibDateYmd();
 const rolesSql = ACTIVE_MEMBER_ROLES.map((r) => `'${r}'`).join(", ");
 
 const recipients = db
   .prepare(
-    `SELECT id, name, email FROM users WHERE role IN (${rolesSql}) AND email IS NOT NULL`
+    `SELECT id, name, email, role, avatar_url, suspended_at, created_at, updated_at FROM users WHERE role IN (${rolesSql}) AND email IS NOT NULL`
   )
-  .all() as Array<{ id: number; name: string; email: string }>;
+  .all() as User[];
 
 console.log(`[daily-reminder] date=${todayWib} candidates=${recipients.length}`);
 
@@ -32,7 +38,15 @@ for (const user of recipients) {
 
   const target = getUserTarget(user.id);
   if (!target) {
-    skipped++;
+    // No target set: send a nudge email instead of silently skipping
+    try {
+      await sendNoTargetNudgeEmail(user);
+      sent++;
+      console.log(`[daily-reminder] no-target nudge sent to ${user.email}`);
+    } catch (err) {
+      failed++;
+      console.error(`[daily-reminder] no-target nudge failed for ${user.email}: ${err instanceof Error ? err.message : err}`);
+    }
     continue;
   }
 
