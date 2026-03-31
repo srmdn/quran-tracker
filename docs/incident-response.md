@@ -30,6 +30,6 @@ Save in `docs/decisions/` using the decision record template. Capture:
 
 ## Contacts
 
-- Maintainer: `mail@saidwp.com`
-- Service: `quran.markaztalaqqi.com` (systemd: `quran-tracker`)
-- DB: `/var/www/quran-tracker/quran-tracker/data/ngaji.db`
+- Maintainer: see `SECURITY.md` for the current contact
+- Service: your deployed instance (systemd: `quran-tracker` or equivalent)
+- DB: `data/ngaji.db` relative to the project root

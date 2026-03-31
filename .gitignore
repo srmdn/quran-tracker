@@ -27,7 +27,27 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .envrc
 .direnv/
 
-# docs are tracked (private repository)
+# Internal / private docs
+private/
+
+# AI tool sessions
+.claude/
+.codex/
+.cursor/
+.aider*
+.continue/
+
+# Editor
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+Thumbs.db
+ehthumbs.db
+desktop.ini
+._*
 
 # SQLite database
 data/*.db

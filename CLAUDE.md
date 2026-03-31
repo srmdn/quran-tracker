@@ -76,7 +76,7 @@ PORT=3000                        # optional, defaults to 3000
 - `db.prepare().get()` returns `unknown`; always cast: `.get(...) as MyType | null`
 - `Env` type (`src/types.ts`) parameterises `Hono<Env>` so `c.get("user")` is typed as `User`
 
-## Repo visibility: PRIVATE (closed source)
+## Repo visibility: PUBLIC (open source)
 
 ## Writing Conventions
 - No em dashes (`—`) in commit messages, docs, or any written output.

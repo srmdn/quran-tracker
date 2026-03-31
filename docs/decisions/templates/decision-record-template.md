@@ -2,7 +2,7 @@
 
 - Date: <YYYY-MM-DD>
 - Status: Proposed | Accepted | Deprecated | Superseded
-- Owner: srmdn
+- Owner: <your-github-handle>
 - Related Issue/PR: <links>
 
 ## Context

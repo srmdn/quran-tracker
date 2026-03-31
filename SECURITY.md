@@ -4,8 +4,8 @@
 
 Report vulnerabilities privately. Do not open public issues for active vulnerabilities.
 
-- Primary contact: `mail@saidwp.com`
-- Alternate: GitHub private security advisory on this repository
+- Primary contact: GitHub private security advisory on this repository
+- Alternate: open a GitHub security advisory if direct contact is not available
 
 Include:
 - affected versions/commits

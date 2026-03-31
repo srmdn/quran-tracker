@@ -47,11 +47,11 @@ GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 APP_URL=http://localhost:3000
 PORT=3000
-SMTP_HOST=glacier.mxrouting.net
+SMTP_HOST=your-smtp-host.com
 SMTP_PORT=465
-SMTP_USER=info@markaztalaqqi.com
+SMTP_USER=your-smtp-username
 SMTP_PASS=your-smtp-password
-SMTP_FROM=info@markaztalaqqi.com
+SMTP_FROM=Your App <noreply@example.com>
 ```
 
 Set the authorized redirect URI in your Google Cloud Console to:
@@ -86,11 +86,11 @@ GOOGLE_CLIENT_SECRET=your-google-client-secret
 APP_URL=https://your-domain.com
 PORT=3000
 NODE_ENV=production
-SMTP_HOST=glacier.mxrouting.net
+SMTP_HOST=your-smtp-host.com
 SMTP_PORT=465
-SMTP_USER=info@markaztalaqqi.com
+SMTP_USER=your-smtp-username
 SMTP_PASS=your-smtp-password
-SMTP_FROM=info@markaztalaqqi.com
+SMTP_FROM=Your App <noreply@example.com>
 ```
 
 Update the authorized redirect URI in Google Cloud Console to match your domain:
