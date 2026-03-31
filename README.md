@@ -7,17 +7,17 @@ Log your daily Tilawah and Murojaah, visualize your year of activity, build stre
 ## Features
 
 - **Tilawah and Murojaah logging** — log by juz or pages (20 pages = 1 juz), with surah/ayah endpoint tracking and full history
-- **Daily targets** — set a daily juz target; the app caps entries at your target and shows a progress bar
+- **Daily targets** — set separate daily juz targets for tilawah and murojaah via the setup page; the app caps entries at your target and shows a progress bar
+- **Anti-cheat** — khatam requires crossing a 30-juz cycle boundary and is limited to once per day per type; daily entries are capped at your target; login is rate-limited (5 attempts, 30-minute lockout)
 - **Streaks** — active and broken streaks tracked per user; milestone emails at 7, 30, and 100 days
-- **Khatam tracking** — khatam events recorded with plausibility checks (must cross a 30-juz boundary, once per day)
 - **Monthly leaderboard** — scored as Tilawah×10 + Murojaah×7 + Khatam×300; archived by month with podium cards
 - **1-year activity graph** — GitHub-style rolling activity heatmap on the dashboard
 - **Email system** — welcome, approval, khatam, streak milestones, overtaken alerts, daily reminders, monthly snapshots; all logged in the admin panel
-- **Enrollment form** — public `/enroll` route for prospective members; submissions reviewed in the admin panel
-- **Profile page** — display name, avatar, password change (email/password users)
-- **Admin panel** — approve/reject/suspend members, manage roles, view email log with resend for failures
+- **Enrollment form** — public `/enroll` route for prospective members; submissions are stored for admin review and do not automatically create an account
+- **Profile page** — edit display name, set avatar URL, change password (email/password accounts only); read-only account info (email, role, auth method, joined date)
+- **Admin panel** — approve/reject/suspend members, manage roles, view email log with resend for failures; email/password accounts are created by admins, not by self-registration
 - **Bilingual** — English and Indonesian (i18n toggle)
-- **Google OAuth + email/password** — two auth methods; new accounts require admin approval
+- **Google OAuth + email/password** — two auth methods; all new accounts require admin approval before accessing the app
 
 ## Tech Stack
 
@@ -193,7 +193,7 @@ SNAPSHOT_YEAR=2026 SNAPSHOT_MONTH=1 bun run snapshot:monthly
 | `admin` | Can approve/reject users and manage roles |
 | `super_admin` | Full access: suspend/unsuspend, delete users, all admin actions |
 
-The **first user** to sign in is automatically granted the `admin` role.
+The **first user** to sign in is automatically granted the `super_admin` role.
 
 Suspended users (any role) are blocked from logging in and shown a suspension notice. Their data is preserved and the account can be reinstated at any time.
 
@@ -254,6 +254,10 @@ data/
 | `monthly_leaderboard_snapshots` | Archived monthly rankings, insert-only |
 | `email_log` | Every email send attempt: type, recipient, status, error |
 | `enrollments` | Public enrollment form submissions |
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines. This project is MIT licensed — see [LICENSE](LICENSE).
 
 ## Attribution
 
