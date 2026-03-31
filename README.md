@@ -1,8 +1,8 @@
-# Quran Tahfiz Tracker
+# Quran Tracker
 
-A Quran memorization (tahfiz) and reading (iqra) progress tracking app for communities. Members log their hafalan progress surah by surah, and a leaderboard keeps everyone motivated.
+Log your daily Tilawah and Murojaah, visualize your year of activity, build streaks, and compete with your community on the monthly leaderboard.
 
-![Quran Tahfiz Tracker](https://imgmu.id/f/ae0c0cc.png)
+![Quran Tracker](https://imgmu.id/f/c503a71.png)
 
 ## Features
 
