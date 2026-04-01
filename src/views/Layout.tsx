@@ -25,12 +25,7 @@ export const Layout: FC<{ title?: string; description?: string; url?: string; ch
         <meta name="twitter:description" content={resolvedDesc} />
         <meta name="twitter:image" content={ogImage} />
         <link rel="icon" type="image/png" href="/public/logo.png" />
-        <link href="https://fonts.googleapis.com" rel="preconnect" />
-        <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-          rel="stylesheet"
-        />
+        <link rel="stylesheet" href="/public/fonts/material-symbols-outlined.css" />
         <link rel="stylesheet" href="/public/tailwind.css" />
       </head>
       <body class="min-h-screen flex flex-col">{children}</body>
