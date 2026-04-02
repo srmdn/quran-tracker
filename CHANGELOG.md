@@ -8,6 +8,15 @@ All notable changes to this project are documented here.
 
 ---
 
+## [1.0.1] — 2026-04-02
+
+### Bug Fixes
+
+- Suspended users no longer appear in the hafalan or activity leaderboard
+- Users who have not set a daily target are excluded from both leaderboards
+
+---
+
 ## [1.0.0] — 2026-03-31
 
 First public release. Full-featured community Quran reading and memorization tracker.
