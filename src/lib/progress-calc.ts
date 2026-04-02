@@ -129,8 +129,8 @@ export function getRankedMembers(params: {
   const { search, sort = "juz", page = 1, perPage = 20 } = params;
   const activeRolesSql = ACTIVE_MEMBER_ROLES.map((role) => `'${role}'`).join(", ");
 
-  // Get all approved, non-suspended members
-  let whereClause = `WHERE u.role IN (${activeRolesSql}) AND u.suspended_at IS NULL`;
+  // Get all approved, non-suspended members who have set a daily target
+  let whereClause = `WHERE u.role IN (${activeRolesSql}) AND u.suspended_at IS NULL AND EXISTS (SELECT 1 FROM user_targets ut WHERE ut.user_id = u.id)`;
   const queryParams: (string | number)[] = [];
 
   if (search) {
@@ -173,7 +173,7 @@ export function getRankedMembers(params: {
       `SELECT u.id, COALESCE(SUM(pe.last_ayah), 0) as total_memorized
        FROM users u
        LEFT JOIN progress_entries pe ON pe.user_id = u.id
-       WHERE u.role IN (${activeRolesSql}) AND u.suspended_at IS NULL
+       WHERE u.role IN (${activeRolesSql}) AND u.suspended_at IS NULL AND EXISTS (SELECT 1 FROM user_targets ut WHERE ut.user_id = u.id)
        GROUP BY u.id
        ORDER BY total_memorized DESC, u.created_at ASC`
     )
