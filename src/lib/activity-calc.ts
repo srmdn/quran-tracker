@@ -154,7 +154,7 @@ export function getMonthlyActivityLeaderboard(params: {
          WHERE date_wib BETWEEN ? AND ?
          GROUP BY user_id
        ) m ON m.user_id = u.id
-       WHERE u.role IN (${rolesSql})`
+       WHERE u.role IN (${rolesSql}) AND u.suspended_at IS NULL`
     )
     .all(range.from, range.to, range.from, range.to) as Array<{
     id: number;
