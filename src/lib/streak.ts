@@ -1,5 +1,5 @@
 import { db } from "../db/connection.ts";
-import { hasMetTargetToday, getUserTarget } from "./targets.ts";
+import { getUserTarget } from "./targets.ts";
 import { getWibDateYmd } from "./wib-date.ts";
 
 export type UserStreak = {
@@ -43,13 +43,19 @@ export function isStreakActive(lastActiveDate: string | null, todayWib: string):
   return ymdToEpochDay(todayWib) - ymdToEpochDay(lastActiveDate) < 2;
 }
 
-// Returns the new streak value if it changed, 0 if no change (already counted today or target not met)
+// Returns the new streak value if it changed, 0 if no change (already counted today or no activity)
 export function checkAndUpdateStreak(userId: number, todayWib: string): number {
   const target = getUserTarget(userId);
   if (!target) return 0;
 
-  const metToday = hasMetTargetToday(userId, todayWib, target);
-  if (!metToday) return 0;
+  const hasActivity = db.prepare(`
+    SELECT 1 FROM (
+      SELECT date_wib FROM tilawah_logs WHERE user_id = ? AND date_wib = ?
+      UNION ALL
+      SELECT date_wib FROM murojaah_logs WHERE user_id = ? AND date_wib = ?
+    ) LIMIT 1
+  `).get(userId, todayWib, userId, todayWib);
+  if (!hasActivity) return 0;
 
   const existing = getUserStreak(userId, todayWib);
   const todayEpoch = ymdToEpochDay(todayWib);
@@ -110,9 +116,7 @@ export function rebuildStreak(userId: number): void {
     )
     .all(userId, userId, todayWib) as Array<{ date_wib: string }>;
 
-  const metDates = dates
-    .map((r) => r.date_wib)
-    .filter((date) => hasMetTargetToday(userId, date, target));
+  const metDates = dates.map((r) => r.date_wib);
 
   if (metDates.length === 0) {
     const existing = getUserStreak(userId, todayWib);
