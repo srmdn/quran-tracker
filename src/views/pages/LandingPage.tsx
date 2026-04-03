@@ -253,18 +253,15 @@ export const LandingPage: FC<{
               <h3 class="font-black text-text-main text-lg sm:text-xl mb-5">{t(lang, "landingHowToJoinTitle")}</h3>
               <div class="flex flex-col gap-3">
                 {[
-                  { step: "1", icon: "person_add", text: t(lang, "landingHowToJoinStep1") },
-                  { step: "2", icon: "schedule", text: t(lang, "landingHowToJoinStep2") },
-                  { step: "3", icon: "login", text: t(lang, "landingHowToJoinStep3") },
+                  { step: "1", text: t(lang, "landingHowToJoinStep1") },
+                  { step: "2", text: t(lang, "landingHowToJoinStep2") },
+                  { step: "3", text: t(lang, "landingHowToJoinStep3") },
                 ].map((item) => (
                   <div class="flex items-center gap-5 p-5 bg-white rounded-2xl border border-border-light shadow-sm">
                     <div class="shrink-0 size-16 rounded-2xl bg-primary text-white flex items-center justify-center font-black text-4xl leading-none shadow-sm">
                       {item.step}
                     </div>
-                    <div class="flex items-center gap-3 min-w-0">
-                      <span class="material-symbols-outlined text-primary/50 shrink-0" style="font-size:22px">{item.icon}</span>
-                      <p class="text-text-main text-base leading-relaxed">{item.text}</p>
-                    </div>
+                    <p class="text-text-main text-base leading-relaxed">{item.text}</p>
                   </div>
                 ))}
               </div>
