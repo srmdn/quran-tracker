@@ -196,8 +196,19 @@ const en = {
   landingJoinTitle: "Ready to Start?",
   landingJoinDesc: "Sign in with your account. New members need admin approval before accessing the app.",
   landingCtaJoinNote: "New members need admin approval. Reach out to your ustadz to register.",
-  landingAsOf: "as of",
-  landingViewFullLeaderboard: "View full leaderboard",
+  // Landing page — Who Can Join section
+  landingWhoCanJoinTitle: "Who Can Join",
+  landingWhoCanJoinDesc: "This program is open exclusively to members of the Markaz Talaqqi community.",
+  landingEligibilitySantriTitle: "Active Santri",
+  landingEligibilitySantriDesc: "Currently enrolled students at Markaz Talaqqi.",
+  landingEligibilityAlumniTitle: "Alumni",
+  landingEligibilityAlumniDesc: "Graduates who want to continue their Quran journey.",
+  landingEligibilityAsatidzTitle: "Asatidz",
+  landingEligibilityAsatidzDesc: "Teachers and staff of Markaz Talaqqi.",
+  landingHowToJoinTitle: "How to Join",
+  landingHowToJoinStep1: "Contact your ustadz to register your email.",
+  landingHowToJoinStep2: "Wait for admin approval (1-2 days).",
+  landingHowToJoinStep3: "Sign in and start tracking your Quran journey.",
 
   // Landing page — About the Program section
   landingAboutTitle: "About the Program",
@@ -452,8 +463,19 @@ const id: typeof en = {
   landingJoinTitle: "Siap Mulai?",
   landingJoinDesc: "Masuk dengan akunmu. Anggota baru perlu persetujuan admin sebelum bisa mengakses aplikasi.",
   landingCtaJoinNote: "Anggota baru perlu persetujuan admin. Hubungi ustadz kamu untuk mendaftar.",
-  landingAsOf: "per",
-  landingViewFullLeaderboard: "Lihat semua peringkat",
+  // Landing page — Who Can Join section
+  landingWhoCanJoinTitle: "Siapa yang Bisa Bergabung",
+  landingWhoCanJoinDesc: "Program ini terbuka khusus untuk anggota komunitas Markaz Talaqqi.",
+  landingEligibilitySantriTitle: "Santri Aktif",
+  landingEligibilitySantriDesc: "Santri yang saat ini terdaftar di Markaz Talaqqi.",
+  landingEligibilityAlumniTitle: "Alumni",
+  landingEligibilityAlumniDesc: "Lulusan yang ingin melanjutkan perjalanan Quran mereka.",
+  landingEligibilityAsatidzTitle: "Asatidz",
+  landingEligibilityAsatidzDesc: "Ustadz dan staf Markaz Talaqqi.",
+  landingHowToJoinTitle: "Cara Bergabung",
+  landingHowToJoinStep1: "Hubungi ustadzmu untuk mendaftarkan emailmu.",
+  landingHowToJoinStep2: "Tunggu persetujuan admin (1-2 hari).",
+  landingHowToJoinStep3: "Masuk dan mulai catat perjalanan Quranmu.",
 
   // Landing page — About the Program section
   landingAboutTitle: "Tentang Program",

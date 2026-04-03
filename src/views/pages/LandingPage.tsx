@@ -2,42 +2,15 @@ import type { FC } from "hono/jsx";
 import { Layout } from "../Layout.tsx";
 import { t, type Lang } from "../../lib/i18n.ts";
 import { APP_NAME, PUBLIC_BASE_URL } from "../../config.ts";
-import type { MonthlyActivityRow } from "../../lib/activity-calc.ts";
 import type { FastabiqEntry } from "../../lib/fastabiq-verses.ts";
-
-type LeaderboardResult = {
-  year: number;
-  month: number;
-  total: number;
-  rows: MonthlyActivityRow[];
-};
-
-function Avatar({ name, url, cls }: { name: string; url: string | null; cls: string }) {
-  const initials = name.split(" ").filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("");
-  if (url) return <img src={url} alt={name} class={`${cls} rounded-full object-cover`} />;
-  return <div class={`${cls} rounded-full bg-primary/20 text-primary font-bold flex items-center justify-center text-xs shrink-0`}>{initials}</div>;
-}
 
 export const LandingPage: FC<{
   lang: Lang;
-  leaderboard: LeaderboardResult;
-  year: number;
-  month: number;
   totalMembers: number;
   totalTilawahJuz: number;
   totalMurojaahJuz: number;
   fastabiqEntry: FastabiqEntry;
-}> = ({ lang, leaderboard, year, month, totalMembers, totalTilawahJuz, totalMurojaahJuz, fastabiqEntry }) => {
-  const monthLabel = new Date(year, month - 1).toLocaleString(lang === "id" ? "id-ID" : "en-US", {
-    month: "long",
-    year: "numeric",
-  });
-  const todayLabel = new Date().toLocaleDateString(lang === "id" ? "id-ID" : "en-US", {
-    day: "numeric",
-    month: "short",
-  });
-  const topThree = leaderboard.rows.slice(0, 3);
-  const rest = leaderboard.rows.slice(3);
+}> = ({ lang, totalMembers, totalTilawahJuz, totalMurojaahJuz, fastabiqEntry }) => {
 
   return (
     <Layout
@@ -112,11 +85,11 @@ export const LandingPage: FC<{
                   <span class="material-symbols-outlined" style="font-size:18px">arrow_forward</span>
                 </a>
                 <a
-                  href="#leaderboard"
+                  href="#who-can-join"
                   class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl border border-border-light bg-white text-text-main font-bold text-base hover:bg-slate-50 transition-colors"
                 >
-                  <span class="material-symbols-outlined" style="font-size:18px">leaderboard</span>
-                  {t(lang, "leaderboard")}
+                  <span class="material-symbols-outlined" style="font-size:18px">group</span>
+                  {t(lang, "landingWhoCanJoinTitle")}
                 </a>
               </div>
 
@@ -249,142 +222,61 @@ export const LandingPage: FC<{
           </div>
         </section>
 
-        {/* ── Leaderboard ── */}
-        <section id="leaderboard" class="w-full bg-slate-50/70 border-b border-border-light">
+        {/* ── Who Can Join ── */}
+        <section id="who-can-join" class="w-full bg-slate-50/70 border-b border-border-light">
           <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-            {/* Section header */}
-            <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-3 mb-8 text-center lg:text-left">
-              <div>
-                <div class="flex items-center justify-center lg:justify-start gap-2 mb-1">
-                  <h2 class="text-2xl sm:text-3xl font-black text-text-main">{t(lang, "leaderboard")}</h2>
-                  <span class="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                    <span class="size-1.5 rounded-full bg-emerald-500 animate-pulse inline-block" />
-                    {t(lang, "landingLiveData")}
-                  </span>
-                </div>
-                <p class="text-text-secondary text-sm">{t(lang, "monthlyRankings")} · {monthLabel} · {t(lang, "landingAsOf")} {todayLabel}</p>
-              </div>
-              {/* Score formula — collapsible on mobile */}
-              <details class="self-center lg:self-auto">
-                <summary class="cursor-pointer text-xs font-semibold text-primary hover:text-primary-dark list-none flex items-center justify-center lg:justify-start gap-1">
-                  <span class="material-symbols-outlined" style="font-size:14px">info</span>
-                  {t(lang, "landingScoreInfo")}
-                </summary>
-                <div class="mt-2 text-xs text-text-secondary bg-white border border-border-light rounded-lg px-3 py-2 whitespace-nowrap">
-                  Tilawah × 10 + Murojaah × 7 + Khatam × 300
-                </div>
-              </details>
+            <div class="max-w-2xl mb-10 mx-auto lg:mx-0 text-center lg:text-left">
+              <h2 class="text-2xl sm:text-3xl font-black text-text-main mb-2">{t(lang, "landingWhoCanJoinTitle")}</h2>
+              <p class="text-text-secondary text-sm sm:text-base">{t(lang, "landingWhoCanJoinDesc")}</p>
             </div>
 
-            {leaderboard.rows.length === 0 ? (
-              <div class="bg-white border border-border-light rounded-2xl px-6 py-14 text-center text-text-secondary text-sm">
-                {t(lang, "noActivityYet")}
-              </div>
-            ) : (
-              <>
-                {/* Top 3 podium */}
-
-                {topThree.length > 0 && (
-                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-                    {topThree.map((row) => {
-                      const medal = row.rank === 1 ? "🥇" : row.rank === 2 ? "🥈" : "🥉";
-                      const rankLabel = row.rank === 1 ? "1st" : row.rank === 2 ? "2nd" : "3rd";
-                      const highlight = row.rank === 1;
-                      return (
-                        <div class={`relative bg-white rounded-2xl border p-5 ${highlight ? "border-yellow-300 shadow-md ring-1 ring-yellow-200/60" : "border-border-light shadow-sm"}`}>
-                          {highlight && (
-                            <div class="absolute -top-2.5 left-1/2 -translate-x-1/2 text-xs font-black px-3 py-0.5 bg-yellow-400 text-white rounded-full shadow-sm">
-                              #1
-                            </div>
-                          )}
-                          <div class="flex items-start justify-between mb-3">
-                            <div class="flex items-center gap-2.5">
-                              <span class="text-2xl leading-none">{medal}</span>
-                              <Avatar name={row.name} url={row.avatar_url} cls={highlight ? "w-14 h-14" : "w-12 h-12"} />
-                            </div>
-                            <span class={`text-xs font-bold uppercase tracking-wide ${row.rank === 1 ? "text-yellow-600" : row.rank === 2 ? "text-slate-500" : "text-amber-700"}`}>
-                              {rankLabel}
-                            </span>
-                          </div>
-                          <p class="text-lg font-black text-text-main leading-tight mb-1">{row.name}</p>
-                          <p class="text-2xl font-black text-primary mb-3">
-                            {row.score} <span class="text-sm font-bold text-text-secondary">{t(lang, "ptsLabel")}</span>
-                          </p>
-                          <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-text-secondary border-t border-border-light pt-3">
-                            <span>Tilawah <strong class="text-text-main">{row.tilawah_juz}</strong></span>
-                            <span>Murojaah <strong class="text-text-main">{row.murojaah_juz}</strong></span>
-                            <span>Khatam <strong class="text-text-main">{row.khatam_count}</strong></span>
-                          </div>
-                        </div>
-                      );
-                    })}
+            {/* Eligibility cards */}
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+              {[
+                { icon: "school", title: t(lang, "landingEligibilitySantriTitle"), desc: t(lang, "landingEligibilitySantriDesc") },
+                { icon: "history_edu", title: t(lang, "landingEligibilityAlumniTitle"), desc: t(lang, "landingEligibilityAlumniDesc") },
+                { icon: "supervisor_account", title: t(lang, "landingEligibilityAsatidzTitle"), desc: t(lang, "landingEligibilityAsatidzDesc") },
+              ].map((item) => (
+                <div class="flex flex-col gap-4 p-6 bg-white rounded-2xl border border-border-light shadow-sm">
+                  <div class="size-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+                    <span class="material-symbols-outlined" style="font-size:22px">{item.icon}</span>
                   </div>
-                )}
-
-                {/* Ranks 4+ */}
-                {rest.length > 0 && (
-                  <div class="bg-white border border-border-light rounded-2xl overflow-hidden shadow-sm">
-                    {/* Desktop table */}
-                    <div class="hidden sm:block overflow-x-auto">
-                      <table class="min-w-full text-sm">
-                        <thead class="bg-slate-50 border-b border-border-light text-text-secondary">
-                          <tr>
-                            <th class="px-5 py-3 text-left font-semibold w-12">#</th>
-                            <th class="px-5 py-3 text-left font-semibold">{t(lang, "nameCol")}</th>
-                            <th class="px-5 py-3 text-right font-semibold">Tilawah</th>
-                            <th class="px-5 py-3 text-right font-semibold">Murojaah</th>
-                            <th class="px-5 py-3 text-right font-semibold">Khatam</th>
-                            <th class="px-5 py-3 text-right font-semibold">{t(lang, "scoreCol")}</th>
-                          </tr>
-                        </thead>
-                        <tbody class="divide-y divide-border-light">
-                          {rest.map((row) => (
-                            <tr class="hover:bg-slate-50/70 transition-colors">
-                              <td class="px-5 py-3.5 font-bold text-text-secondary">#{row.rank}</td>
-                              <td class="px-5 py-3.5 font-semibold text-text-main">
-                                <div class="flex items-center gap-2.5">
-                                  <Avatar name={row.name} url={row.avatar_url} cls="w-7 h-7" />
-                                  {row.name}
-                                </div>
-                              </td>
-                              <td class="px-5 py-3.5 text-right text-text-main">{row.tilawah_juz}</td>
-                              <td class="px-5 py-3.5 text-right text-text-main">{row.murojaah_juz}</td>
-                              <td class="px-5 py-3.5 text-right text-text-main">{row.khatam_count}</td>
-                              <td class="px-5 py-3.5 text-right font-black text-primary">{row.score}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                    {/* Mobile card list */}
-                    <div class="sm:hidden divide-y divide-border-light">
-                      {rest.map((row) => (
-                        <div class="flex items-center justify-between px-4 py-3.5 gap-3">
-                          <div class="flex items-center gap-2.5 min-w-0">
-                            <span class="shrink-0 text-sm font-black text-text-secondary w-7">#{row.rank}</span>
-                            <Avatar name={row.name} url={row.avatar_url} cls="w-7 h-7 shrink-0" />
-                            <p class="font-semibold text-text-main text-sm truncate">{row.name}</p>
-                          </div>
-                          <div class="shrink-0 text-right">
-                            <p class="font-black text-primary text-sm">{row.score} <span class="text-xs font-bold text-text-secondary">{t(lang, "ptsLabel")}</span></p>
-                            <p class="text-xs text-text-secondary">{row.tilawah_juz} · {row.murojaah_juz} · {row.khatam_count}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                  <div>
+                    <h3 class="font-black text-text-main text-base mb-1">{item.title}</h3>
+                    <p class="text-text-secondary text-sm leading-relaxed">{item.desc}</p>
                   </div>
-                )}
-                <div class="mt-4 text-center">
-                  <a
-                    href="/login"
-                    class="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary-dark transition-colors"
-                  >
-                    {t(lang, "landingViewFullLeaderboard")}
-                    <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span>
-                  </a>
                 </div>
-              </>
-            )}
+              ))}
+            </div>
+
+            {/* How to join steps */}
+            <div class="bg-white rounded-2xl border border-border-light p-6 sm:p-8">
+              <h3 class="font-black text-text-main text-base mb-6">{t(lang, "landingHowToJoinTitle")}</h3>
+              <div class="flex flex-col sm:flex-row gap-6">
+                {[
+                  { step: "1", icon: "person_add", text: t(lang, "landingHowToJoinStep1") },
+                  { step: "2", icon: "schedule", text: t(lang, "landingHowToJoinStep2") },
+                  { step: "3", icon: "login", text: t(lang, "landingHowToJoinStep3") },
+                ].map((item, idx) => (
+                  <div class="flex items-start gap-4 flex-1">
+                    <div class="relative shrink-0">
+                      <div class="size-10 rounded-xl bg-primary text-white flex items-center justify-center shadow-sm">
+                        <span class="material-symbols-outlined" style="font-size:18px">{item.icon}</span>
+                      </div>
+                      <span class="absolute -top-1.5 -right-1.5 size-4 rounded-full bg-white border border-border-light text-[10px] font-black text-primary flex items-center justify-center leading-none">{item.step}</span>
+                    </div>
+                    <div class="flex-1 pt-1">
+                      <p class="text-text-main text-sm leading-relaxed">{item.text}</p>
+                    </div>
+                    {idx < 2 && (
+                      <div class="hidden sm:flex shrink-0 self-center text-border-light">
+                        <span class="material-symbols-outlined" style="font-size:20px">arrow_forward</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
 
