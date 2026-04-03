@@ -252,27 +252,18 @@ export const LandingPage: FC<{
             {/* How to join steps */}
             <div class="bg-white rounded-2xl border border-border-light p-6 sm:p-8">
               <h3 class="font-black text-text-main text-base mb-6">{t(lang, "landingHowToJoinTitle")}</h3>
-              <div class="flex flex-col sm:flex-row gap-6">
+              <div class="flex flex-col sm:flex-row gap-4 sm:gap-6">
                 {[
                   { step: "1", icon: "person_add", text: t(lang, "landingHowToJoinStep1") },
                   { step: "2", icon: "schedule", text: t(lang, "landingHowToJoinStep2") },
                   { step: "3", icon: "login", text: t(lang, "landingHowToJoinStep3") },
-                ].map((item, idx) => (
-                  <div class="flex items-start gap-4 flex-1">
-                    <div class="relative shrink-0">
-                      <div class="size-10 rounded-xl bg-primary text-white flex items-center justify-center shadow-sm">
-                        <span class="material-symbols-outlined" style="font-size:18px">{item.icon}</span>
-                      </div>
-                      <span class="absolute -top-1.5 -right-1.5 size-4 rounded-full bg-white border border-border-light text-[10px] font-black text-primary flex items-center justify-center leading-none">{item.step}</span>
+                ].map((item) => (
+                  <div class="flex sm:flex-col items-center gap-4 sm:gap-3 flex-1 sm:text-center">
+                    <div class="shrink-0 size-14 rounded-2xl bg-primary text-white flex flex-col items-center justify-center shadow-sm gap-0.5">
+                      <span class="text-2xl font-black leading-none">{item.step}</span>
+                      <span class="material-symbols-outlined text-white/70" style="font-size:13px">{item.icon}</span>
                     </div>
-                    <div class="flex-1 pt-1">
-                      <p class="text-text-main text-sm leading-relaxed">{item.text}</p>
-                    </div>
-                    {idx < 2 && (
-                      <div class="hidden sm:flex shrink-0 self-center text-border-light">
-                        <span class="material-symbols-outlined" style="font-size:20px">arrow_forward</span>
-                      </div>
-                    )}
+                    <p class="text-text-main text-sm leading-relaxed">{item.text}</p>
                   </div>
                 ))}
               </div>
