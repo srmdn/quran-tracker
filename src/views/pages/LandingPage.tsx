@@ -94,8 +94,7 @@ export const LandingPage: FC<{
               </div>
 
               {/* Join note */}
-              <p class="text-xs text-text-secondary/80 flex items-center justify-center gap-1.5">
-                <span class="material-symbols-outlined" style="font-size:14px">info</span>
+              <p class="text-xs text-text-secondary/80">
                 {t(lang, "landingJoinNote")}
               </p>
             </div>
@@ -250,20 +249,22 @@ export const LandingPage: FC<{
             </div>
 
             {/* How to join steps */}
-            <div class="bg-white rounded-2xl border border-border-light p-6 sm:p-8">
-              <h3 class="font-black text-text-main text-base mb-6">{t(lang, "landingHowToJoinTitle")}</h3>
-              <div class="flex flex-col sm:flex-row gap-4 sm:gap-6">
+            <div>
+              <h3 class="font-black text-text-main text-lg sm:text-xl mb-5">{t(lang, "landingHowToJoinTitle")}</h3>
+              <div class="flex flex-col gap-3">
                 {[
                   { step: "1", icon: "person_add", text: t(lang, "landingHowToJoinStep1") },
                   { step: "2", icon: "schedule", text: t(lang, "landingHowToJoinStep2") },
                   { step: "3", icon: "login", text: t(lang, "landingHowToJoinStep3") },
                 ].map((item) => (
-                  <div class="flex sm:flex-col items-center gap-4 sm:gap-3 flex-1 sm:text-center">
-                    <div class="shrink-0 size-14 rounded-2xl bg-primary text-white flex flex-col items-center justify-center shadow-sm gap-0.5">
-                      <span class="text-2xl font-black leading-none">{item.step}</span>
-                      <span class="material-symbols-outlined text-white/70" style="font-size:13px">{item.icon}</span>
+                  <div class="flex items-center gap-5 p-5 bg-white rounded-2xl border border-border-light shadow-sm">
+                    <div class="shrink-0 size-16 rounded-2xl bg-primary text-white flex items-center justify-center font-black text-4xl leading-none shadow-sm">
+                      {item.step}
                     </div>
-                    <p class="text-text-main text-sm leading-relaxed">{item.text}</p>
+                    <div class="flex items-center gap-3 min-w-0">
+                      <span class="material-symbols-outlined text-primary/50 shrink-0" style="font-size:22px">{item.icon}</span>
+                      <p class="text-text-main text-base leading-relaxed">{item.text}</p>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -313,10 +314,7 @@ export const LandingPage: FC<{
           <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14 text-center">
             <h2 class="text-2xl sm:text-3xl font-black text-white mb-3">{t(lang, "landingJoinTitle")}</h2>
             <p class="text-white/75 text-sm sm:text-base mb-2 max-w-md mx-auto">{t(lang, "landingJoinDesc")}</p>
-            <p class="text-white/50 text-xs mb-8 flex items-center justify-center gap-1">
-              <span class="material-symbols-outlined" style="font-size:13px">info</span>
-              {t(lang, "landingCtaJoinNote")}
-            </p>
+            <p class="text-white/50 text-xs mb-8">{t(lang, "landingCtaJoinNote")}</p>
             <a
               href="/login"
               class="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-white text-primary font-bold text-base hover:bg-primary-light transition-colors shadow-md"
