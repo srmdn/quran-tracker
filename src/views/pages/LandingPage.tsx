@@ -330,9 +330,19 @@ export const LandingPage: FC<{
             <img src="/public/logo.png" alt="Logo" class="size-5 object-contain opacity-60" />
             <p class="text-xs text-text-secondary">© {new Date().getFullYear()} Markaz Talaqqi</p>
           </div>
-          <a href="/login" class="text-xs font-semibold text-text-secondary hover:text-primary transition-colors">
-            {t(lang, "signIn")} →
-          </a>
+          <div class="flex items-center gap-4">
+            <a
+              href="https://github.com/srmdn/quran-tracker/blob/main/CHANGELOG.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-xs text-text-secondary hover:text-primary transition-colors"
+            >
+              Changelog
+            </a>
+            <a href="/login" class="text-xs font-semibold text-text-secondary hover:text-primary transition-colors">
+              {t(lang, "signIn")} →
+            </a>
+          </div>
         </div>
       </footer>
       <script dangerouslySetInnerHTML={{ __html: `

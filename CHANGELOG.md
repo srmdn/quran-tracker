@@ -8,6 +8,19 @@ All notable changes to this project are documented here.
 
 ---
 
+## [1.0.2] — 2026-04-03
+
+### Features
+
+- Streak now advances on any log activity, not only days where the daily target was fully met
+
+### UI
+
+- Replaced public leaderboard section on landing page with "Who Can Join" section
+- How-to-join steps redesigned with large numbered indicators, no icons
+
+---
+
 ## [1.0.1] — 2026-04-02
 
 ### Bug Fixes
