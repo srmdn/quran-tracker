@@ -25,6 +25,13 @@ export const Layout: FC<{ title?: string; description?: string; url?: string; ch
         <meta name="twitter:description" content={resolvedDesc} />
         <meta name="twitter:image" content={ogImage} />
         <link rel="icon" type="image/png" href="/public/logo.png" />
+        <link rel="manifest" href="/public/manifest.json" />
+        <meta name="theme-color" content="#16a34a" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Qur'an Tracker" />
+        <link rel="apple-touch-icon" href="/public/icon-192.png" />
         <link rel="stylesheet" href="/public/fonts/material-symbols-outlined.css" />
         <link rel="stylesheet" href="/public/tailwind.css" />
       </head>

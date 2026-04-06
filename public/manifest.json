@@ -1,0 +1,21 @@
+{
+  "name": "Qur'an Tracker",
+  "short_name": "Qur'an Tracker",
+  "description": "Track your daily Tilawah and Murojaah, build streaks, and compete with your community.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#16a34a",
+  "icons": [
+    {
+      "src": "/public/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/public/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
