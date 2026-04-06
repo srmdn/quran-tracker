@@ -130,8 +130,11 @@ export function initializeDatabase() {
   if (!tilawahColNames.includes("end_surah"))  db.exec("ALTER TABLE tilawah_logs ADD COLUMN end_surah INTEGER");
   if (!tilawahColNames.includes("end_ayah"))   db.exec("ALTER TABLE tilawah_logs ADD COLUMN end_ayah INTEGER");
   if (!tilawahColNames.includes("end_juz"))    db.exec("ALTER TABLE tilawah_logs ADD COLUMN end_juz INTEGER");
-  if (!tilawahColNames.includes("log_unit"))   db.exec("ALTER TABLE tilawah_logs ADD COLUMN log_unit TEXT NOT NULL DEFAULT 'juz'");
-  if (!tilawahColNames.includes("log_amount")) db.exec("ALTER TABLE tilawah_logs ADD COLUMN log_amount INTEGER");
+  if (!tilawahColNames.includes("log_unit"))    db.exec("ALTER TABLE tilawah_logs ADD COLUMN log_unit TEXT NOT NULL DEFAULT 'juz'");
+  if (!tilawahColNames.includes("log_amount"))  db.exec("ALTER TABLE tilawah_logs ADD COLUMN log_amount INTEGER");
+  if (!tilawahColNames.includes("start_surah")) db.exec("ALTER TABLE tilawah_logs ADD COLUMN start_surah INTEGER");
+  if (!tilawahColNames.includes("start_ayah"))  db.exec("ALTER TABLE tilawah_logs ADD COLUMN start_ayah INTEGER");
+  if (!tilawahColNames.includes("start_juz"))   db.exec("ALTER TABLE tilawah_logs ADD COLUMN start_juz INTEGER");
 
   // Position columns on murojaah_logs
   const murojaahColumns = db
@@ -141,8 +144,11 @@ export function initializeDatabase() {
   if (!murojaahColNames.includes("end_surah"))  db.exec("ALTER TABLE murojaah_logs ADD COLUMN end_surah INTEGER");
   if (!murojaahColNames.includes("end_ayah"))   db.exec("ALTER TABLE murojaah_logs ADD COLUMN end_ayah INTEGER");
   if (!murojaahColNames.includes("end_juz"))    db.exec("ALTER TABLE murojaah_logs ADD COLUMN end_juz INTEGER");
-  if (!murojaahColNames.includes("log_unit"))   db.exec("ALTER TABLE murojaah_logs ADD COLUMN log_unit TEXT NOT NULL DEFAULT 'juz'");
-  if (!murojaahColNames.includes("log_amount")) db.exec("ALTER TABLE murojaah_logs ADD COLUMN log_amount INTEGER");
+  if (!murojaahColNames.includes("log_unit"))    db.exec("ALTER TABLE murojaah_logs ADD COLUMN log_unit TEXT NOT NULL DEFAULT 'juz'");
+  if (!murojaahColNames.includes("log_amount"))  db.exec("ALTER TABLE murojaah_logs ADD COLUMN log_amount INTEGER");
+  if (!murojaahColNames.includes("start_surah")) db.exec("ALTER TABLE murojaah_logs ADD COLUMN start_surah INTEGER");
+  if (!murojaahColNames.includes("start_ayah"))  db.exec("ALTER TABLE murojaah_logs ADD COLUMN start_ayah INTEGER");
+  if (!murojaahColNames.includes("start_juz"))   db.exec("ALTER TABLE murojaah_logs ADD COLUMN start_juz INTEGER");
 
   // user_targets
   db.exec(`

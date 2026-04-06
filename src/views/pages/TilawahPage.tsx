@@ -14,6 +14,9 @@ type LogEntry = {
   juz_amount: number;
   log_unit: string | null;
   log_amount: number | null;
+  start_surah: number | null;
+  start_ayah: number | null;
+  start_juz: number | null;
   end_surah: number | null;
   end_ayah: number | null;
   end_juz: number | null;
@@ -144,6 +147,31 @@ export const TilawahPage: FC<{
                   <p id="til-mode-hint" class="text-xs text-text-secondary mt-1"></p>
                 </div>
                 <div class="border-t border-border-light pt-4">
+                  <p class="text-xs font-bold text-text-secondary mb-3">{t(lang, "startingPosition")}</p>
+                  <div class="space-y-3">
+                    <div>
+                      <label class="block text-xs font-semibold text-text-secondary mb-1">Surah</label>
+                      <select name="start_surah" id="til-start-surah-sel"
+                        data-last={String(lastLog?.end_surah ?? "")}
+                        data-last-ayah={String(lastLog?.end_ayah ?? "")}
+                        class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm">
+                        <option value="">Select surah...</option>
+                        {SURAHS.map((s) => (
+                          <option value={String(s.number)}>
+                            {s.number}. {s.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block text-xs font-semibold text-text-secondary mb-1">Ayah</label>
+                      <input type="number" name="start_ayah" id="til-start-ayah-inp" min="1" step="1" placeholder="e.g. 1"
+                        class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" />
+                      <p id="til-start-ayah-hint" class="text-xs text-text-secondary mt-1"></p>
+                    </div>
+                  </div>
+                </div>
+                <div class="border-t border-border-light pt-4">
                   <p class="text-xs font-bold text-text-secondary mb-3">{t(lang, "endingPosition")}</p>
                   <div class="space-y-3">
                     <div>
@@ -178,6 +206,17 @@ export const TilawahPage: FC<{
               <script dangerouslySetInnerHTML={{ __html: `(function(){
   var AC=${JSON.stringify(Object.fromEntries(SURAHS.map(s => [s.number, s.totalAyahs])))};
   var SJ=${surahToJuzJson};
+  // Start position pre-fill
+  var startSel=document.getElementById('til-start-surah-sel');
+  var startAyahInp=document.getElementById('til-start-ayah-inp');
+  var startHint=document.getElementById('til-start-ayah-hint');
+  function updStart(){var v=parseInt(startSel.value,10);startHint.textContent=v&&AC[v]?'max: '+AC[v]:'';}
+  startSel.addEventListener('change',updStart);
+  var lastStart=startSel.getAttribute('data-last');
+  var lastStartAyah=startSel.getAttribute('data-last-ayah');
+  if(lastStart){startSel.value=lastStart;updStart();}
+  if(lastStartAyah){startAyahInp.value=lastStartAyah;}
+  // End position
   var sel=document.getElementById('til-surah-sel');
   var hint=document.getElementById('til-ayah-hint');
   var form=sel.closest('form');
@@ -261,6 +300,7 @@ export const TilawahPage: FC<{
                 cutoff.setDate(cutoff.getDate() - 6);
                 const cutoffStr = cutoff.toISOString().slice(0, 10);
                 return recentLogs.map((log) => {
+                  const startSurahName = log.start_surah ? SURAHS.find((s) => s.number === log.start_surah)?.name : null;
                   const surahName = log.end_surah ? SURAHS.find((s) => s.number === log.end_surah)?.name : null;
                   const canDelete = log.date_wib >= cutoffStr;
                   return (
@@ -268,9 +308,15 @@ export const TilawahPage: FC<{
                       <div class="flex-1 min-w-0">
                         <p class="text-sm font-semibold text-text-main">{formatLogAmount(log.juz_amount, log.log_unit, log.log_amount, lang)}</p>
                         {surahName ? (
-                          <p class="text-xs text-text-secondary">
-                            {t(lang, "endedAt")} Juz {log.end_juz} &bull; {surahName} : {log.end_ayah}
-                          </p>
+                          startSurahName ? (
+                            <p class="text-xs text-text-secondary">
+                              {t(lang, "startedAt")} Juz {log.start_juz} &bull; {startSurahName} : {log.start_ayah} &rarr; {t(lang, "endedAt")} Juz {log.end_juz} &bull; {surahName} : {log.end_ayah}
+                            </p>
+                          ) : (
+                            <p class="text-xs text-text-secondary">
+                              {t(lang, "endedAt")} Juz {log.end_juz} &bull; {surahName} : {log.end_ayah}
+                            </p>
+                          )
                         ) : (
                           <p class="text-xs text-text-secondary">{t(lang, "noPositionRecorded")}</p>
                         )}

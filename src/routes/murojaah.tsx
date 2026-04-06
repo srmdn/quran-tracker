@@ -24,6 +24,9 @@ type MurojaahLog = {
   log_unit: string | null;
   log_amount: number | null;
   repetition_count: number | null;
+  start_surah: number | null;
+  start_ayah: number | null;
+  start_juz: number | null;
   end_surah: number | null;
   end_ayah: number | null;
   end_juz: number | null;
@@ -49,14 +52,14 @@ murojaah.get("/", (c) => {
     .get(user.id, `${yearMonth}-%`) as { total: number }).total;
 
   const lastLog = db
-    .prepare("SELECT id, date_wib, juz_amount, log_unit, log_amount, repetition_count, end_surah, end_ayah, end_juz, created_at FROM murojaah_logs WHERE user_id = ? ORDER BY created_at DESC LIMIT 1")
+    .prepare("SELECT id, date_wib, juz_amount, log_unit, log_amount, repetition_count, start_surah, start_ayah, start_juz, end_surah, end_ayah, end_juz, created_at FROM murojaah_logs WHERE user_id = ? ORDER BY created_at DESC LIMIT 1")
     .get(user.id) as MurojaahLog | null;
 
   const perPage = 15;
   const page = Math.max(1, parseInt(c.req.query("page") || "1", 10));
   const totalLogs = (db.prepare("SELECT COUNT(*) AS cnt FROM murojaah_logs WHERE user_id = ?").get(user.id) as { cnt: number }).cnt;
   const recentLogs = db
-    .prepare("SELECT id, date_wib, juz_amount, log_unit, log_amount, repetition_count, end_surah, end_ayah, end_juz, created_at FROM murojaah_logs WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?")
+    .prepare("SELECT id, date_wib, juz_amount, log_unit, log_amount, repetition_count, start_surah, start_ayah, start_juz, end_surah, end_ayah, end_juz, created_at FROM murojaah_logs WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?")
     .all(user.id, perPage, (page - 1) * perPage) as MurojaahLog[];
 
   return c.html(
@@ -141,7 +144,26 @@ murojaah.post("/", async (c) => {
     repetitionCount = parsed;
   }
 
-  // Validate position
+  // Validate optional start position
+  let startSurah: number | null = null;
+  let startAyah: number | null = null;
+  let startJuz: number | null = null;
+  const startSurahRaw = (body.start_surah as string) || "";
+  const startAyahRaw = (body.start_ayah as string) || "";
+  if (startSurahRaw && startAyahRaw) {
+    const parsedStartSurah = parseInt(startSurahRaw, 10);
+    const parsedStartAyah = parseInt(startAyahRaw, 10);
+    const startSurahMeta = SURAHS.find((s) => s.number === parsedStartSurah);
+    if (!startSurahMeta) return c.redirect(redirectWith("error", t(lang, "invalidSurah")));
+    if (!Number.isInteger(parsedStartAyah) || parsedStartAyah < 1 || parsedStartAyah > startSurahMeta.totalAyahs) {
+      return c.redirect(redirectWith("error", `${t(lang, "ayahMustBeBetween")} ${startSurahMeta.totalAyahs} ${t(lang, "forSurah")} ${startSurahMeta.name}.`));
+    }
+    startSurah = parsedStartSurah;
+    startAyah = parsedStartAyah;
+    startJuz = getJuzForPosition(startSurah, startAyah);
+  }
+
+  // Validate end position
   const endSurah = parseInt((body.end_surah as string) || "", 10);
   const endAyah = parseInt((body.end_ayah as string) || "", 10);
 
@@ -164,8 +186,8 @@ murojaah.post("/", async (c) => {
 
   // Insert log
   db.prepare(
-    "INSERT INTO murojaah_logs (user_id, date_wib, juz_amount, repetition_count, end_surah, end_ayah, end_juz, log_unit, log_amount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
-  ).run(user.id, dateCheck.date, juzAmount, repetitionCount, endSurah, endAyah, endJuz, logUnit, logAmount);
+    "INSERT INTO murojaah_logs (user_id, date_wib, juz_amount, repetition_count, start_surah, start_ayah, start_juz, end_surah, end_ayah, end_juz, log_unit, log_amount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+  ).run(user.id, dateCheck.date, juzAmount, repetitionCount, startSurah, startAyah, startJuz, endSurah, endAyah, endJuz, logUnit, logAmount);
 
   // Khatam detection — reached An-Nas (surah 114) ayah 6
   let khatamMsg = "";
