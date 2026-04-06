@@ -8,6 +8,19 @@ All notable changes to this project are documented here.
 
 ---
 
+## [1.0.3] — 2026-04-06
+
+### Features
+
+- Tilawah and murojaah log forms now include an optional starting position (surah + ayah)
+- Starting position is pre-filled from the last log's ending position for convenience, fully editable
+- Log list displays "Started at ... -> Ended at ..." when start position is present; falls back to "Ended at ..." for older logs
+- DB: additive migration adds `start_surah`, `start_ayah`, `start_juz` (nullable) to both log tables
+
+Closes #6
+
+---
+
 ## [1.0.2] — 2026-04-03
 
 ### Features
