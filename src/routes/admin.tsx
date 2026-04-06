@@ -530,16 +530,56 @@ admin.get("/enrollments", (c) => {
   const lang = c.get("lang");
   const perPage = 20;
   const page = Math.max(1, parseInt(c.req.query("page") || "1", 10));
-  const total = (db.prepare("SELECT COUNT(*) AS cnt FROM enrollments").get() as { cnt: number }).cnt;
+  const statusFilter = c.req.query("status") || "pending";
+  const success = c.req.query("success") || "";
+  const error = c.req.query("error") || "";
+
+  const validStatuses = ["pending", "approved", "rejected", "all"];
+  const safeStatus = validStatuses.includes(statusFilter) ? statusFilter : "pending";
+
+  const where = safeStatus === "all" ? "" : "WHERE status = ?";
+  const args: (string | number)[] = safeStatus === "all" ? [] : [safeStatus];
+
+  const total = (db.prepare(`SELECT COUNT(*) AS cnt FROM enrollments ${where}`).get(...args) as { cnt: number }).cnt;
   const rows = db
     .prepare(
-      "SELECT id, full_name, gender, whatsapp, program_type, quran_level, submitted_at FROM enrollments ORDER BY submitted_at DESC LIMIT ? OFFSET ?"
+      `SELECT id, full_name, gender, whatsapp, program_type, quran_level, submitted_at, status FROM enrollments ${where} ORDER BY submitted_at DESC LIMIT ? OFFSET ?`
     )
-    .all(perPage, (page - 1) * perPage) as EnrollmentRow[];
+    .all(...args, perPage, (page - 1) * perPage) as EnrollmentRow[];
 
   return c.html(
-    <AdminEnrollmentsPage user={user} lang={lang} rows={rows} total={total} page={page} perPage={perPage} />
+    <AdminEnrollmentsPage
+      user={user} lang={lang} rows={rows} total={total}
+      page={page} perPage={perPage} statusFilter={safeStatus}
+      success={success} error={error}
+    />
   );
+});
+
+admin.post("/enrollments/bulk", async (c) => {
+  const fd = await c.req.raw.formData();
+  const action = (fd.get("action") as string | null) || "";
+  const rawIds = fd.getAll("ids");
+  const ids = rawIds
+    .map((id) => parseInt(id as string, 10))
+    .filter((n) => Number.isFinite(n));
+
+  if (!["approve", "reject"].includes(action)) {
+    return c.redirect("/admin/enrollments?error=Invalid action.");
+  }
+  if (ids.length === 0) {
+    return c.redirect("/admin/enrollments?error=No enrollments selected.");
+  }
+
+  const placeholders = ids.map(() => "?").join(", ");
+  const newStatus = action === "approve" ? "approved" : "rejected";
+  db.prepare(
+    `UPDATE enrollments SET status = '${newStatus}' WHERE id IN (${placeholders}) AND status = 'pending'`
+  ).run(...ids);
+
+  const count = ids.length;
+  const verb = action === "approve" ? "approved" : "rejected";
+  return c.redirect(`/admin/enrollments?success=${count} enrollment${count !== 1 ? "s" : ""} ${verb}.&status=pending`);
 });
 
 admin.get("/enrollments/:id", (c) => {

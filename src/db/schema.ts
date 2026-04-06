@@ -210,6 +210,14 @@ export function initializeDatabase() {
     CREATE INDEX IF NOT EXISTS idx_enrollments_submitted ON enrollments(submitted_at);
   `);
 
+  // Additive migration: status column on enrollments
+  const enrollmentColumns = db
+    .prepare("PRAGMA table_info(enrollments)")
+    .all() as Array<{ name: string }>;
+  if (!enrollmentColumns.map((c) => c.name).includes("status")) {
+    db.exec("ALTER TABLE enrollments ADD COLUMN status TEXT NOT NULL DEFAULT 'pending'");
+  }
+
   // khatam_events — position-verified khatam (end_surah=114, end_ayah=6)
   db.exec(`
     CREATE TABLE IF NOT EXISTS khatam_events (
