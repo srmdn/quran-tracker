@@ -8,6 +8,17 @@ All notable changes to this project are documented here.
 
 ---
 
+## [1.1.0] — 2026-04-06
+
+### Features
+
+- PWA: add manifest.json and installable support (manifest link, theme-color, Apple meta tags, 192/512 icons)
+- Export personal log history (tilawah + murojaah, all-time) as CSV from the profile page
+- Admin: bulk approve/reject pending enrollments with checkboxes, Select All, and confirmation prompt
+- Admin enrollments page: status filter tabs (Pending/Approved/Rejected/All) and status badges per row
+
+---
+
 ## [1.0.4] — 2026-04-06
 
 ### Bug Fixes
