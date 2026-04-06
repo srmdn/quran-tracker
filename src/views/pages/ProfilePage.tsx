@@ -70,6 +70,19 @@ export const ProfilePage: FC<{
           </div>
         </div>
 
+        {/* Export log history */}
+        <div class="w-full bg-white border border-border-light rounded-xl p-6 mb-4">
+          <h3 class="text-text-main font-bold mb-1">Export Log History</h3>
+          <p class="text-xs text-text-secondary mb-4">Download your full tilawah and murojaah log history as a CSV file.</p>
+          <a
+            href="/profile/export.csv"
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 text-slate-700 font-bold text-sm hover:bg-slate-200 transition-colors"
+          >
+            <span class="material-symbols-outlined text-base" style="font-size:1rem;">download</span>
+            Download CSV
+          </a>
+        </div>
+
         {/* Display name */}
         <div class="w-full bg-white border border-border-light rounded-xl p-6 mb-4">
           <h3 class="text-text-main font-bold mb-1">{t(lang, "displayName")}</h3>
