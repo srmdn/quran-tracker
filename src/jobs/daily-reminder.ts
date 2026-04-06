@@ -20,7 +20,7 @@ const rolesSql = ACTIVE_MEMBER_ROLES.map((r) => `'${r}'`).join(", ");
 
 const recipients = db
   .prepare(
-    `SELECT id, name, email, role, avatar_url, suspended_at, created_at, updated_at FROM users WHERE role IN (${rolesSql}) AND email IS NOT NULL`
+    `SELECT id, name, email, role, avatar_url, suspended_at, created_at, updated_at FROM users WHERE role IN (${rolesSql}) AND email IS NOT NULL AND suspended_at IS NULL`
   )
   .all() as User[];
 

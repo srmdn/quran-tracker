@@ -24,7 +24,7 @@ function getMonthLabel(year: number, month: number): string {
 function getActiveRecipients(): Array<{ id: number; email: string; name: string }> {
   const rolesSql = ACTIVE_MEMBER_ROLES.map((r) => `'${r}'`).join(", ");
   const rows = db
-    .prepare(`SELECT id, email, name FROM users WHERE role IN (${rolesSql}) AND email IS NOT NULL`)
+    .prepare(`SELECT id, email, name FROM users WHERE role IN (${rolesSql}) AND email IS NOT NULL AND suspended_at IS NULL`)
     .all() as Array<{ id: number; email: string; name: string }>;
   return rows.filter((r) => !!r.email);
 }
