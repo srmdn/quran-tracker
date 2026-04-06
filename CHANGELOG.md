@@ -8,6 +8,14 @@ All notable changes to this project are documented here.
 
 ---
 
+## [1.0.4] — 2026-04-06
+
+### Bug Fixes
+
+- Suspended users no longer receive daily reminder or monthly snapshot emails
+
+---
+
 ## [1.0.3] — 2026-04-06
 
 ### Features
