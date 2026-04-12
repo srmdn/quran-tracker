@@ -218,6 +218,19 @@ export function initializeDatabase() {
     db.exec("ALTER TABLE enrollments ADD COLUMN status TEXT NOT NULL DEFAULT 'pending'");
   }
 
+  // streak_freezes — user-applied streak freeze credits
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS streak_freezes (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      date_wib   TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      UNIQUE(user_id, date_wib)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_streak_freezes_user ON streak_freezes(user_id, date_wib);
+  `);
+
   // khatam_events — position-verified khatam (end_surah=114, end_ayah=6)
   db.exec(`
     CREATE TABLE IF NOT EXISTS khatam_events (

@@ -12,6 +12,7 @@ export type HeatmapEntry = {
   date: string;
   met_target: boolean;
   total_juz: number;
+  frozen: boolean;
 };
 
 function ymdToEpochDay(ymd: string): number {
@@ -96,6 +97,54 @@ export function checkAndUpdateStreak(userId: number, todayWib: string): number {
   return newCurrent;
 }
 
+export const FREEZE_CREDITS_PER_MONTH = 2;
+
+export function getFreezeCreditsLeft(userId: number, yearMonth: string): number {
+  const used = (db
+    .prepare("SELECT COUNT(*) AS cnt FROM streak_freezes WHERE user_id = ? AND date_wib LIKE ?")
+    .get(userId, `${yearMonth}-%`) as { cnt: number }).cnt;
+  return Math.max(0, FREEZE_CREDITS_PER_MONTH - used);
+}
+
+export function isFrozen(userId: number, dateWib: string): boolean {
+  return !!db.prepare("SELECT 1 FROM streak_freezes WHERE user_id = ? AND date_wib = ?").get(userId, dateWib);
+}
+
+export function applyFreeze(userId: number, dateWib: string): { ok: boolean; error?: string } {
+  const yearMonth = dateWib.slice(0, 7);
+  const creditsLeft = getFreezeCreditsLeft(userId, yearMonth);
+  if (creditsLeft <= 0) return { ok: false, error: "no_credits" };
+
+  const alreadyFrozen = isFrozen(userId, dateWib);
+  if (alreadyFrozen) return { ok: false, error: "already_frozen" };
+
+  const streak = getUserStreak(userId, dateWib);
+  if (streak.current_streak === 0) return { ok: false, error: "no_streak" };
+
+  db.prepare("INSERT OR IGNORE INTO streak_freezes (user_id, date_wib) VALUES (?, ?)").run(userId, dateWib);
+
+  // Extend streak to cover today if consecutive
+  const todayEpoch = ymdToEpochDay(dateWib);
+  let newCurrent = streak.current_streak;
+  if (streak.last_active_date && streak.last_active_date !== dateWib) {
+    const gap = todayEpoch - ymdToEpochDay(streak.last_active_date);
+    if (gap <= 2) newCurrent = streak.current_streak + 1;
+  }
+  const newLongest = Math.max(newCurrent, streak.longest_streak);
+
+  db.prepare(`
+    INSERT INTO user_streaks (user_id, current_streak, longest_streak, last_active_date, updated_at)
+    VALUES (?, ?, ?, ?, datetime('now'))
+    ON CONFLICT(user_id) DO UPDATE SET
+      current_streak   = excluded.current_streak,
+      longest_streak   = excluded.longest_streak,
+      last_active_date = excluded.last_active_date,
+      updated_at       = datetime('now')
+  `).run(userId, newCurrent, newLongest, dateWib);
+
+  return { ok: true };
+}
+
 // Full streak recalculation from history — call after deleting a log entry.
 // Scans last 400 days of activity so it's bounded even for long-time users.
 export function rebuildStreak(userId: number): void {
@@ -104,17 +153,21 @@ export function rebuildStreak(userId: number): void {
 
   const todayWib = getWibDateYmd();
 
-  const dates = db
+  const activityDates = db
     .prepare(
       `SELECT DISTINCT date_wib FROM (
          SELECT date_wib FROM tilawah_logs WHERE user_id = ?
          UNION ALL
          SELECT date_wib FROM murojaah_logs WHERE user_id = ?
+         UNION ALL
+         SELECT date_wib FROM streak_freezes WHERE user_id = ?
        )
        WHERE date_wib >= date(?, '-400 days')
        ORDER BY date_wib DESC`
     )
-    .all(userId, userId, todayWib) as Array<{ date_wib: string }>;
+    .all(userId, userId, userId, todayWib) as Array<{ date_wib: string }>;
+
+  const dates = activityDates;
 
   const metDates = dates.map((r) => r.date_wib);
 
@@ -199,13 +252,19 @@ export function getActivityHeatmap(userId: number, days = 365): HeatmapEntry[] {
     )
     .all(userId, startDate, todayWib) as Array<{ date_wib: string; total: number }>;
 
+  const freezeRows = db
+    .prepare("SELECT date_wib FROM streak_freezes WHERE user_id = ? AND date_wib BETWEEN ? AND ?")
+    .all(userId, startDate, todayWib) as Array<{ date_wib: string }>;
+
   const tilawahByDate = new Map<string, number>();
   const murojaahByDate = new Map<string, number>();
+  const frozenDates = new Set<string>();
 
   for (const r of tilawahRows) tilawahByDate.set(r.date_wib, r.total);
   for (const r of murojaahRows) murojaahByDate.set(r.date_wib, r.total);
+  for (const r of freezeRows) frozenDates.add(r.date_wib);
 
-  const allDates = new Set([...tilawahByDate.keys(), ...murojaahByDate.keys()]);
+  const allDates = new Set([...tilawahByDate.keys(), ...murojaahByDate.keys(), ...frozenDates]);
 
   return [...allDates].sort().map((date) => {
     const t = tilawahByDate.get(date) ?? 0;
@@ -214,6 +273,7 @@ export function getActivityHeatmap(userId: number, days = 365): HeatmapEntry[] {
       date,
       total_juz: Math.round((t + m) * 100) / 100,
       met_target: target ? t >= target.tilawah_juz_daily && m >= target.murojaah_juz_daily : false,
+      frozen: frozenDates.has(date) && t === 0 && m === 0,
     };
   });
 }

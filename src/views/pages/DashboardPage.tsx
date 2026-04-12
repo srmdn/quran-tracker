@@ -27,6 +27,11 @@ export const DashboardPage: FC<{
   totalKhatam: number;
   totalActiveUsers: number;
   fastabiqEntry: FastabiqEntry;
+  freezeCreditsLeft: number;
+  todayFrozen: boolean;
+  hasTodayLog: boolean;
+  success?: string;
+  error?: string;
 }> = ({
   user,
   lang,
@@ -42,6 +47,11 @@ export const DashboardPage: FC<{
   totalKhatam,
   totalActiveUsers,
   fastabiqEntry,
+  freezeCreditsLeft,
+  todayFrozen,
+  hasTodayLog,
+  success,
+  error,
 }) => {
   const firstName = user.name.split(" ")[0];
   const tilawahPercent = Math.min(100, Math.round((todayTilawah / target.tilawah_juz_daily) * 100));
@@ -63,12 +73,30 @@ export const DashboardPage: FC<{
               Assalamu'alaikum, {firstName}!
             </h1>
             {streak.current_streak > 0 ? (
-              <div class="flex items-center gap-2 mt-1.5">
+              <div class="flex items-center gap-2 mt-1.5 flex-wrap">
                 <span class="text-xl leading-none">🔥</span>
                 <span class="text-base font-bold text-orange-500">{streak.current_streak} {t(lang, "dayStreak")}</span>
+                {!hasTodayLog && !todayFrozen && streak.current_streak > 0 && freezeCreditsLeft > 0 && (
+                  <form method="POST" action="/dashboard/freeze" class="inline">
+                    <button type="submit"
+                      class="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg border border-sky-300 bg-sky-50 text-sky-700 hover:bg-sky-100 transition-colors">
+                      <span class="material-symbols-outlined text-sm">ac_unit</span>
+                      {t(lang, "freezeProtectToday")}
+                    </button>
+                  </form>
+                )}
+                {todayFrozen && (
+                  <span class="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg border border-sky-200 bg-sky-50 text-sky-600">
+                    <span class="material-symbols-outlined text-sm">ac_unit</span>
+                    {t(lang, "frozenLabel")}
+                  </span>
+                )}
               </div>
             ) : (
               <p class="text-text-secondary text-sm mt-1">{t(lang, "startLoggingStreak")}</p>
+            )}
+            {streak.current_streak > 0 && (
+              <p class="text-xs text-text-secondary mt-1">{freezeCreditsLeft} {t(lang, "freezeCreditsLeft")}</p>
             )}
           </div>
           <a
@@ -79,6 +107,13 @@ export const DashboardPage: FC<{
             {t(lang, "setTargets")}
           </a>
         </div>
+
+        {success && (
+          <div class="w-full bg-emerald-50 text-emerald-700 text-sm px-4 py-3 rounded-lg mb-4 border border-emerald-200">{success}</div>
+        )}
+        {error && (
+          <div class="w-full bg-red-50 text-red-600 text-sm px-4 py-3 rounded-lg mb-4 border border-red-200">{error}</div>
+        )}
 
         {/* Fastabiqul Khoirot dalil */}
         <div class="w-full bg-primary/5 border border-primary/20 rounded-xl px-5 py-4 mb-6 flex flex-col sm:flex-row sm:items-center gap-3">
@@ -258,13 +293,16 @@ export const DashboardPage: FC<{
                     <div
                       data-hdate={cell.date}
                       data-hcount={String(cell.count)}
-                      style="width:12px; height:12px; border-radius:2px;"
+                      data-hstate={cell.state}
+                      style={`width:12px; height:12px; border-radius:2px;${cell.state === "frozen" ? "background:#bae6fd;border:1px solid #7dd3fc;" : ""}`}
                       class={
                         cell.state === "met"
                           ? "bg-emerald-500"
                           : cell.state === "logged"
                             ? "bg-primary/40"
-                            : "bg-slate-100 border border-slate-200"
+                            : cell.state === "frozen"
+                              ? ""
+                              : "bg-slate-100 border border-slate-200"
                       }
                     />
                   )
@@ -272,7 +310,7 @@ export const DashboardPage: FC<{
               </div>
             </div>
           </div>
-          <div class="flex items-center gap-4 mt-3 text-xs text-text-secondary">
+          <div class="flex items-center gap-4 mt-3 text-xs text-text-secondary flex-wrap">
             <div class="flex items-center gap-1.5">
               <div class="w-3 h-3 rounded-sm bg-emerald-500" />
               <span>{t(lang, "targetMetLabel")}</span>
@@ -280,6 +318,10 @@ export const DashboardPage: FC<{
             <div class="flex items-center gap-1.5">
               <div class="w-3 h-3 rounded-sm bg-primary/40" />
               <span>{t(lang, "partialLabel")}</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <div style="width:12px;height:12px;border-radius:2px;background:#bae6fd;border:1px solid #7dd3fc;" />
+              <span>{t(lang, "frozenLabel")}</span>
             </div>
             <div class="flex items-center gap-1.5">
               <div class="w-3 h-3 rounded-sm bg-slate-100 border border-slate-200" />
@@ -293,7 +335,7 @@ export const DashboardPage: FC<{
           id="heatmap-tip"
           style="display:none; position:fixed; background:#1e293b; color:#f1f5f9; font-size:11px; font-weight:500; padding:5px 9px; border-radius:5px; pointer-events:none; z-index:50; white-space:nowrap; box-shadow:0 2px 8px rgba(0,0,0,0.25);"
         />
-        <script dangerouslySetInnerHTML={{ __html: `(function(){var t=document.getElementById('heatmap-tip');if(!t)return;var M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],D=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];function pos(e){var x=e.clientX+12,y=e.clientY-36;if(x+t.offsetWidth>window.innerWidth-8)x=e.clientX-t.offsetWidth-12;if(y<8)y=e.clientY+12;t.style.left=x+'px';t.style.top=y+'px';}document.querySelectorAll('[data-hdate]').forEach(function(el){el.addEventListener('mouseenter',function(e){var d=el.getAttribute('data-hdate'),c=parseFloat(el.getAttribute('data-hcount')||'0'),dt=new Date(d+'T00:00:00Z'),lbl=D[dt.getUTCDay()]+', '+dt.getUTCDate()+' '+M[dt.getUTCMonth()]+' '+dt.getUTCFullYear();t.textContent=(c>0?c+' juz':'No activity')+' \u00b7 '+lbl;t.style.display='block';pos(e);});el.addEventListener('mousemove',pos);el.addEventListener('mouseleave',function(){t.style.display='none';});});})();` }} />
+        <script dangerouslySetInnerHTML={{ __html: `(function(){var t=document.getElementById('heatmap-tip');if(!t)return;var M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],D=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];function pos(e){var x=e.clientX+12,y=e.clientY-36;if(x+t.offsetWidth>window.innerWidth-8)x=e.clientX-t.offsetWidth-12;if(y<8)y=e.clientY+12;t.style.left=x+'px';t.style.top=y+'px';}document.querySelectorAll('[data-hdate]').forEach(function(el){el.addEventListener('mouseenter',function(e){var d=el.getAttribute('data-hdate'),c=parseFloat(el.getAttribute('data-hcount')||'0'),s=el.getAttribute('data-hstate')||'',dt=new Date(d+'T00:00:00Z'),lbl=D[dt.getUTCDay()]+', '+dt.getUTCDate()+' '+M[dt.getUTCMonth()]+' '+dt.getUTCFullYear();var act=s==='frozen'?'Streak frozen':(c>0?c+' juz':'No activity');t.textContent=act+' \u00b7 '+lbl;t.style.display='block';pos(e);});el.addEventListener('mousemove',pos);el.addEventListener('mouseleave',function(){t.style.display='none';});});})();` }} />
 
         {/* Recent logs */}
         <div class="w-full bg-white border border-border-light rounded-xl overflow-hidden">

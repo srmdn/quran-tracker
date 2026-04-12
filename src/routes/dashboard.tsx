@@ -3,8 +3,8 @@ import { authMiddleware, memberMiddleware, targetMiddleware } from "../middlewar
 import { db } from "../db/connection.ts";
 import { getCurrentMonthUserActivityRank, getUserActivityTotals } from "../lib/activity-calc.ts";
 import { getUserTarget, getTodayTilawahTotal, getTodayMurojaahTotal } from "../lib/targets.ts";
-import { getUserStreak, getActivityHeatmap } from "../lib/streak.ts";
-import { getWibDateYmd } from "../lib/wib-date.ts";
+import { getUserStreak, getActivityHeatmap, getFreezeCreditsLeft, isFrozen, applyFreeze } from "../lib/streak.ts";
+import { getWibDateYmd, getWibYearMonth } from "../lib/wib-date.ts";
 import { ACTIVE_MEMBER_ROLES } from "../lib/roles.ts";
 import { DashboardPage } from "../views/pages/DashboardPage.tsx";
 import { getRandomFastabiqEntry } from "../lib/fastabiq-verses.ts";
@@ -29,7 +29,7 @@ export type RecentLogEntry = {
 
 export type HeatmapCell = {
   date: string;
-  state: "met" | "logged" | "empty" | "filler";
+  state: "met" | "logged" | "empty" | "filler" | "frozen";
   count: number;
 };
 
@@ -45,9 +45,17 @@ dashboard.get("/", (c) => {
   const monthlyRank = getCurrentMonthUserActivityRank(user.id);
   const heatmapRaw = getActivityHeatmap(user.id, 365);
 
+  // Freeze credits
+  const { year: wy, month: wm } = getWibYearMonth();
+  const yearMonth = `${wy}-${String(wm).padStart(2, "0")}`;
+  const freezeCreditsLeft = getFreezeCreditsLeft(user.id, yearMonth);
+  const todayFrozen = isFrozen(user.id, todayWib);
+  const hasTodayLog = (todayTilawah > 0 || todayMurojaah > 0);
+
   // Build full 365-day rolling heatmap grid (oldest → newest), padded to start on Sunday
   const metSet = new Set(heatmapRaw.filter((e) => e.met_target).map((e) => e.date));
   const countByDate = new Map(heatmapRaw.map((e) => [e.date, e.total_juz]));
+  const frozenSet = new Set(heatmapRaw.filter((e) => e.frozen).map((e) => e.date));
 
   const [ty, tm, td] = todayWib.split("-").map(Number);
   const todayUtcMs = Date.UTC(ty!, tm! - 1, td!);
@@ -57,9 +65,10 @@ dashboard.get("/", (c) => {
     const ms = todayUtcMs - i * 86400000;
     const ymd = new Date(ms).toISOString().slice(0, 10);
     const count = countByDate.get(ymd) ?? 0;
+    const frozen = frozenSet.has(ymd);
     days365.push({
       date: ymd,
-      state: metSet.has(ymd) ? "met" : count > 0 ? "logged" : "empty",
+      state: metSet.has(ymd) ? "met" : count > 0 ? "logged" : frozen ? "frozen" : "empty",
       count,
     });
   }
@@ -118,8 +127,31 @@ dashboard.get("/", (c) => {
       totalKhatam={khatamRow.cnt}
       totalActiveUsers={totalActiveUsers}
       fastabiqEntry={fastabiqEntry}
+      freezeCreditsLeft={freezeCreditsLeft}
+      todayFrozen={todayFrozen}
+      hasTodayLog={hasTodayLog}
+      success={c.req.query("success")}
+      error={c.req.query("error")}
     />
   );
+});
+
+import { t } from "../lib/i18n.ts";
+
+dashboard.post("/freeze", (c) => {
+  const user = c.get("user");
+  const lang = c.get("lang");
+  const todayWib = getWibDateYmd();
+  const result = applyFreeze(user.id, todayWib);
+
+  if (!result.ok) {
+    const msgKey = result.error === "no_credits" ? "freezeNoCredits"
+      : result.error === "already_frozen" ? "freezeAlready"
+      : "freezeNoStreak";
+    return c.redirect(`/dashboard?error=${encodeURIComponent(t(lang, msgKey))}`);
+  }
+
+  return c.redirect(`/dashboard?success=${encodeURIComponent(t(lang, "freezeApplied"))}`);
 });
 
 export { dashboard as dashboardRoutes };
