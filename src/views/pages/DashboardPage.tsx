@@ -74,8 +74,8 @@ export const DashboardPage: FC<{
             </h1>
             {streak.current_streak > 0 ? (
               <div class="flex items-center gap-2 mt-1.5 flex-wrap">
-                <span class="text-xl leading-none">🔥</span>
-                <span class="text-base font-bold text-orange-500">{streak.current_streak} {t(lang, "dayStreak")}</span>
+                <span class="text-xl leading-none">{todayFrozen ? "❄️" : "🔥"}</span>
+                <span class={`text-base font-bold ${todayFrozen ? "text-sky-500" : "text-orange-500"}`}>{streak.current_streak} {t(lang, "dayStreak")}</span>
                 {!hasTodayLog && !todayFrozen && streak.current_streak > 0 && freezeCreditsLeft > 0 && (
                   <form method="POST" action="/dashboard/freeze" class="inline">
                     <button type="submit"
