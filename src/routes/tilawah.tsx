@@ -65,6 +65,20 @@ tilawah.get("/", (c) => {
     .prepare("SELECT id, date_wib, juz_amount, log_unit, log_amount, start_surah, start_ayah, start_juz, end_surah, end_ayah, end_juz, created_at FROM tilawah_logs WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?")
     .all(user.id, perPage, (page - 1) * perPage) as TilawahLog[];
 
+  // Juz coverage: count entries per end_juz
+  type JuzCountRow = { end_juz: number; cnt: number };
+  const coverageMonthRows = db
+    .prepare("SELECT end_juz, COUNT(*) AS cnt FROM tilawah_logs WHERE user_id = ? AND end_juz IS NOT NULL AND date_wib LIKE ? GROUP BY end_juz")
+    .all(user.id, `${yearMonth}-%`) as JuzCountRow[];
+  const coverageAllTimeRows = db
+    .prepare("SELECT end_juz, COUNT(*) AS cnt FROM tilawah_logs WHERE user_id = ? AND end_juz IS NOT NULL GROUP BY end_juz")
+    .all(user.id) as JuzCountRow[];
+
+  const juzCoverageMonth: Record<number, number> = {};
+  for (const row of coverageMonthRows) juzCoverageMonth[row.end_juz] = row.cnt;
+  const juzCoverageAllTime: Record<number, number> = {};
+  for (const row of coverageAllTimeRows) juzCoverageAllTime[row.end_juz] = row.cnt;
+
   return c.html(
     <TilawahPage
       user={user}
@@ -82,6 +96,8 @@ tilawah.get("/", (c) => {
       page={page}
       totalLogs={totalLogs}
       perPage={perPage}
+      juzCoverageMonth={juzCoverageMonth}
+      juzCoverageAllTime={juzCoverageAllTime}
     />
   );
 });

@@ -41,6 +41,32 @@ for (const juz of JUZ_BOUNDARIES) {
 }
 const surahToJuzJson = JSON.stringify(surahToJuz);
 
+function juzCellClass(count: number): string {
+  if (count === 0) return "bg-slate-100 text-slate-400";
+  if (count === 1) return "bg-primary/20 text-primary-dark font-semibold";
+  if (count === 2) return "bg-primary/50 text-primary-dark font-semibold";
+  return "bg-primary text-white font-bold";
+}
+
+function JuzGrid({ coverage }: { coverage: Record<number, number> }) {
+  return (
+    <div class="grid grid-cols-6 gap-1.5">
+      {Array.from({ length: 30 }, (_, i) => i + 1).map((juz) => {
+        const cnt = coverage[juz] ?? 0;
+        return (
+          <div
+            title={`Juz ${juz}: ${cnt} ${cnt === 1 ? "entry" : "entries"}`}
+            class={`rounded-lg flex flex-col items-center justify-center aspect-square text-xs cursor-default select-none transition-colors ${juzCellClass(cnt)}`}
+          >
+            <span class="text-[11px] leading-none">{juz}</span>
+            {cnt > 0 && <span class="text-[9px] leading-none opacity-70 mt-0.5">{cnt}x</span>}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export const TilawahPage: FC<{
   user: User;
   lang: Lang;
@@ -57,7 +83,9 @@ export const TilawahPage: FC<{
   page: number;
   totalLogs: number;
   perPage: number;
-}> = ({ user, lang, success, error, todayWib, todayTotal, target, lastLog, recentLogs, allTimeJuz, thisMonthJuz, totalKhatam, page, totalLogs, perPage }) => {
+  juzCoverageMonth: Record<number, number>;
+  juzCoverageAllTime: Record<number, number>;
+}> = ({ user, lang, success, error, todayWib, todayTotal, target, lastLog, recentLogs, allTimeJuz, thisMonthJuz, totalKhatam, page, totalLogs, perPage, juzCoverageMonth, juzCoverageAllTime }) => {
   const totalPages = Math.max(1, Math.ceil(totalLogs / perPage));
   const todayPercent = Math.min(100, Math.round((todayTotal / target.tilawah_juz_daily) * 100));
   const lastSurahName = lastLog?.end_surah ? SURAHS.find((s) => s.number === lastLog.end_surah)?.name : null;
@@ -300,6 +328,54 @@ export const TilawahPage: FC<{
               <p class="text-sm font-bold text-primary">{t(lang, "viewLeaderboard")}</p>
             </a>
           </div>
+        </div>
+
+        {/* Juz coverage map */}
+        <div class="w-full bg-white border border-border-light rounded-xl p-6 mb-8">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-text-main font-bold">{lang === "id" ? "Peta Juz" : "Juz Coverage Map"}</h3>
+              <p class="text-xs text-text-secondary mt-0.5">{lang === "id" ? "Juz mana yang sudah kamu baca" : "Which juz you have read"}</p>
+            </div>
+            <div class="flex rounded-lg overflow-hidden border border-slate-200 bg-slate-50">
+              <button type="button" id="cov-btn-month"
+                class="px-3 py-1.5 text-xs font-bold bg-primary text-white transition-colors rounded-l-lg">
+                {lang === "id" ? "Bulan Ini" : "This Month"}
+              </button>
+              <button type="button" id="cov-btn-alltime"
+                class="px-3 py-1.5 text-xs font-bold text-text-secondary transition-colors rounded-r-lg">
+                {lang === "id" ? "Semua Waktu" : "All Time"}
+              </button>
+            </div>
+          </div>
+          <div id="cov-month">
+            <JuzGrid coverage={juzCoverageMonth} />
+          </div>
+          <div id="cov-alltime" style="display:none">
+            <JuzGrid coverage={juzCoverageAllTime} />
+          </div>
+          <div class="flex items-center gap-4 mt-3 text-xs text-text-secondary">
+            <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded bg-slate-100 border border-slate-200"></span> {lang === "id" ? "Belum" : "None"}</span>
+            <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded bg-primary/20"></span> 1x</span>
+            <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded bg-primary/50"></span> 2x</span>
+            <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded bg-primary"></span> 3x+</span>
+          </div>
+          <script dangerouslySetInnerHTML={{ __html: `(function(){
+  var btnM=document.getElementById('cov-btn-month');
+  var btnA=document.getElementById('cov-btn-alltime');
+  var divM=document.getElementById('cov-month');
+  var divA=document.getElementById('cov-alltime');
+  var activeC='px-3 py-1.5 text-xs font-bold bg-primary text-white transition-colors';
+  var inactiveC='px-3 py-1.5 text-xs font-bold text-text-secondary transition-colors';
+  btnM.addEventListener('click',function(){
+    divM.style.display='';divA.style.display='none';
+    btnM.className=activeC+' rounded-l-lg';btnA.className=inactiveC+' rounded-r-lg';
+  });
+  btnA.addEventListener('click',function(){
+    divM.style.display='none';divA.style.display='';
+    btnM.className=inactiveC+' rounded-l-lg';btnA.className=activeC+' rounded-r-lg';
+  });
+})();` }} />
         </div>
 
         {/* Recent logs */}
