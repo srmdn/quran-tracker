@@ -30,7 +30,12 @@ export function formatLogAmount(
 ): string {
   if (logUnit && logAmount !== null) {
     if (logUnit === "pages") {
-      return lang === "id" ? `${logAmount} halaman` : `${logAmount} pages`;
+      const whole = Math.floor(logAmount);
+      const isHalf = logAmount % 1 !== 0;
+      const pageWord = lang === "id" ? "halaman" : "pages";
+      if (isHalf && whole === 0) return `½ ${pageWord}`;
+      if (isHalf) return `${whole}½ ${pageWord}`;
+      return `${logAmount} ${pageWord}`;
     }
     return `${logAmount} juz`;
   }

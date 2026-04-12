@@ -133,9 +133,22 @@ export const MurojaahPage: FC<{
                     </button>
                   </div>
                   <input type="hidden" name="input_mode" id="mur-input-mode" value="juz" />
-                  <input type="number" name="amount" id="mur-amount-inp" min="1" max="30" step="1" placeholder="e.g. 1"
-                    class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" required />
+                  <div id="mur-juz-fields">
+                    <input type="number" name="amount" id="mur-amount-inp" min="1" max="30" step="1" placeholder="e.g. 1"
+                      class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" />
+                  </div>
+                  <div id="mur-pages-fields" style="display:none">
+                    <div class="flex items-center gap-3">
+                      <input type="number" name="pages_whole" id="mur-pages-whole" min="0" max="30" step="1" placeholder="e.g. 10"
+                        class="flex-1 rounded-lg border-slate-200 bg-slate-50 text-sm" />
+                      <label class="flex items-center gap-1.5 text-sm text-text-secondary whitespace-nowrap cursor-pointer">
+                        <input type="checkbox" name="pages_half" id="mur-pages-half" class="rounded" />
+                        ½ {lang === "id" ? "halaman" : "page"}
+                      </label>
+                    </div>
+                  </div>
                   <p id="mur-mode-hint" class="text-xs text-text-secondary mt-1"></p>
+                  <p class="text-xs text-text-secondary/70 mt-1">{lang === "id" ? "Biarkan kosong untuk hitung otomatis dari posisi awal dan akhir." : "Leave empty to auto-calculate from start and end position."}</p>
                 </div>
                 <div>
                   <label class="block text-xs font-semibold text-text-secondary mb-1">{t(lang, "repetitionCount")}</label>
@@ -222,8 +235,9 @@ export const MurojaahPage: FC<{
   var btnJuz=document.getElementById('mur-btn-juz');
   var btnPages=document.getElementById('mur-btn-pages');
   var modeInp=document.getElementById('mur-input-mode');
-  var amountInp=document.getElementById('mur-amount-inp');
   var modeHint=document.getElementById('mur-mode-hint');
+  var juzFields=document.getElementById('mur-juz-fields');
+  var pagesFields=document.getElementById('mur-pages-fields');
   var activeClass='flex-1 py-1.5 text-xs font-bold bg-primary text-white transition-colors';
   var inactiveClass='flex-1 py-1.5 text-xs font-bold text-text-secondary transition-colors';
   function setMode(m){
@@ -231,12 +245,14 @@ export const MurojaahPage: FC<{
     if(m==='pages'){
       btnJuz.className=inactiveClass+' rounded-l-lg';
       btnPages.className=activeClass+' rounded-r-lg';
-      amountInp.placeholder='e.g. 10';
+      juzFields.style.display='none';
+      pagesFields.style.display='';
       modeHint.textContent='${lang === "id" ? "20 halaman = 1 juz (Mushaf Madinah)" : "20 pages = 1 juz (Medina Mushaf)"}';
     }else{
       btnJuz.className=activeClass+' rounded-l-lg';
       btnPages.className=inactiveClass+' rounded-r-lg';
-      amountInp.placeholder='e.g. 1';
+      juzFields.style.display='';
+      pagesFields.style.display='none';
       modeHint.textContent='';
     }
   }

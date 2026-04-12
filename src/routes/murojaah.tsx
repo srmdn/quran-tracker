@@ -93,39 +93,47 @@ murojaah.post("/", async (c) => {
 
   // Parse input mode (juz or pages)
   const inputMode = (body.input_mode as string) === "pages" ? "pages" : "juz";
-  const amountRaw = (body.amount as string)?.trim();
 
-  if (!/^\d+$/.test(amountRaw || "")) {
-    return c.redirect(redirectWith("error", t(lang, inputMode === "pages" ? "invalidPagesAmount" : "invalidJuzAmount")));
-  }
-  const amountInt = parseInt(amountRaw, 10);
-  if (amountInt <= 0) {
-    return c.redirect(redirectWith("error", t(lang, inputMode === "pages" ? "invalidPagesAmount" : "invalidJuzAmount")));
-  }
-
-  let juzAmount: number;
+  let juzAmount: number = 0;
   let logUnit: "juz" | "pages";
-  let logAmount: number;
+  let logAmount: number = 0;
+  let needsAutoCalc = false;
 
   if (inputMode === "pages") {
-    if (amountInt > 30) return c.redirect(redirectWith("error", t(lang, "pagesExceed30")));
-    juzAmount = amountInt / 20;
-    logUnit = "pages";
-    logAmount = amountInt;
+    const pagesWholeRaw = (body.pages_whole as string)?.trim() || "";
+    const pagesHalf = !!(body.pages_half as string);
+    let pagesWhole = 0;
+    if (pagesWholeRaw !== "") {
+      if (!/^\d+$/.test(pagesWholeRaw)) {
+        return c.redirect(redirectWith("error", t(lang, "invalidPagesAmount")));
+      }
+      pagesWhole = parseInt(pagesWholeRaw, 10);
+    }
+    const totalPages = pagesWhole + (pagesHalf ? 0.5 : 0);
+    if (totalPages === 0) {
+      needsAutoCalc = true;
+      logUnit = "pages";
+    } else {
+      if (totalPages > 30) return c.redirect(redirectWith("error", t(lang, "pagesExceed30")));
+      logUnit = "pages";
+      logAmount = totalPages;
+      juzAmount = totalPages / 20;
+    }
   } else {
-    if (amountInt > 30) return c.redirect(redirectWith("error", t(lang, "juzExceeds30")));
-    juzAmount = amountInt;
-    logUnit = "juz";
-    logAmount = amountInt;
-  }
-
-  // Daily cap check
-  const target = getUserTarget(user.id);
-  if (target) {
-    const todayWibPost = getWibDateYmd();
-    const todayTotalPost = getTodayMurojaahTotal(user.id, todayWibPost);
-    if (todayTotalPost + juzAmount > target.murojaah_juz_daily) {
-      return c.redirect(redirectWith("error", t(lang, "dailyCapReached")));
+    const amountRaw = (body.amount as string)?.trim() || "";
+    if (amountRaw === "") {
+      needsAutoCalc = true;
+      logUnit = "juz";
+    } else {
+      if (!/^\d+$/.test(amountRaw)) {
+        return c.redirect(redirectWith("error", t(lang, "invalidJuzAmount")));
+      }
+      const amountInt = parseInt(amountRaw, 10);
+      if (amountInt <= 0) return c.redirect(redirectWith("error", t(lang, "invalidJuzAmount")));
+      if (amountInt > 30) return c.redirect(redirectWith("error", t(lang, "juzExceeds30")));
+      logUnit = "juz";
+      logAmount = amountInt;
+      juzAmount = amountInt;
     }
   }
 
@@ -175,6 +183,34 @@ murojaah.post("/", async (c) => {
 
   // Compute juz from surah+ayah — never trust user input
   const endJuz = getJuzForPosition(endSurah, endAyah);
+
+  // Auto-calculate amount from start/end juz if not provided
+  if (needsAutoCalc) {
+    if (startJuz === null) {
+      return c.redirect(redirectWith("error", t(lang, "autoCalcNeedsStart")));
+    }
+    const diff = endJuz - startJuz;
+    if (diff <= 0) {
+      return c.redirect(redirectWith("error", t(lang, "autoCalcNegative")));
+    }
+    if (logUnit === "pages") {
+      logAmount = diff * 20;
+      juzAmount = diff;
+    } else {
+      logAmount = diff;
+      juzAmount = diff;
+    }
+  }
+
+  // Daily cap check
+  const target = getUserTarget(user.id);
+  if (target) {
+    const todayWibPost = getWibDateYmd();
+    const todayTotalPost = getTodayMurojaahTotal(user.id, todayWibPost);
+    if (todayTotalPost + juzAmount > target.murojaah_juz_daily) {
+      return c.redirect(redirectWith("error", t(lang, "dailyCapReached")));
+    }
+  }
 
   // Capture pre-insert murojaah total for khatam plausibility check
   const preMurojaahTotal = getUserActivityTotals(user.id).murojaahJuz;

@@ -142,9 +142,22 @@ export const TilawahPage: FC<{
                     </button>
                   </div>
                   <input type="hidden" name="input_mode" id="til-input-mode" value="juz" />
-                  <input type="number" name="amount" id="til-amount-inp" min="1" max="30" step="1" placeholder="e.g. 1"
-                    class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" required />
+                  <div id="til-juz-fields">
+                    <input type="number" name="amount" id="til-amount-inp" min="1" max="30" step="1" placeholder="e.g. 1"
+                      class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" />
+                  </div>
+                  <div id="til-pages-fields" style="display:none">
+                    <div class="flex items-center gap-3">
+                      <input type="number" name="pages_whole" id="til-pages-whole" min="0" max="30" step="1" placeholder="e.g. 10"
+                        class="flex-1 rounded-lg border-slate-200 bg-slate-50 text-sm" />
+                      <label class="flex items-center gap-1.5 text-sm text-text-secondary whitespace-nowrap cursor-pointer">
+                        <input type="checkbox" name="pages_half" id="til-pages-half" class="rounded" />
+                        ½ {lang === "id" ? "halaman" : "page"}
+                      </label>
+                    </div>
+                  </div>
                   <p id="til-mode-hint" class="text-xs text-text-secondary mt-1"></p>
+                  <p class="text-xs text-text-secondary/70 mt-1">{lang === "id" ? "Biarkan kosong untuk hitung otomatis dari posisi awal dan akhir." : "Leave empty to auto-calculate from start and end position."}</p>
                 </div>
                 <div class="border-t border-border-light pt-4">
                   <p class="text-xs font-bold text-text-secondary mb-3">{t(lang, "startingPosition")}</p>
@@ -240,8 +253,9 @@ export const TilawahPage: FC<{
   var btnJuz=document.getElementById('til-btn-juz');
   var btnPages=document.getElementById('til-btn-pages');
   var modeInp=document.getElementById('til-input-mode');
-  var amountInp=document.getElementById('til-amount-inp');
   var modeHint=document.getElementById('til-mode-hint');
+  var juzFields=document.getElementById('til-juz-fields');
+  var pagesFields=document.getElementById('til-pages-fields');
   var activeClass='flex-1 py-1.5 text-xs font-bold bg-primary text-white transition-colors';
   var inactiveClass='flex-1 py-1.5 text-xs font-bold text-text-secondary transition-colors';
   function setMode(m){
@@ -249,12 +263,14 @@ export const TilawahPage: FC<{
     if(m==='pages'){
       btnJuz.className=inactiveClass+' rounded-l-lg';
       btnPages.className=activeClass+' rounded-r-lg';
-      amountInp.placeholder='e.g. 10';
+      juzFields.style.display='none';
+      pagesFields.style.display='';
       modeHint.textContent='${lang === "id" ? "20 halaman = 1 juz (Mushaf Madinah)" : "20 pages = 1 juz (Medina Mushaf)"}';
     }else{
       btnJuz.className=activeClass+' rounded-l-lg';
       btnPages.className=inactiveClass+' rounded-r-lg';
-      amountInp.placeholder='e.g. 1';
+      juzFields.style.display='';
+      pagesFields.style.display='none';
       modeHint.textContent='';
     }
   }
