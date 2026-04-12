@@ -41,25 +41,24 @@ for (const juz of JUZ_BOUNDARIES) {
 }
 const surahToJuzJson = JSON.stringify(surahToJuz);
 
-function juzCellClass(count: number): string {
-  if (count === 0) return "bg-slate-100 text-slate-400";
-  if (count === 1) return "bg-primary/20 text-primary-dark font-semibold";
-  if (count === 2) return "bg-primary/50 text-primary-dark font-semibold";
-  return "bg-primary text-white font-bold";
+function juzCellStyle(count: number): string {
+  if (count === 0) return "background:#e2e8f0";
+  if (count === 1) return "background:#93b8df";
+  if (count === 2) return "background:#5a8fc7";
+  return "background:#2A65AE";
 }
 
 function JuzGrid({ coverage }: { coverage: Record<number, number> }) {
   return (
-    <div class="grid grid-cols-6 gap-1.5">
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">
       {Array.from({ length: 30 }, (_, i) => i + 1).map((juz) => {
         const cnt = coverage[juz] ?? 0;
         return (
           <div
-            title={`Juz ${juz}: ${cnt} ${cnt === 1 ? "entry" : "entries"}`}
-            class={`rounded-lg flex flex-col items-center justify-center aspect-square text-xs cursor-default select-none transition-colors ${juzCellClass(cnt)}`}
+            title={`Juz ${juz}: ${cnt}x`}
+            style={`height:36px;border-radius:6px;cursor:default;user-select:none;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:${cnt === 0 ? "#94a3b8" : cnt >= 3 ? "#fff" : "#1e4f8a"};${juzCellStyle(cnt)}`}
           >
-            <span class="text-[11px] leading-none">{juz}</span>
-            {cnt > 0 && <span class="text-[9px] leading-none opacity-70 mt-0.5">{cnt}x</span>}
+            {juz}
           </div>
         );
       })}
@@ -355,10 +354,10 @@ export const TilawahPage: FC<{
             <JuzGrid coverage={juzCoverageAllTime} />
           </div>
           <div class="flex items-center gap-4 mt-3 text-xs text-text-secondary">
-            <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded bg-slate-100 border border-slate-200"></span> {lang === "id" ? "Belum" : "None"}</span>
-            <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded bg-primary/20"></span> 1x</span>
-            <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded bg-primary/50"></span> 2x</span>
-            <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded bg-primary"></span> 3x+</span>
+            <span class="flex items-center gap-1"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#e2e8f0"></span> {lang === "id" ? "Belum" : "None"}</span>
+            <span class="flex items-center gap-1"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#93b8df"></span> 1x</span>
+            <span class="flex items-center gap-1"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#5a8fc7"></span> 2x</span>
+            <span class="flex items-center gap-1"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#2A65AE"></span> 3x+</span>
           </div>
           <script dangerouslySetInnerHTML={{ __html: `(function(){
   var btnM=document.getElementById('cov-btn-month');
