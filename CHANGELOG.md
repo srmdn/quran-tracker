@@ -8,6 +8,16 @@ All notable changes to this project are documented here.
 
 ---
 
+## [1.2.0] — 2026-04-12
+
+### Features
+
+- Half-page logging: tilawah and murojaah logs now accept 0.5-page increments in pages mode, with auto-calculation of juz amount from start/end position
+- Juz coverage map: visual 30-cell grid on the tilawah page showing which juz have been covered in the current month
+- Streak freeze: every 7-day streak milestone earns 1 freeze credit; a credit can be spent to protect the streak on a missed day; frozen days display with an ice cube indicator
+
+---
+
 ## [1.1.0] — 2026-04-06
 
 ### Features
