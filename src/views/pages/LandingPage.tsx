@@ -306,6 +306,33 @@ export const LandingPage: FC<{
           </div>
         </section>
 
+        {/* ── Key Features ── */}
+        <section class="w-full bg-slate-50/70 border-b border-border-light">
+          <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+            <div class="max-w-2xl mb-10 mx-auto lg:mx-0 text-center lg:text-left">
+              <h2 class="text-2xl sm:text-3xl font-black text-text-main mb-2">{t(lang, "landingFeaturesTitle")}</h2>
+              <p class="text-text-secondary text-sm sm:text-base">{t(lang, "landingFeaturesDesc")}</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[
+                { icon: "ac_unit", title: t(lang, "landingFeatureFreezeTitle"), desc: t(lang, "landingFeatureFreezeDesc") },
+                { icon: "grid_on", title: t(lang, "landingFeatureCoverageTitle"), desc: t(lang, "landingFeatureCoverageDesc") },
+                { icon: "tune", title: t(lang, "landingFeatureInputTitle"), desc: t(lang, "landingFeatureInputDesc") },
+              ].map((item) => (
+                <div class="flex flex-col gap-4 p-6 bg-white rounded-2xl border border-border-light shadow-sm hover:border-primary/30 hover:shadow-md transition-all">
+                  <div class="size-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+                    <span class="material-symbols-outlined" style="font-size:22px">{item.icon}</span>
+                  </div>
+                  <div>
+                    <h3 class="font-black text-text-main text-base mb-2">{item.title}</h3>
+                    <p class="text-text-secondary text-sm leading-relaxed">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* ── CTA Banner ── */}
         <section class="w-full bg-primary">
           <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14 text-center">
