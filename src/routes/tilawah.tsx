@@ -213,11 +213,12 @@ tilawah.post("/", async (c) => {
         return c.redirect(redirectWith("error", t(lang, "autoCalcNeedsStart")));
       }
       const diff = endJuz - startJuz;
-      if (diff <= 0) {
+      if (diff < 0) {
         return c.redirect(redirectWith("error", t(lang, "autoCalcNegative")));
       }
-      logAmount = diff;
-      juzAmount = diff;
+      // diff === 0 means start and end are in the same juz: count as 1 juz
+      logAmount = Math.max(1, diff);
+      juzAmount = Math.max(1, diff);
     }
   }
 
