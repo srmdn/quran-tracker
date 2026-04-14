@@ -8,6 +8,16 @@ All notable changes to this project are documented here.
 
 ---
 
+## [1.2.2] — 2026-04-15
+
+### Bug Fixes
+
+- Auto-calculate (pages): fixed false error when start and end positions are within the same juz; now uses per-surah Mushaf page lookup (standard 604-page Medina Mushaf) with inclusive page count
+- Auto-calculate (juz): fixed false error when start and end are in the same juz; now uses inclusive juz count (diff + 1) consistent with pages logic
+- Profile page: role and email no longer overlap on mobile; account info grid stacks to single column on small screens, role moved above email
+
+---
+
 ## [1.2.0] — 2026-04-12
 
 ### Features

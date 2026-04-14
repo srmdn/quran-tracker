@@ -54,14 +54,14 @@ export const ProfilePage: FC<{
           </div>
 
           <h3 class="text-xs font-bold text-text-secondary uppercase mb-3">{t(lang, "accountInfo")}</h3>
-          <div class="grid grid-cols-2 gap-3 text-sm">
-            <div>
-              <p class="text-xs text-text-secondary">{t(lang, "emailLabel")}</p>
-              <p class="font-medium text-text-main">{user.email}</p>
-            </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
             <div>
               <p class="text-xs text-text-secondary">{t(lang, "roleLabel")}</p>
               <p class="font-medium text-text-main capitalize">{user.role.replace("_", " ")}</p>
+            </div>
+            <div>
+              <p class="text-xs text-text-secondary">{t(lang, "emailLabel")}</p>
+              <p class="font-medium text-text-main">{user.email}</p>
             </div>
             <div>
               <p class="text-xs text-text-secondary">{t(lang, "joinedLabel")}</p>
