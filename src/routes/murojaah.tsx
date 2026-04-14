@@ -8,7 +8,7 @@ import { getUserTarget, getTodayMurojaahTotal } from "../lib/targets.ts";
 import { checkAndUpdateStreak, rebuildStreak } from "../lib/streak.ts";
 import { getUserActivityTotals } from "../lib/activity-calc.ts";
 import { sendKhatamEmail, sendStreakMilestoneEmail, isStreakMilestone } from "../lib/milestone-email.ts";
-import { SURAHS, getJuzForPosition } from "../data/quran-meta.ts";
+import { SURAHS, getJuzForPosition, getPageForPosition } from "../data/quran-meta.ts";
 import { t } from "../lib/i18n.ts";
 import { MurojaahPage } from "../views/pages/MurojaahPage.tsx";
 import type { Env } from "../types.ts";
@@ -184,19 +184,28 @@ murojaah.post("/", async (c) => {
   // Compute juz from surah+ayah — never trust user input
   const endJuz = getJuzForPosition(endSurah, endAyah);
 
-  // Auto-calculate amount from start/end juz if not provided
+  // Auto-calculate amount from start/end position if not provided
   if (needsAutoCalc) {
-    if (startJuz === null) {
+    if (startSurah === null || startAyah === null) {
       return c.redirect(redirectWith("error", t(lang, "autoCalcNeedsStart")));
     }
-    const diff = endJuz - startJuz;
-    if (diff <= 0) {
-      return c.redirect(redirectWith("error", t(lang, "autoCalcNegative")));
-    }
     if (logUnit === "pages") {
-      logAmount = diff * 20;
-      juzAmount = diff;
+      const startPage = getPageForPosition(startSurah, startAyah);
+      const endPage = getPageForPosition(endSurah, endAyah);
+      const pageDiff = endPage - startPage + 1;
+      if (pageDiff <= 0) {
+        return c.redirect(redirectWith("error", t(lang, "autoCalcNegative")));
+      }
+      logAmount = pageDiff;
+      juzAmount = pageDiff / 20;
     } else {
+      if (startJuz === null) {
+        return c.redirect(redirectWith("error", t(lang, "autoCalcNeedsStart")));
+      }
+      const diff = endJuz - startJuz;
+      if (diff <= 0) {
+        return c.redirect(redirectWith("error", t(lang, "autoCalcNegative")));
+      }
       logAmount = diff;
       juzAmount = diff;
     }
