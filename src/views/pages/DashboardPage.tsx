@@ -129,6 +129,25 @@ export const DashboardPage: FC<{
           </div>
         </div>
 
+        {/* Accountability hadith */}
+        <div class="w-full bg-amber-950 border border-amber-900 rounded-xl px-5 py-4 mb-6">
+          <p class="text-amber-400/70 text-xs font-bold uppercase tracking-widest mb-3">
+            {lang === "id" ? "Renungan" : "Reminder"}
+          </p>
+          <p
+            class="text-amber-100 text-lg sm:text-xl font-black leading-relaxed mb-2"
+            style="font-family: 'Amiri', 'Traditional Arabic', serif; direction: rtl;"
+          >
+            مَنْ قَرَأَ الْقُرْآنَ ثُمَّ نَسِيَهُ لَقِيَ اللَّهَ يَوْمَ الْقِيَامَةِ وَهُوَ أَجْذَمُ
+          </p>
+          <p class="text-amber-200/80 text-xs sm:text-sm font-semibold italic mb-1">
+            {lang === "id"
+              ? '"Barangsiapa membaca Al-Qur\'an kemudian melupakannya, ia akan menemui Allah pada hari kiamat dalam keadaan terpotong (tanpa hafalan)."'
+              : '"Whoever reads the Quran and then forgets it will meet Allah on the Day of Resurrection while maimed."'}
+          </p>
+          <p class="text-amber-400/50 text-xs">HR. Abu Dawud</p>
+        </div>
+
         {/* Today's progress */}
         <div class="w-full bg-white border border-border-light rounded-xl p-6 mb-6">
           <h2 class="text-text-main font-bold mb-4 flex items-center gap-2">

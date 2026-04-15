@@ -333,6 +333,29 @@ export const LandingPage: FC<{
           </div>
         </section>
 
+        {/* ── Hadith Reminder ── */}
+        <section class="w-full bg-amber-950 border-b border-amber-900">
+          <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-14">
+            <div class="max-w-2xl mx-auto text-center">
+              <p class="text-amber-400/70 text-xs font-bold uppercase tracking-widest mb-5">
+                {lang === "id" ? "Renungan" : "Reminder"}
+              </p>
+              <p
+                class="text-amber-100 text-2xl sm:text-3xl font-black leading-relaxed mb-4"
+                style="font-family: 'Amiri', 'Traditional Arabic', serif; direction: rtl;"
+              >
+                تَعَاهَدُوا هَذَا الْقُرْآنَ، فَوَالَّذِي نَفْسُ مُحَمَّدٍ بِيَدِهِ، لَهُوَ أَشَدُّ تَفَصِّيًا مِنَ الْإِبِلِ فِي عُقُلِهَا
+              </p>
+              <p class="text-amber-200/90 text-sm sm:text-base font-semibold italic mb-2">
+                {lang === "id"
+                  ? '"Jagalah Al-Qur\'an ini. Demi Dzat yang jiwa Muhammad ada di tangan-Nya, ia lebih mudah lepas daripada unta dari ikatannya."'
+                  : '"Keep refreshing your knowledge of the Quran. By Him in Whose Hand is the soul of Muhammad, it is more prone to escape than a camel from its tether."'}
+              </p>
+              <p class="text-amber-400/60 text-xs">HR. Bukhari &amp; Muslim</p>
+            </div>
+          </div>
+        </section>
+
         {/* ── CTA Banner ── */}
         <section class="w-full bg-primary">
           <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14 text-center">
