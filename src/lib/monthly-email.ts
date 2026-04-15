@@ -4,7 +4,7 @@ import { ORG_NAME, PRODUCT_NAME, PUBLIC_BASE_URL } from "../config.ts";
 import { sendTrackedEmail } from "./email-log.ts";
 import { escapeHtml, ctaButton, baseEmailHtml } from "./email-base.ts";
 import { getMonthlyActivityLeaderboard, getMonthlyUserActivityRank } from "./activity-calc.ts";
-import { getUserStreak } from "./streak.ts";
+import { getUserStreak, getFreezeCreditsLeft } from "./streak.ts";
 import { getWibDateYmd } from "./wib-date.ts";
 
 export type MonthlyEmailResult = {
@@ -54,6 +54,11 @@ function buildMessage(params: {
 
   const recipientStats = getMonthlyUserActivityRank(recipientId, year, month);
   const streak = getUserStreak(recipientId, getWibDateYmd());
+  const yearMonth = `${year}-${String(month).padStart(2, "0")}`;
+  const freezeCreditsLeft = getFreezeCreditsLeft(recipientId, yearMonth);
+  const daysFrozen = (db
+    .prepare("SELECT COUNT(*) AS cnt FROM streak_freezes WHERE user_id = ? AND date_wib LIKE ?")
+    .get(recipientId, `${yearMonth}-%`) as { cnt: number }).cnt;
 
   const subject = `${ORG_NAME} | Monthly Snapshot | ${monthLabel}`;
 
@@ -71,6 +76,8 @@ function buildMessage(params: {
         `Murojaah: ${recipientStats.murojaahJuz} juz`,
         `Khatam: ${recipientStats.khatamCount}x`,
         `Streak: 🔥 ${streak.current_streak} days`,
+        `Freeze credits remaining: ${freezeCreditsLeft}`,
+        `Days frozen this month: ${daysFrozen}`,
       ].join("\n")
     : "No activity recorded this month.";
 
@@ -129,6 +136,14 @@ function buildMessage(params: {
         <tr>
           <td style="padding:4px 0;color:#64748b;font-size:13px;">Streak</td>
           <td style="padding:4px 0;text-align:right;">🔥 ${streak.current_streak} days</td>
+        </tr>
+        <tr>
+          <td style="padding:4px 0;color:#64748b;font-size:13px;">Freeze credits remaining</td>
+          <td style="padding:4px 0;text-align:right;">🧊 ${freezeCreditsLeft}</td>
+        </tr>
+        <tr>
+          <td style="padding:4px 0;color:#64748b;font-size:13px;">Days frozen this month</td>
+          <td style="padding:4px 0;text-align:right;">${daysFrozen}</td>
         </tr>
       </table>`
     : `<p style="margin:0;color:#64748b;">No activity recorded this month.</p>`;

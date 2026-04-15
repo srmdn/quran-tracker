@@ -2,7 +2,7 @@ import { initializeDatabase } from "../db/schema.ts";
 import { db } from "../db/connection.ts";
 import { ACTIVE_MEMBER_ROLES } from "../lib/roles.ts";
 import { getUserTarget, getTodayTilawahTotal, getTodayMurojaahTotal } from "../lib/targets.ts";
-import { getUserStreak } from "../lib/streak.ts";
+import { getUserStreak, getFreezeCreditsLeft } from "../lib/streak.ts";
 import { getWibDateYmd } from "../lib/wib-date.ts";
 import { sendTrackedEmail } from "../lib/email-log.ts";
 import { buildReminderEmail } from "../lib/reminder-email.ts";
@@ -59,6 +59,7 @@ for (const user of recipients) {
   }
 
   const streak = getUserStreak(user.id, todayWib);
+  const freezeCreditsLeft = getFreezeCreditsLeft(user.id, todayWib.slice(0, 7));
 
   try {
     const message = buildReminderEmail({
@@ -69,6 +70,7 @@ for (const user of recipients) {
       targetTilawah: target.tilawah_juz_daily,
       targetMurojaah: target.murojaah_juz_daily,
       currentStreak: streak.current_streak,
+      freezeCreditsLeft,
     });
     await sendTrackedEmail({ to: user.email, subject: message.subject, text: message.text, html: message.html, emailType: "daily_reminder", userId: user.id });
     sent++;
