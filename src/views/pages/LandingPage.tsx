@@ -351,7 +351,7 @@ export const LandingPage: FC<{
                   ? '"Jagalah Al-Qur\'an ini. Demi Dzat yang jiwa Muhammad ada di tangan-Nya, ia lebih mudah lepas daripada unta dari ikatannya."'
                   : '"Keep refreshing your knowledge of the Quran. By Him in Whose Hand is the soul of Muhammad, it is more prone to escape than a camel from its tether."'}
               </p>
-              <p class="text-amber-400/60 text-xs">HR. Bukhari &amp; Muslim</p>
+              <p class="text-amber-400/60 text-xs">HR. Bukhari (no. 5033) &amp; Muslim (no. 791)</p>
             </div>
           </div>
         </section>

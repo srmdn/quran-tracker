@@ -145,7 +145,7 @@ export const DashboardPage: FC<{
               ? '"Barangsiapa membaca Al-Qur\'an kemudian melupakannya, ia akan menemui Allah pada hari kiamat dalam keadaan terpotong (tanpa hafalan)."'
               : '"Whoever reads the Quran and then forgets it will meet Allah on the Day of Resurrection while maimed."'}
           </p>
-          <p class="text-amber-400/50 text-xs">HR. Abu Dawud</p>
+          <p class="text-amber-400/50 text-xs">HR. Abu Dawud (no. 1474)</p>
         </div>
 
         {/* Today's progress */}
