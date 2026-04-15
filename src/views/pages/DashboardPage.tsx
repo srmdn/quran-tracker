@@ -138,14 +138,14 @@ export const DashboardPage: FC<{
             class="text-amber-100 text-lg sm:text-xl font-black leading-relaxed mb-2"
             style="font-family: 'Amiri', 'Traditional Arabic', serif; direction: rtl;"
           >
-            مَنْ قَرَأَ الْقُرْآنَ ثُمَّ نَسِيَهُ لَقِيَ اللَّهَ يَوْمَ الْقِيَامَةِ وَهُوَ أَجْذَمُ
+            تَعَاهَدُوا الْقُرْآنَ فَوَالَّذِي نَفْسِي بِيَدِهِ لَهُوَ أَشَدُّ تَفَصِّيًا مِنَ الإِبِلِ فِي عُقُلِهَا
           </p>
           <p class="text-amber-200/80 text-xs sm:text-sm font-semibold italic mb-1">
             {lang === "id"
-              ? '"Barangsiapa membaca Al-Qur\'an kemudian melupakannya, ia akan menemui Allah pada hari kiamat dalam keadaan terpotong (tanpa hafalan)."'
-              : '"Whoever reads the Quran and then forgets it will meet Allah on the Day of Resurrection while maimed."'}
+              ? '"Jagalah Al-Qur\'an ini. Demi Dzat yang jiwaku berada di tangan-Nya, Al-Qur\'an itu lebih mudah lepas daripada unta dari ikatannya."'
+              : '"Commit yourself to the Qur\'an, for by Him in whose Hand is my soul, it is surely more prone to break away than a camel in its bind."'}
           </p>
-          <p class="text-amber-400/50 text-xs">HR. Abu Dawud (no. 1474)</p>
+          <p class="text-amber-400/50 text-xs">HR. Bukhari (no. 5033) & Muslim (no. 791)</p>
         </div>
 
         {/* Today's progress */}
