@@ -8,6 +8,19 @@ All notable changes to this project are documented here.
 
 ---
 
+## [1.3.0] — 2026-04-15
+
+### Features
+
+- Freeze credits shown in daily reminder email: when credits are available, a line appears below the streak indicating how many credits remain
+- Monthly snapshot email: two new rows in personal stats — freeze credits remaining and days frozen this month
+- Inactivity reminder email: sent to members with a daily target who have not logged any activity in 7-20 days; deduped per 7 days
+- Suspension warning email: sent to all members inactive for 21-27 days with an explicit deadline and days remaining
+- Auto-suspend: members with no activity for 28+ days are automatically suspended and notified via email; admin can manually unsuspend
+- New systemd timers: quran-inactivity-reminder, quran-suspension-warning, quran-auto-suspend — all fire daily at 20:00 WIB
+
+---
+
 ## [1.2.2] — 2026-04-15
 
 ### Bug Fixes
