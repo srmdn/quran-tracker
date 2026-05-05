@@ -4,6 +4,9 @@ import { escapeHtml, ctaButton, baseEmailHtml } from "./email-base.ts";
 import { getUserTarget, getTodayTilawahTotal, getTodayMurojaahTotal } from "./targets.ts";
 import { getUserStreak, getFreezeCreditsLeft } from "./streak.ts";
 import { getWibDateYmd } from "./wib-date.ts";
+import { getRandomFastabiqEntry } from "./fastabiq-verses.ts";
+import { getCurrentMonthActivityLeaderboard } from "./activity-calc.ts";
+import type { FastabiqEntry } from "./fastabiq-verses.ts";
 
 export function buildReminderEmail(params: {
   name: string;
@@ -14,8 +17,11 @@ export function buildReminderEmail(params: {
   targetMurojaah: number;
   currentStreak: number;
   freezeCreditsLeft: number;
+  rank: number | null;
+  totalMembers: number;
+  fastabiq: FastabiqEntry;
 }): { subject: string; text: string; html: string } {
-  const { name, todayWib, todayTilawah, todayMurojaah, targetTilawah, targetMurojaah, currentStreak, freezeCreditsLeft } = params;
+  const { name, todayWib, todayTilawah, todayMurojaah, targetTilawah, targetMurojaah, currentStreak, freezeCreditsLeft, rank, totalMembers, fastabiq } = params;
   const firstName = name.split(" ")[0]!;
   const remaining_tilawah = Math.max(0, targetTilawah - todayTilawah).toFixed(1);
   const remaining_murojaah = Math.max(0, targetMurojaah - todayMurojaah).toFixed(1);
@@ -31,6 +37,10 @@ export function buildReminderEmail(params: {
       ? `You have ${freezeCreditsLeft} freeze credit${freezeCreditsLeft === 1 ? "" : "s"} available — your streak is protected if you miss a day.`
       : null;
 
+  const rankLine = rank !== null
+    ? `Your rank this month: #${rank} of ${totalMembers} members.`
+    : null;
+
   const subject = `${ORG_NAME} | Daily Reminder — Complete your Quran target today`;
 
   const textLines = [
@@ -45,9 +55,19 @@ export function buildReminderEmail(params: {
     streakLine,
   ];
   if (freezeLine) textLines.push(freezeLine);
+  if (rankLine) textLines.push(``, rankLine);
   textLines.push(
     ``,
     `Log your activity: ${ctaUrl}`,
+    ``,
+    `---`,
+    ``,
+    `${fastabiq.verseArabic}`,
+    `${fastabiq.verseRef}`,
+    `"${fastabiq.verseEn}"`,
+    ``,
+    `"${fastabiq.hadithEn}"`,
+    `— ${fastabiq.hadithRef}`,
     ``,
     `May Allah bless your efforts in reading and memorizing the Qur'an.`,
     ``,
@@ -75,6 +95,20 @@ export function buildReminderEmail(params: {
       ? `<p style="margin:0 0 16px;font-size:13px;color:#0369a1;">🧊 You have ${freezeCreditsLeft} freeze credit${freezeCreditsLeft === 1 ? "" : "s"} available — your streak is protected if you miss a day.</p>`
       : ``;
 
+  const rankHtml = rank !== null
+    ? `<p style="margin:0 0 20px;font-size:13px;color:#475569;">📊 Your rank this month: <strong>#${rank}</strong> of ${totalMembers} members.</p>`
+    : ``;
+
+  const fastabiqHtml = `
+    <div style="border-top:1px solid #e2e8f0;margin-top:24px;padding-top:20px;">
+      <p style="margin:0 0 6px;font-size:20px;font-weight:700;color:#1e293b;direction:rtl;text-align:right;font-family:serif;">${escapeHtml(fastabiq.verseArabic)}</p>
+      <p style="margin:0 0 4px;font-size:12px;color:#94a3b8;text-align:right;">${escapeHtml(fastabiq.verseRef)}</p>
+      <p style="margin:0 0 14px;font-size:13px;color:#475569;font-style:italic;">"${escapeHtml(fastabiq.verseEn)}"</p>
+      <p style="margin:0 0 4px;font-size:13px;color:#334155;">"${escapeHtml(fastabiq.hadithEn)}"</p>
+      <p style="margin:0;font-size:12px;color:#94a3b8;">— ${escapeHtml(fastabiq.hadithRef)}</p>
+    </div>
+  `;
+
   const bodyHtml = `
     <p style="margin:0 0 16px;">Assalamu'alaikum <strong>${escapeHtml(firstName)}</strong>,</p>
     <p style="margin:0 0 16px;color:#475569;">You have not yet completed your daily target. Here's where you stand:</p>
@@ -101,9 +135,13 @@ export function buildReminderEmail(params: {
       </tbody>
     </table>
 
+    ${rankHtml}
+
     ${ctaButton(ctaUrl, "Log Your Activity →")}
 
-    <p style="margin:0;color:#475569;font-size:14px;">May Allah bless your efforts in reading and memorizing the Qur'an.</p>
+    ${fastabiqHtml}
+
+    <p style="margin:16px 0 0;color:#475569;font-size:14px;">May Allah bless your efforts in reading and memorizing the Qur'an.</p>
   `;
 
   const html = baseEmailHtml({ subtitle: `Daily Reminder — ${escapeHtml(todayWib)}`, bodyHtml });
@@ -123,6 +161,9 @@ export async function sendTestReminderEmail(user: {
   const todayTilawah = getTodayTilawahTotal(user.id, todayWib);
   const todayMurojaah = getTodayMurojaahTotal(user.id, todayWib);
   const freezeCreditsLeft = getFreezeCreditsLeft(user.id, yearMonth);
+  const leaderboard = getCurrentMonthActivityLeaderboard({ page: 1, perPage: 10000 });
+  const userRow = leaderboard.rows.find((r) => r.id === user.id);
+  const fastabiq = getRandomFastabiqEntry();
 
   const message = buildReminderEmail({
     name: user.name,
@@ -133,6 +174,9 @@ export async function sendTestReminderEmail(user: {
     targetMurojaah: target?.murojaah_juz_daily ?? 1,
     currentStreak: streak.current_streak,
     freezeCreditsLeft,
+    rank: userRow?.rank ?? null,
+    totalMembers: leaderboard.total,
+    fastabiq,
   });
 
   await sendTrackedEmail({

@@ -7,9 +7,13 @@ import { getWibDateYmd } from "../lib/wib-date.ts";
 import { sendTrackedEmail } from "../lib/email-log.ts";
 import { buildReminderEmail } from "../lib/reminder-email.ts";
 import { sendNoTargetNudgeEmail } from "../lib/no-target-email.ts";
+import { getCurrentMonthActivityLeaderboard } from "../lib/activity-calc.ts";
+import { getRandomFastabiqEntry } from "../lib/fastabiq-verses.ts";
 import type { User } from "../types.ts";
 
 initializeDatabase();
+
+const leaderboard = getCurrentMonthActivityLeaderboard({ page: 1, perPage: 10000 });
 
 // Purge email log entries older than 3 months
 const purged = db.prepare("DELETE FROM email_log WHERE sent_at < datetime('now', '-3 months')").run();
@@ -67,6 +71,8 @@ for (const user of recipients) {
 
   const streak = getUserStreak(user.id, todayWib);
   const freezeCreditsLeft = getFreezeCreditsLeft(user.id, todayWib.slice(0, 7));
+  const userRow = leaderboard.rows.find((r) => r.id === user.id);
+  const fastabiq = getRandomFastabiqEntry();
 
   try {
     const message = buildReminderEmail({
@@ -78,6 +84,9 @@ for (const user of recipients) {
       targetMurojaah: target.murojaah_juz_daily,
       currentStreak: streak.current_streak,
       freezeCreditsLeft,
+      rank: userRow?.rank ?? null,
+      totalMembers: leaderboard.total,
+      fastabiq,
     });
     await sendTrackedEmail({ to: user.email, subject: message.subject, text: message.text, html: message.html, emailType: "daily_reminder", userId: user.id });
     sent++;
