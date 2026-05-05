@@ -470,10 +470,12 @@ admin.get("/email-log", (c) => {
     .prepare(`SELECT id, user_id, email_type, recipient, subject, status, error, sent_at FROM email_log ${where} ORDER BY sent_at DESC LIMIT ? OFFSET ?`)
     .all(...args, perPage, (page - 1) * perPage) as EmailLogRow[];
 
-  const allTypes = (db
-    .prepare("SELECT DISTINCT email_type FROM email_log ORDER BY email_type")
-    .all() as Array<{ email_type: string }>)
-    .map((r) => r.email_type);
+  const allTypes = [
+    "approval", "daily_reminder", "inactivity_reminder", "khatam",
+    "monthly_snapshot", "monthly_snapshot_preview", "new_member_alert_admin",
+    "no_target_nudge", "overtaken", "rejection", "role_change",
+    "streak_milestone", "suspend", "test_daily_reminder", "unsuspend", "welcome",
+  ];
 
   return c.html(
     <AdminEmailLogPage

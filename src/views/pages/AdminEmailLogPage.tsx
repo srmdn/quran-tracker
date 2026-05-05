@@ -17,21 +17,22 @@ export type EmailLogRow = {
 };
 
 const TYPE_LABELS: Record<string, string> = {
-  welcome: "Welcome",
   approval: "Approval",
-  rejection: "Rejection",
-  role_change: "Role Change",
-  suspend: "Suspend",
-  unsuspend: "Unsuspend",
-  new_member_alert_admin: "New Member Alert",
-  khatam: "Khatam",
-  streak_milestone: "Streak Milestone",
   daily_reminder: "Daily Reminder",
-  no_target_nudge: "No Target Nudge",
-  test_daily_reminder: "Test Reminder",
+  inactivity_reminder: "Inactivity Reminder",
+  khatam: "Khatam",
   monthly_snapshot: "Monthly Snapshot",
   monthly_snapshot_preview: "Snapshot Preview",
+  new_member_alert_admin: "New Member Alert",
+  no_target_nudge: "No Target Nudge",
   overtaken: "Overtaken",
+  rejection: "Rejection",
+  role_change: "Role Change",
+  streak_milestone: "Streak Milestone",
+  suspend: "Suspend",
+  test_daily_reminder: "Test Reminder",
+  unsuspend: "Unsuspend",
+  welcome: "Welcome",
 };
 
 const RESENDABLE_TYPES = new Set(["approval", "welcome", "rejection", "suspend", "unsuspend", "no_target_nudge"]);
