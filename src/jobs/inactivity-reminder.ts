@@ -3,22 +3,20 @@ import { db } from "../db/connection.ts";
 import { ACTIVE_MEMBER_ROLES } from "../lib/roles.ts";
 import { sendTrackedEmail } from "../lib/email-log.ts";
 import { buildInactivityEmail } from "../lib/inactivity-email.ts";
-import { getUserActivityTotals } from "../lib/activity-calc.ts";
 import { getWibDateYmd } from "../lib/wib-date.ts";
 import type { User } from "../types.ts";
 
 initializeDatabase();
 
-const INACTIVITY_DAYS = 7;
-const SUSPENSION_WARNING_DAYS = 21;
+const INACTIVE_DAYS = 7;
 
 const todayWib = getWibDateYmd();
 const rolesSql = ACTIVE_MEMBER_ROLES.map((r) => `'${r}'`).join(", ");
 
-// Users who:
-// - are active members and not suspended
-// - have a daily target set (no-target users get the no-target nudge from daily-reminder instead)
-// - have no activity in the last 7 days but fewer than 21 days (21+ escalates to suspension warning)
+// Active users who:
+// - have a daily target set (no-target users get no_target_nudge from daily-reminder instead)
+// - have not logged tilawah or murojaah in the last 7 days
+// - have been a member for at least 7 days (avoid nudging brand-new members)
 // - have not already received an inactivity_reminder in the last 7 days
 const candidates = db.prepare(`
   SELECT id, name, email, role, avatar_url, suspended_at, created_at, updated_at
@@ -27,33 +25,22 @@ const candidates = db.prepare(`
     AND email IS NOT NULL
     AND suspended_at IS NULL
     AND EXISTS (SELECT 1 FROM user_targets WHERE user_id = users.id)
+    AND created_at <= datetime('now', '-${INACTIVE_DAYS} days')
     AND NOT EXISTS (
       SELECT 1 FROM tilawah_logs t
       WHERE t.user_id = users.id
-        AND t.date_wib >= date('now', '-${INACTIVITY_DAYS} days')
+        AND t.date_wib >= date('now', '-${INACTIVE_DAYS} days')
     )
     AND NOT EXISTS (
       SELECT 1 FROM murojaah_logs m
       WHERE m.user_id = users.id
-        AND m.date_wib >= date('now', '-${INACTIVITY_DAYS} days')
-    )
-    AND (
-      EXISTS (
-        SELECT 1 FROM tilawah_logs t
-        WHERE t.user_id = users.id
-          AND t.date_wib >= date('now', '-${SUSPENSION_WARNING_DAYS} days')
-      )
-      OR EXISTS (
-        SELECT 1 FROM murojaah_logs m
-        WHERE m.user_id = users.id
-          AND m.date_wib >= date('now', '-${SUSPENSION_WARNING_DAYS} days')
-      )
+        AND m.date_wib >= date('now', '-${INACTIVE_DAYS} days')
     )
     AND NOT EXISTS (
       SELECT 1 FROM email_log el
       WHERE el.user_id = users.id
         AND el.email_type = 'inactivity_reminder'
-        AND el.sent_at >= datetime('now', '-${INACTIVITY_DAYS} days')
+        AND el.sent_at >= datetime('now', '-${INACTIVE_DAYS} days')
         AND el.status = 'sent'
     )
 `).all() as User[];
@@ -79,20 +66,9 @@ for (const user of candidates) {
   `).get(user.id, user.id) as { last_date: string | null };
 
   const lastActivityDate = lastRow.last_date ?? null;
-  const daysSinceActivity = lastActivityDate
-    ? Math.floor((Date.now() - new Date(lastActivityDate).getTime()) / 86400000)
-    : 0;
-
-  const totals = getUserActivityTotals(user.id);
+  const message = buildInactivityEmail({ name: user.name, lastActivityDate });
 
   try {
-    const message = buildInactivityEmail({
-      name: user.name,
-      lastActivityDate,
-      daysSinceActivity,
-      totalTilawahJuz: totals.tilawahJuz,
-      totalMurojaahJuz: totals.murojaahJuz,
-    });
     await sendTrackedEmail({
       to: user.email,
       subject: message.subject,

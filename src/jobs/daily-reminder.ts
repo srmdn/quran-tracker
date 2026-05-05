@@ -38,7 +38,14 @@ for (const user of recipients) {
 
   const target = getUserTarget(user.id);
   if (!target) {
-    // No target set: send a nudge email instead of silently skipping
+    // No target set: nudge once only — skip if already sent before
+    const alreadyNudged = db.prepare(
+      "SELECT 1 FROM email_log WHERE user_id = ? AND email_type = 'no_target_nudge' AND status = 'sent' LIMIT 1"
+    ).get(user.id);
+    if (alreadyNudged) {
+      skipped++;
+      continue;
+    }
     try {
       await sendNoTargetNudgeEmail(user);
       sent++;
