@@ -8,6 +8,25 @@ All notable changes to this project are documented here.
 
 ---
 
+## [1.4.0] — 2026-05-05
+
+### Features
+
+- Hadith reminders on landing page and dashboard: rotating authentic narrations from Bukhari and Muslim displayed to members
+- Daily reminder email: leaderboard rank shown per recipient; hadith/verse rotates per send
+
+### Bug Fixes
+
+- Dashboard: replaced weak hadith with verified narrations (Bukhari 5033, Muslim 791)
+- Hadith citations now include source reference numbers
+- Email log admin: active email types hardcoded; inactivity_reminder label added
+
+### Changed
+
+- Auto-suspension removed: inactivity escalation policy (suspension warning at day 21, auto-suspend at day 28) has been removed; inactivity email is now a simple weekly nudge with no account action
+
+---
+
 ## [1.3.0] — 2026-04-15
 
 ### Features
