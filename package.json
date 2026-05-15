@@ -18,6 +18,9 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "hono": "^4.12.8"
+    "hono": "^4.12.18"
+  },
+  "overrides": {
+    "postcss": "^8.5.14"
   }
 }
