@@ -12,9 +12,8 @@ coverage
 
 # logs
 logs
-_.log
 *.log
-report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # dotenv environment variable files
 .env
@@ -29,6 +28,12 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # Internal / private docs
 private/
+
+# Local agent/session state (project-local, never tracked)
+.local/
+
+# Local operational state (db backups, run/verification logs, local assets)
+local-state/
 
 # AI tool sessions
 .claude/

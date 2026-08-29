@@ -22,7 +22,7 @@ Quran Tracker is a Bun + Hono web app for community Qur'an progress tracking. Me
 | Runtime | [Bun](https://bun.sh) |
 | Framework | [Hono](https://hono.dev) with JSX SSR |
 | Database | SQLite via `bun:sqlite` |
-| Styling | TailwindCSS |
+| Styling | TailwindCSS (compiled from `src/input.css`) |
 | Auth | Google OAuth 2.0 and email/password |
 
 ## Core behavior
@@ -128,6 +128,7 @@ public/
 ## Notes
 
 - Static assets are served from `/public/*`
+- Styling is compiled with `bun run build:css`; regenerate `public/tailwind.css` after changing Tailwind classes
 - SQLite tables are initialized on startup
 - Expired sessions are cleaned on startup
 - There is currently no automated test suite in the repository
