@@ -346,7 +346,7 @@ export const DashboardPage: FC<{
               <select
                 name="year"
                 onchange="this.form.submit()"
-                class="rounded-lg border-slate-200 bg-slate-50 text-sm px-2 py-1 font-semibold text-text-main"
+                class="rounded-lg border-slate-200 bg-slate-50 text-sm pl-2.5 pr-8 py-1 font-semibold text-text-main cursor-pointer"
               >
                 {heatmapYears.map((y) => (
                   <option value={String(y)} selected={y === heatmapYear}>{y}</option>
