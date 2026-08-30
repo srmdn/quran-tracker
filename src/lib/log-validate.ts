@@ -1,4 +1,5 @@
 import { SURAHS, getJuzForPosition, getPageForPosition } from "../data/quran-meta.ts";
+import { PAGES_PER_JUZ } from "./format-juz.ts";
 import { t, type Lang } from "./i18n.ts";
 
 export type ParsedLogValues = {
@@ -48,10 +49,10 @@ export function parseLogSubmission(
       needsAutoCalc = true;
       logUnit = "pages";
     } else {
-      if (totalPages > 30) return { ok: false, error: t(lang, "pagesExceed30") };
+      if (totalPages > 604) return { ok: false, error: t(lang, "pagesExceed30") };
       logUnit = "pages";
       logAmount = totalPages;
-      juzAmount = totalPages / 20;
+      juzAmount = totalPages / PAGES_PER_JUZ;
     }
   } else {
     const amountRaw = (body.amount as string)?.trim() || "";
@@ -120,7 +121,7 @@ export function parseLogSubmission(
         return { ok: false, error: t(lang, "autoCalcNegative") };
       }
       logAmount = pageDiff;
-      juzAmount = pageDiff / 20;
+      juzAmount = pageDiff / PAGES_PER_JUZ;
     } else {
       if (startJuz === null) {
         return { ok: false, error: t(lang, "autoCalcNeedsStart") };

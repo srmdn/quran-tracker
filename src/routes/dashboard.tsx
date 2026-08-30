@@ -5,6 +5,7 @@ import { getCurrentMonthUserActivityRank, getUserActivityTotals } from "../lib/a
 import { getUserTarget, getTodayTilawahTotal, getTodayMurojaahTotal, upsertUserTarget } from "../lib/targets.ts";
 import { getUserStreak, getYearActivityHeatmap, getFreezeCreditsLeft, isFrozen, applyFreeze } from "../lib/streak.ts";
 import { getWibDateYmd, getWibYearMonth } from "../lib/wib-date.ts";
+import { PAGES_PER_JUZ } from "../lib/format-juz.ts";
 import { ACTIVE_MEMBER_ROLES } from "../lib/roles.ts";
 import { DashboardPage } from "../views/pages/DashboardPage.tsx";
 import type { Env } from "../types.ts";
@@ -165,14 +166,14 @@ dashboard.post("/set-target", async (c) => {
   const body = await c.req.parseBody();
 
   // Each target: amount in the chosen unit + unit ('juz' | 'pages'), converted to juz.
-  // Pages: 20 pages = 1 juz (Mushaf Madinah).
+  // Pages: 604 pages = 30 juz (Medina Mushaf).
   function parseTarget(raw: string, unit: string): number {
     if (!/^(\d+(\.\d{1,2})?)$/.test(raw)) return NaN;
     const amount = parseFloat(raw);
     if (!Number.isFinite(amount) || amount <= 0) return NaN;
     if (unit === "pages") {
-      if (amount > 600) return NaN;
-      return amount / 20;
+      if (amount > 604) return NaN;
+      return amount / PAGES_PER_JUZ;
     }
     if (amount > 30) return NaN;
     return amount;

@@ -134,7 +134,7 @@ const en = {
   // Juz / pages input toggle
   inputModeJuz: "Juz",
   inputModePages: "Pages",
-  mushafHint: "20 pages = 1 juz (Medina Mushaf)",
+  mushafHint: "604 pages = 30 juz (Medina Mushaf)",
   toGo: "to go",
   toNextKhatam: "remaining to next khatam",
 
@@ -143,7 +143,7 @@ const en = {
   invalidJuzAmount: "Invalid juz amount. Enter a whole number.",
   juzExceeds30: "Juz amount cannot exceed 30 per entry.",
   invalidPagesAmount: "Invalid pages amount. Enter a whole number.",
-  pagesExceed30: "Pages cannot exceed 30 per entry.",
+  pagesExceed30: "Pages cannot exceed 604 (the full Mushaf).",
   autoCalcNeedsStart: "Fill in the starting position to auto-calculate the amount.",
   autoCalcNegative: "Auto-calculated amount is zero or negative. Check your positions or enter the amount manually.",
   freezeApplied: "Streak protected for today!",
@@ -428,7 +428,7 @@ const id: typeof en = {
   // Juz / pages input toggle
   inputModeJuz: "Juz",
   inputModePages: "Halaman",
-  mushafHint: "20 halaman = 1 juz (Mushaf Madinah)",
+  mushafHint: "604 halaman = 30 juz (Mushaf Madinah)",
   toGo: "lagi",
   toNextKhatam: "lagi ke khatam berikutnya",
 
@@ -437,7 +437,7 @@ const id: typeof en = {
   invalidJuzAmount: "Jumlah juz tidak valid. Masukkan bilangan bulat.",
   juzExceeds30: "Jumlah juz tidak boleh lebih dari 30 per entri.",
   invalidPagesAmount: "Jumlah halaman tidak valid. Masukkan bilangan bulat.",
-  pagesExceed30: "Halaman tidak boleh lebih dari 30 per entri.",
+  pagesExceed30: "Halaman tidak boleh lebih dari 604 (total mushaf).",
   autoCalcNeedsStart: "Isi posisi awal untuk menghitung jumlah secara otomatis.",
   autoCalcNegative: "Jumlah hasil kalkulasi nol atau negatif. Periksa posisi Anda atau masukkan jumlah secara manual.",
   freezeApplied: "Streak hari ini dilindungi!",

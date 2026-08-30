@@ -1,4 +1,5 @@
-export const PAGES_PER_JUZ = 20;
+// Medina Mushaf standard: 604 pages = 30 juz.
+export const PAGES_PER_JUZ = 604 / 30;
 
 /**
  * Format a stored juz_amount (REAL) as a human-readable string without decimals.

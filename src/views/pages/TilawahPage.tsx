@@ -285,7 +285,7 @@ export const TilawahPage: FC<{
       btnPages.className=activeClass+' rounded-r-lg';
       juzFields.style.display='none';
       pagesFields.style.display='';
-      modeHint.textContent='${lang === "id" ? "20 halaman = 1 juz (Mushaf Madinah)" : "20 pages = 1 juz (Medina Mushaf)"}';
+      modeHint.textContent='${lang === "id" ? "604 halaman = 30 juz (Mushaf Madinah)" : "604 pages = 30 juz (Medina Mushaf)"}';
     }else{
       btnJuz.className=activeClass+' rounded-l-lg';
       btnPages.className=inactiveClass+' rounded-r-lg';
