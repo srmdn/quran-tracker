@@ -88,7 +88,7 @@ profile.post("/password", async (c) => {
   if (newPassword.length < 8) return c.redirect(redirectWith("error", t(lang, "passwordTooShort")));
   if (newPassword !== confirmPassword) return c.redirect(redirectWith("error", t(lang, "passwordMismatch")));
 
-  const newHash = await Bun.password.hash(newPassword);
+  const newHash = await Bun.password.hash(newPassword, { algorithm: "bcrypt" });
   db.prepare("UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?")
     .run(newHash, user.id);
 

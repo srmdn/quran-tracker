@@ -96,7 +96,7 @@ admin.post("/users/create", async (c) => {
   }
 
   try {
-    const passwordHash = password ? await Bun.password.hash(password) : null;
+    const passwordHash = password ? await Bun.password.hash(password, { algorithm: "bcrypt" }) : null;
     db.prepare(
       "INSERT INTO users (google_id, email, name, avatar_url, role, password_hash) VALUES (?, ?, ?, NULL, ?, ?)"
     ).run(`manual:${crypto.randomUUID()}`, email, name, role, passwordHash);
@@ -147,7 +147,7 @@ admin.post("/users/:id/update", async (c) => {
 
   try {
     if (password) {
-      const passwordHash = await Bun.password.hash(password);
+      const passwordHash = await Bun.password.hash(password, { algorithm: "bcrypt" });
       db.prepare(
         "UPDATE users SET name = ?, email = ?, role = ?, password_hash = ?, updated_at = datetime('now') WHERE id = ?"
       ).run(name, email, role, passwordHash, userId);
@@ -185,7 +185,7 @@ admin.post("/users/:id/password", async (c) => {
     return c.redirect(`/admin/members/${userId}/edit?error=Password must be at least 8 characters.`);
   }
 
-  const hash = await Bun.password.hash(password);
+  const hash = await Bun.password.hash(password, { algorithm: "bcrypt" });
   db.prepare("UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?").run(hash, userId);
   return c.redirect(`/admin/members/${userId}/edit?success=Password updated.`);
 });
