@@ -7,7 +7,6 @@ import { authRoutes } from "./routes/auth.ts";
 import { activityRoutes } from "./routes/activity.tsx";
 import { adminRoutes } from "./routes/admin.tsx";
 import { dashboardRoutes } from "./routes/dashboard.tsx";
-import { setupRoutes } from "./routes/setup.tsx";
 import { tilawahRoutes } from "./routes/tilawah.tsx";
 import { murojaahRoutes } from "./routes/murojaah.tsx";
 import { langRoutes } from "./routes/lang.ts";
@@ -83,7 +82,6 @@ app.get("/suspended", authMiddleware, (c) => {
 app.route("/landing", landingRoutes);
 app.route("/lang", langRoutes);
 app.route("/auth", authRoutes);
-app.route("/setup", setupRoutes);
 app.route("/tilawah", tilawahRoutes);
 app.route("/murojaah", murojaahRoutes);
 app.get("/leaderboard", (c) => c.redirect("/activity/leaderboard", 301));

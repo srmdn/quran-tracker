@@ -7,7 +7,7 @@ export async function sendNoTargetNudgeEmail(user: User): Promise<void> {
   if (!user.email) return;
 
   const firstName = user.name.split(" ")[0]!;
-  const ctaUrl = `${PUBLIC_BASE_URL}/setup`;
+  const ctaUrl = `${PUBLIC_BASE_URL}/dashboard`;
 
   const subject = `${PRODUCT_NAME} | Set your daily target to get started`;
 

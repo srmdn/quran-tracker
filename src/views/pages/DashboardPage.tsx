@@ -16,7 +16,7 @@ export const DashboardPage: FC<{
   user: User;
   lang: Lang;
   todayWib: string;
-  target: UserTarget;
+  target: UserTarget | null;
   todayTilawah: number;
   todayMurojaah: number;
   streak: UserStreak;
@@ -58,12 +58,17 @@ export const DashboardPage: FC<{
   error,
 }) => {
   const firstName = user.name.split(" ")[0];
-  const tilawahPercent = Math.min(100, Math.round((todayTilawah / target.tilawah_juz_daily) * 100));
-  const murojaahPercent = Math.min(100, Math.round((todayMurojaah / target.murojaah_juz_daily) * 100));
+  const needsTarget = !target;
+  const tilawahPercent = target ? Math.min(100, Math.round((todayTilawah / target.tilawah_juz_daily) * 100)) : 0;
+  const murojaahPercent = target ? Math.min(100, Math.round((todayMurojaah / target.murojaah_juz_daily) * 100)) : 0;
   const khatamProgressPercent = Math.min(
     100,
     Math.round((activityTotals.progressToNextKhatam / 30) * 100)
   );
+  const targetLabel = (juz: number, unit: "juz" | "pages") =>
+    unit === "pages"
+      ? `${Math.round(juz * 20)} ${t(lang, "inputModePages")}`
+      : `${Math.round(juz)} ${t(lang, "inputModeJuz")}`;
 
   return (
     <Layout title={`Dashboard - ${APP_NAME}`}>
@@ -114,24 +119,27 @@ export const DashboardPage: FC<{
             ) : (
               <p class="text-xs text-text-secondary">{t(lang, "startLoggingStreak")}</p>
             )}
-            <a
-              href="/setup"
-              class="flex items-center gap-2 px-3 py-1.5 bg-white border border-border-light rounded-full text-sm font-medium text-text-secondary hover:text-primary hover:border-primary/30 transition-colors"
+            <button
+              type="button"
+              id="target-modal-open"
+              class="flex items-center gap-2 px-3 py-1.5 bg-white border border-border-light rounded-full text-sm font-medium text-text-secondary hover:text-primary hover:border-primary/30 transition-colors cursor-pointer"
             >
               <span class="material-symbols-outlined text-lg">tune</span>
               {t(lang, "setTargets")}
-            </a>
+            </button>
           </div>
         </div>
 
         {/* Hero: today's progress */}
         <section class="w-full bg-gradient-to-br from-primary/5 to-white border border-primary/15 rounded-2xl p-5 sm:p-6 mb-5">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          {target ? (
+            <>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {/* Tilawah bar */}
             <div>
               <div class="flex items-center justify-between mb-2">
                 <span class="text-sm font-semibold text-text-main">Tilawah</span>
-                <span class="text-sm font-semibold text-text-secondary">{formatJuz(todayTilawah, lang)} / {target.tilawah_juz_daily} juz</span>
+                <span class="text-sm font-semibold text-text-secondary">{formatJuz(todayTilawah, lang)} / {targetLabel(target.tilawah_juz_daily, target.tilawah_unit)}</span>
               </div>
               <div class="w-full h-3 rounded-full bg-white border border-slate-200 overflow-hidden">
                 <div
@@ -151,7 +159,7 @@ export const DashboardPage: FC<{
             <div>
               <div class="flex items-center justify-between mb-2">
                 <span class="text-sm font-semibold text-text-main">Murojaah</span>
-                <span class="text-sm font-semibold text-text-secondary">{formatJuz(todayMurojaah, lang)} / {target.murojaah_juz_daily} juz</span>
+                <span class="text-sm font-semibold text-text-secondary">{formatJuz(todayMurojaah, lang)} / {targetLabel(target.murojaah_juz_daily, target.murojaah_unit)}</span>
               </div>
               <div class="w-full h-3 rounded-full bg-white border border-slate-200 overflow-hidden">
                 <div
@@ -186,6 +194,21 @@ export const DashboardPage: FC<{
               {t(lang, "logMurojaah")}
             </a>
           </div>
+          </>
+          ) : (
+            <div class="flex flex-col items-center justify-center gap-3 py-4 text-center">
+              <p class="font-bold text-text-main">{t(lang, "setDailyTarget")}</p>
+              <p class="text-xs text-text-secondary max-w-sm">{t(lang, "setDailyTargetDesc")}</p>
+              <button
+                type="button"
+                data-target-open
+                class="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white text-sm font-bold hover:bg-primary-dark transition-colors cursor-pointer"
+              >
+                <span class="material-symbols-outlined text-lg">tune</span>
+                {t(lang, "setTargets")}
+              </button>
+            </div>
+          )}
 
           {/* Khatam progress strip */}
           <div class="mt-5 pt-4 border-t border-border-light">
@@ -408,6 +431,118 @@ export const DashboardPage: FC<{
             </div>
           </div>
         </div>
+
+        {/* Target modal */}
+        <div id="target-modal" class="hidden fixed inset-0 z-[60] bg-black/40 items-center justify-center p-4" role="dialog" aria-modal="true">
+          <div class="w-full max-w-md bg-white rounded-2xl shadow-xl p-6">
+            <div class="flex items-center justify-between mb-5">
+              <h3 class="text-text-main text-lg font-bold">{target ? t(lang, "updateDailyTarget") : t(lang, "setDailyTarget")}</h3>
+              <button type="button" id="target-modal-close" class="text-slate-400 hover:text-text-main transition-colors cursor-pointer">
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <form method="post" action="/dashboard/set-target" class="space-y-5">
+              <div>
+                <label class="block text-sm font-bold text-text-main mb-1">{t(lang, "dailyTilawahTarget")}</label>
+                <p class="text-xs text-text-secondary mb-2">{t(lang, "howManyJuzRead")}</p>
+                <div class="flex rounded-lg overflow-hidden border border-slate-200 bg-slate-50 mb-2">
+                  <button type="button" data-unit="juz" data-field="tilawah"
+                    class="flex-1 py-1.5 text-xs font-bold bg-primary text-white transition-colors cursor-pointer">
+                    {t(lang, "inputModeJuz")}
+                  </button>
+                  <button type="button" data-unit="pages" data-field="tilawah"
+                    class="flex-1 py-1.5 text-xs font-bold text-text-secondary transition-colors cursor-pointer">
+                    {t(lang, "inputModePages")}
+                  </button>
+                </div>
+                <input type="hidden" name="tilawah_unit" id="target-tilawah-unit" value={target?.tilawah_unit ?? "juz"} />
+                <div class="relative">
+                  <input type="number" name="tilawah_juz_daily" id="target-tilawah-input"
+                    min="1" step="1"
+                    max={target?.tilawah_unit === "pages" ? 600 : 30}
+                    value={target
+                      ? target.tilawah_unit === "pages"
+                        ? Math.round(target.tilawah_juz_daily * 20)
+                        : Math.round(target.tilawah_juz_daily)
+                      : 1}
+                    class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm pr-14" required />
+                  <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text-secondary font-medium" id="target-tilawah-suffix">{t(lang, "juzPerDay")}</span>
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-text-main mb-1">{t(lang, "dailyMurojaahTarget")}</label>
+                <p class="text-xs text-text-secondary mb-2">{t(lang, "howManyJuzRevise")}</p>
+                <div class="flex rounded-lg overflow-hidden border border-slate-200 bg-slate-50 mb-2">
+                  <button type="button" data-unit="juz" data-field="murojaah"
+                    class="flex-1 py-1.5 text-xs font-bold bg-primary text-white transition-colors cursor-pointer">
+                    {t(lang, "inputModeJuz")}
+                  </button>
+                  <button type="button" data-unit="pages" data-field="murojaah"
+                    class="flex-1 py-1.5 text-xs font-bold text-text-secondary transition-colors cursor-pointer">
+                    {t(lang, "inputModePages")}
+                  </button>
+                </div>
+                <input type="hidden" name="murojaah_unit" id="target-murojaah-unit" value={target?.murojaah_unit ?? "juz"} />
+                <div class="relative">
+                  <input type="number" name="murojaah_juz_daily" id="target-murojaah-input"
+                    min="1" step="1"
+                    max={target?.murojaah_unit === "pages" ? 600 : 30}
+                    value={target
+                      ? target.murojaah_unit === "pages"
+                        ? Math.round(target.murojaah_juz_daily * 20)
+                        : Math.round(target.murojaah_juz_daily)
+                      : 1}
+                    class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm pr-14" required />
+                  <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text-secondary font-medium" id="target-murojaah-suffix">{t(lang, "juzPerDay")}</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-3 pt-1">
+                <button type="submit" class="flex-1 py-2.5 rounded-lg bg-primary text-white text-sm font-bold hover:bg-primary-dark transition-colors">
+                  {target ? t(lang, "saveChanges") : t(lang, "startTracking")}
+                </button>
+                <button type="button" id="target-modal-cancel"
+                  class="px-4 py-2.5 rounded-lg border border-border-light bg-white text-sm font-semibold text-text-secondary hover:bg-slate-50 transition-colors cursor-pointer">
+                  {lang === "id" ? "Batal" : "Cancel"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+        <script dangerouslySetInnerHTML={{ __html: `(function(){
+  var m=document.getElementById('target-modal');
+  function open(){m.classList.remove('hidden');m.classList.add('flex');}
+  function close(){m.classList.add('hidden');m.classList.remove('flex');}
+  document.getElementById('target-modal-open').addEventListener('click',open);
+  document.getElementById('target-modal-close').addEventListener('click',close);
+  document.getElementById('target-modal-cancel').addEventListener('click',close);
+  document.querySelectorAll('[data-target-open]').forEach(function(b){b.addEventListener('click',open);});
+  m.addEventListener('click',function(e){if(e.target===m)close();});
+  // Unit toggles: juz / pages per target field
+  var J='${lang === "id" ? "juz/hari" : "juz/day"}';
+  var P='${lang === "id" ? "halaman/hari" : "pages/day"}';
+  function setUnit(field,unit){
+    var hid=document.getElementById('target-'+field+'-unit');
+    var inp=document.getElementById('target-'+field+'-input');
+    var suf=document.getElementById('target-'+field+'-suffix');
+    var btnJ=document.querySelector('[data-field="'+field+'"][data-unit="juz"]');
+    var btnP=document.querySelector('[data-field="'+field+'"][data-unit="pages"]');
+    hid.value=unit;
+    inp.max=unit==='pages'?600:30;
+    suf.textContent=unit==='pages'?P:J;
+    var active='flex-1 py-1.5 text-xs font-bold bg-primary text-white transition-colors';
+    var inactive='flex-1 py-1.5 text-xs font-bold text-text-secondary transition-colors';
+    btnJ.className=(unit==='juz'?active:inactive)+' cursor-pointer';
+    btnP.className=(unit==='pages'?active:inactive)+' cursor-pointer';
+  }
+  document.querySelectorAll('[data-unit]').forEach(function(b){
+    b.addEventListener('click',function(){setUnit(b.getAttribute('data-field'),b.getAttribute('data-unit'));});
+  });
+  var tu=document.getElementById('target-tilawah-unit').value;
+  var mu=document.getElementById('target-murojaah-unit').value;
+  setUnit('tilawah',tu?tu:'juz');
+  setUnit('murojaah',mu?mu:'juz');
+  ${needsTarget ? "open();" : ""}
+})();` }} />
 
         {/* Heatmap tooltip (shared, positioned on hover via JS) */}
         <div

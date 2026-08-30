@@ -163,6 +163,18 @@ export function initializeDatabase() {
     );
   `);
 
+  // Target input units ('juz' | 'pages'); stored juz values remain canonical
+  const targetColumns = db
+    .prepare("PRAGMA table_info(user_targets)")
+    .all() as Array<{ name: string }>;
+  const targetColNames = targetColumns.map((c) => c.name);
+  if (!targetColNames.includes("tilawah_unit")) {
+    db.exec("ALTER TABLE user_targets ADD COLUMN tilawah_unit TEXT NOT NULL DEFAULT 'juz'");
+  }
+  if (!targetColNames.includes("murojaah_unit")) {
+    db.exec("ALTER TABLE user_targets ADD COLUMN murojaah_unit TEXT NOT NULL DEFAULT 'juz'");
+  }
+
   // user_streaks
   db.exec(`
     CREATE TABLE IF NOT EXISTS user_streaks (

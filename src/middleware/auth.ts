@@ -43,7 +43,7 @@ export const targetMiddleware = createMiddleware<Env>(async (c, next) => {
   const user = c.get("user");
   const target = getUserTarget(user.id);
   if (!target) {
-    return c.redirect("/setup");
+    return c.redirect("/dashboard");
   }
   await next();
 });

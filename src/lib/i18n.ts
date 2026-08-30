@@ -58,7 +58,6 @@ const en = {
   howManyJuzRevise: "How many juz do you want to revise each day?",
   startTracking: "Start Tracking",
   juzPerDay: "juz/day",
-  setupTargetHint: "Most santri start with 1-2 juz/day.",
 
   // Dashboard
   todayProgress: "Today's Progress",
@@ -167,8 +166,9 @@ const en = {
   endedAtMsg: "ended at",
   khatamRecorded: "🎉 Khatam recorded!",
   khatamAlreadyToday: "Khatam already recorded today (once per day limit).",
-  dailyTilawahTargetError: "Tilawah target must be between 0.5 and 30 juz.",
-  dailyMurojaahTargetError: "Murojaah target must be between 0.5 and 30 juz.",
+  dailyTilawahTargetError: "Tilawah target must be greater than 0.",
+  dailyMurojaahTargetError: "Murojaah target must be greater than 0.",
+  targetSaved: "Daily targets updated.",
   dailyCeilingTilawah: "Daily tilawah limit reached (max 30 juz per day).",
   dailyCeilingMurojaah: "Daily murojaah limit reached (max 60 juz per day).",
   targetExceeded: "Target exceeded by",
@@ -352,7 +352,6 @@ const id: typeof en = {
   howManyJuzRevise: "Berapa juz yang ingin kamu ulang setiap hari?",
   startTracking: "Mulai Catat",
   juzPerDay: "juz/hari",
-  setupTargetHint: "Kebanyakan santri mulai dengan 1-2 juz/hari.",
 
   // Dashboard
   todayProgress: "Progress Hari Ini",
@@ -461,8 +460,9 @@ const id: typeof en = {
   endedAtMsg: "berakhir di",
   khatamRecorded: "🎉 Khatam tercatat!",
   khatamAlreadyToday: "Khatam hari ini sudah tercatat (maksimal 1 kali per hari).",
-  dailyTilawahTargetError: "Target tilawah harus antara 0.5 dan 30 juz.",
-  dailyMurojaahTargetError: "Target murojaah harus antara 0.5 dan 30 juz.",
+  dailyTilawahTargetError: "Target tilawah harus lebih dari 0.",
+  dailyMurojaahTargetError: "Target murojaah harus lebih dari 0.",
+  targetSaved: "Target harian diperbarui.",
   dailyCeilingTilawah: "Batas tilawah harian tercapai (maksimal 30 juz per hari).",
   dailyCeilingMurojaah: "Batas murojaah harian tercapai (maksimal 60 juz per hari).",
   targetExceeded: "Target terlampaui",

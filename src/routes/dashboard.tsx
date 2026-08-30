@@ -1,8 +1,8 @@
 import { Hono } from "hono";
-import { authMiddleware, memberMiddleware, targetMiddleware } from "../middleware/auth.ts";
+import { authMiddleware, memberMiddleware } from "../middleware/auth.ts";
 import { db } from "../db/connection.ts";
 import { getCurrentMonthUserActivityRank, getUserActivityTotals } from "../lib/activity-calc.ts";
-import { getUserTarget, getTodayTilawahTotal, getTodayMurojaahTotal } from "../lib/targets.ts";
+import { getUserTarget, getTodayTilawahTotal, getTodayMurojaahTotal, upsertUserTarget } from "../lib/targets.ts";
 import { getUserStreak, getYearActivityHeatmap, getFreezeCreditsLeft, isFrozen, applyFreeze } from "../lib/streak.ts";
 import { getWibDateYmd, getWibYearMonth } from "../lib/wib-date.ts";
 import { ACTIVE_MEMBER_ROLES } from "../lib/roles.ts";
@@ -12,7 +12,7 @@ import type { Env } from "../types.ts";
 
 const dashboard = new Hono<Env>();
 
-dashboard.use("*", authMiddleware, memberMiddleware, targetMiddleware);
+dashboard.use("*", authMiddleware, memberMiddleware);
 
 export type RecentLogEntry = {
   type: "tilawah" | "murojaah";
@@ -37,7 +37,7 @@ dashboard.get("/", (c) => {
   const user = c.get("user");
   const lang = c.get("lang");
   const todayWib = getWibDateYmd();
-  const target = getUserTarget(user.id)!;
+  const target = getUserTarget(user.id);
   const todayTilawah = getTodayTilawahTotal(user.id, todayWib);
   const todayMurojaah = getTodayMurojaahTotal(user.id, todayWib);
   const streak = getUserStreak(user.id, todayWib);
@@ -161,6 +161,42 @@ dashboard.get("/", (c) => {
       error={c.req.query("error")}
     />
   );
+});
+
+dashboard.post("/set-target", async (c) => {
+  const user = c.get("user");
+  const lang = c.get("lang");
+  const body = await c.req.parseBody();
+
+  // Each target: amount in the chosen unit + unit ('juz' | 'pages'), converted to juz.
+  // Pages: 20 pages = 1 juz (Mushaf Madinah).
+  function parseTarget(raw: string, unit: string): number {
+    if (!/^(\d+(\.\d{1,2})?)$/.test(raw)) return NaN;
+    const amount = parseFloat(raw);
+    if (!Number.isFinite(amount) || amount <= 0) return NaN;
+    if (unit === "pages") {
+      if (amount > 600) return NaN;
+      return amount / 20;
+    }
+    if (amount > 30) return NaN;
+    return amount;
+  }
+
+  const tilawahUnit = (body.tilawah_unit as string) === "pages" ? "pages" : "juz";
+  const murojaahUnit = (body.murojaah_unit as string) === "pages" ? "pages" : "juz";
+
+  const tilawah = parseTarget(((body.tilawah_juz_daily as string) || "").trim(), tilawahUnit);
+  const murojaah = parseTarget(((body.murojaah_juz_daily as string) || "").trim(), murojaahUnit);
+
+  if (!Number.isFinite(tilawah) || tilawah <= 0) {
+    return c.redirect(`/dashboard?error=${encodeURIComponent(t(lang, "dailyTilawahTargetError"))}`);
+  }
+  if (!Number.isFinite(murojaah) || murojaah <= 0) {
+    return c.redirect(`/dashboard?error=${encodeURIComponent(t(lang, "dailyMurojaahTargetError"))}`);
+  }
+
+  upsertUserTarget(user.id, tilawah, murojaah, tilawahUnit, murojaahUnit);
+  return c.redirect(`/dashboard?success=${encodeURIComponent(t(lang, "targetSaved"))}`);
 });
 
 import { t } from "../lib/i18n.ts";

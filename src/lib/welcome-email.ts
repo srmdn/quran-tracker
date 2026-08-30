@@ -8,7 +8,7 @@ export async function sendWelcomeEmail(user: User): Promise<void> {
   if (!user.email) return;
 
   const firstName = user.name.split(" ")[0]!;
-  const ctaUrl = `${PUBLIC_BASE_URL}/setup`;
+  const ctaUrl = `${PUBLIC_BASE_URL}/dashboard`;
 
   const subject = `Welcome to ${PRODUCT_NAME} — ${ORG_NAME}`;
 
@@ -50,7 +50,7 @@ export async function sendApprovalEmail(user: User): Promise<void> {
   if (!user.email) return;
 
   const firstName = user.name.split(" ")[0]!;
-  const ctaUrl = `${PUBLIC_BASE_URL}/setup`;
+  const ctaUrl = `${PUBLIC_BASE_URL}/dashboard`;
 
   const subject = `Your ${PRODUCT_NAME} account has been approved!`;
 
