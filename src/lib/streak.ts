@@ -226,13 +226,13 @@ export function rebuildStreak(userId: number): void {
   ).run(userId, streak, newLongest, metDates[0]);
 }
 
-export function getActivityHeatmap(userId: number, days = 365): HeatmapEntry[] {
+// Calendar-year activity heatmap rows (from-01-01 up to to-12-31).
+export function getYearActivityHeatmap(userId: number, year: number): HeatmapEntry[] {
   const todayWib = getWibDateYmd();
   const target = getUserTarget(userId);
 
-  const [ty, tm, td] = todayWib.split("-").map(Number);
-  const startMs = Date.UTC(ty!, tm! - 1, td!) - (days - 1) * 86400000;
-  const startDate = new Date(startMs).toISOString().slice(0, 10);
+  const from = `${year}-01-01`;
+  const to = `${year}-12-31`;
 
   const tilawahRows = db
     .prepare(
@@ -241,7 +241,7 @@ export function getActivityHeatmap(userId: number, days = 365): HeatmapEntry[] {
        WHERE user_id = ? AND date_wib BETWEEN ? AND ?
        GROUP BY date_wib`
     )
-    .all(userId, startDate, todayWib) as Array<{ date_wib: string; total: number }>;
+    .all(userId, from, to) as Array<{ date_wib: string; total: number }>;
 
   const murojaahRows = db
     .prepare(
@@ -250,11 +250,11 @@ export function getActivityHeatmap(userId: number, days = 365): HeatmapEntry[] {
        WHERE user_id = ? AND date_wib BETWEEN ? AND ?
        GROUP BY date_wib`
     )
-    .all(userId, startDate, todayWib) as Array<{ date_wib: string; total: number }>;
+    .all(userId, from, to) as Array<{ date_wib: string; total: number }>;
 
   const freezeRows = db
     .prepare("SELECT date_wib FROM streak_freezes WHERE user_id = ? AND date_wib BETWEEN ? AND ?")
-    .all(userId, startDate, todayWib) as Array<{ date_wib: string }>;
+    .all(userId, from, to) as Array<{ date_wib: string }>;
 
   const tilawahByDate = new Map<string, number>();
   const murojaahByDate = new Map<string, number>();

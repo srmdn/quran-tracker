@@ -23,6 +23,8 @@ export const DashboardPage: FC<{
   activityTotals: ActivityTotals;
   monthlyRank: UserMonthlyActivityRank;
   heatmap: HeatmapCell[];
+  heatmapYear: number;
+  heatmapYears: number[];
   recentLogs: RecentLogEntry[];
   totalKhatam: number;
   totalActiveUsers: number;
@@ -43,6 +45,8 @@ export const DashboardPage: FC<{
   activityTotals,
   monthlyRank,
   heatmap,
+  heatmapYear,
+  heatmapYears,
   recentLogs,
   totalKhatam,
   totalActiveUsers,
@@ -308,16 +312,26 @@ export const DashboardPage: FC<{
           </div>
         </div>
 
-        {/* Activity heatmap (collapsible) */}
-        <details class="w-full bg-white border border-border-light rounded-xl overflow-hidden group">
-          <summary class="px-6 py-4 cursor-pointer list-none [&::-webkit-details-marker]:hidden flex items-center justify-between">
+        {/* Annual activity heatmap */}
+        <div class="w-full bg-white border border-border-light rounded-xl overflow-hidden">
+          <div class="px-4 sm:px-6 py-4 border-b border-border-light flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
             <h2 class="text-text-main font-bold flex items-center gap-2">
               <span class="material-symbols-outlined text-primary text-xl">grid_on</span>
-              {t(lang, "ninetyDayActivity")}
+              {t(lang, "annualActivity")}
             </h2>
-            <span class="material-symbols-outlined text-text-secondary transition-transform group-open:rotate-180">expand_more</span>
-          </summary>
-          <div class="px-6 pb-6">
+            <form method="get" action="/dashboard" class="sm:ml-auto">
+              <select
+                name="year"
+                onchange="this.form.submit()"
+                class="rounded-lg border-slate-200 bg-slate-50 text-sm px-2 py-1 font-semibold text-text-main"
+              >
+                {heatmapYears.map((y) => (
+                  <option value={String(y)} selected={y === heatmapYear}>{y}</option>
+                ))}
+              </select>
+            </form>
+          </div>
+          <div class="px-4 sm:px-6 pt-4 pb-5">
             <div class="flex gap-1.5">
               {/* Day-of-week label column (Mon / Wed / Fri) */}
               <div class="shrink-0 flex flex-col" style="padding-top:16px; gap:2px;">
@@ -374,7 +388,7 @@ export const DashboardPage: FC<{
                 </div>
               </div>
             </div>
-            <div class="flex items-center gap-4 mt-3 text-xs text-text-secondary flex-wrap">
+            <div class="grid grid-cols-2 gap-x-4 gap-y-2 mt-3 text-[11px] sm:flex sm:items-center sm:gap-4 sm:text-xs text-text-secondary">
               <div class="flex items-center gap-1.5">
                 <div class="w-3 h-3 rounded-sm bg-emerald-500" />
                 <span>{t(lang, "targetMetLabel")}</span>
@@ -393,7 +407,7 @@ export const DashboardPage: FC<{
               </div>
             </div>
           </div>
-        </details>
+        </div>
 
         {/* Heatmap tooltip (shared, positioned on hover via JS) */}
         <div

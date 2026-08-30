@@ -3,7 +3,7 @@ import { authMiddleware, memberMiddleware, targetMiddleware } from "../middlewar
 import { db } from "../db/connection.ts";
 import { getCurrentMonthUserActivityRank, getUserActivityTotals } from "../lib/activity-calc.ts";
 import { getUserTarget, getTodayTilawahTotal, getTodayMurojaahTotal } from "../lib/targets.ts";
-import { getUserStreak, getActivityHeatmap, getFreezeCreditsLeft, isFrozen, applyFreeze } from "../lib/streak.ts";
+import { getUserStreak, getYearActivityHeatmap, getFreezeCreditsLeft, isFrozen, applyFreeze } from "../lib/streak.ts";
 import { getWibDateYmd, getWibYearMonth } from "../lib/wib-date.ts";
 import { ACTIVE_MEMBER_ROLES } from "../lib/roles.ts";
 import { DashboardPage } from "../views/pages/DashboardPage.tsx";
@@ -43,7 +43,6 @@ dashboard.get("/", (c) => {
   const streak = getUserStreak(user.id, todayWib);
   const activityTotals = getUserActivityTotals(user.id);
   const monthlyRank = getCurrentMonthUserActivityRank(user.id);
-  const heatmapRaw = getActivityHeatmap(user.id, 365);
 
   // Freeze credits
   const { year: wy, month: wm } = getWibYearMonth();
@@ -52,21 +51,47 @@ dashboard.get("/", (c) => {
   const todayFrozen = isFrozen(user.id, todayWib);
   const hasTodayLog = (todayTilawah > 0 || todayMurojaah > 0);
 
-  // Build full 365-day rolling heatmap grid (oldest → newest), padded to start on Sunday
+  // Annual heatmap: selected year from ?year= (clamped to available years), default current year
+  const currentYear = parseInt(todayWib.slice(0, 4), 10);
+  const earliestYearRow = db
+    .prepare(
+      `SELECT MIN(y) AS y FROM (
+         SELECT substr(date_wib, 1, 4) AS y FROM tilawah_logs WHERE user_id = ?
+         UNION ALL
+         SELECT substr(date_wib, 1, 4) AS y FROM murojaah_logs WHERE user_id = ?
+         UNION ALL
+         SELECT substr(date_wib, 1, 4) AS y FROM streak_freezes WHERE user_id = ?
+       )`
+    )
+    .get(user.id, user.id, user.id) as { y: string | null };
+  const earliestYear = earliestYearRow.y ? parseInt(earliestYearRow.y, 10) : null;
+  const minYear = earliestYear ?? currentYear;
+
+  const yearOptions: number[] = [];
+  for (let y = minYear; y <= currentYear; y++) yearOptions.push(y);
+
+  const qYear = parseInt(c.req.query("year") || "", 10);
+  const selectedYear = Number.isInteger(qYear) && qYear >= minYear && qYear <= currentYear ? qYear : currentYear;
+
+  const heatmapRaw = getYearActivityHeatmap(user.id, selectedYear);
+
+  // Build full calendar-year grid (Jan 1 -> Dec 31, oldest → newest), padded to start on Sunday
   const metSet = new Set(heatmapRaw.filter((e) => e.met_target).map((e) => e.date));
   const countByDate = new Map(heatmapRaw.map((e) => [e.date, e.total_juz]));
   const frozenSet = new Set(heatmapRaw.filter((e) => e.frozen).map((e) => e.date));
 
-  const [ty, tm, td] = todayWib.split("-").map(Number);
-  const todayUtcMs = Date.UTC(ty!, tm! - 1, td!);
-
-  const days365: HeatmapCell[] = [];
-  for (let i = 364; i >= 0; i--) {
-    const ms = todayUtcMs - i * 86400000;
-    const ymd = new Date(ms).toISOString().slice(0, 10);
+  const [yearUtc, monthUtc] = [selectedYear, 0];
+  const yearStartMs = Date.UTC(yearUtc, monthUtc, 1);
+  const yearEndMs = Date.UTC(yearUtc, 11, 31);
+  const numYearDays = Math.round((yearEndMs - yearStartMs) / 86400000) + 1;
+  const yearDays: HeatmapCell[] = [];
+  for (let i = 0; i < numYearDays; i++) {
+    const ms = yearStartMs + i * 86400000;
+    const cellDate = new Date(ms);
+    const ymd = cellDate.toISOString().slice(0, 10);
     const count = countByDate.get(ymd) ?? 0;
     const frozen = frozenSet.has(ymd);
-    days365.push({
+    yearDays.push({
       date: ymd,
       state: metSet.has(ymd) ? "met" : count > 0 ? "logged" : frozen ? "frozen" : "empty",
       count,
@@ -74,10 +99,10 @@ dashboard.get("/", (c) => {
   }
 
   // Pad front with filler cells so grid starts on Sunday
-  const firstDow = new Date(days365[0]!.date + "T00:00:00Z").getDay();
+  const firstDow = new Date(yearDays[0]!.date + "T00:00:00Z").getDay();
   const heatmap: HeatmapCell[] = [
     ...Array.from({ length: firstDow }, () => ({ date: "", state: "filler" as const, count: 0 })),
-    ...days365,
+    ...yearDays,
   ];
 
   // Recent logs (last 8 entries across both types)
@@ -123,6 +148,8 @@ dashboard.get("/", (c) => {
       activityTotals={activityTotals}
       monthlyRank={monthlyRank}
       heatmap={heatmap}
+      heatmapYear={selectedYear}
+      heatmapYears={yearOptions}
       recentLogs={recentLogs}
       totalKhatam={khatamRow.cnt}
       totalActiveUsers={totalActiveUsers}
