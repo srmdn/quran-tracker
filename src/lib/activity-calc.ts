@@ -54,16 +54,19 @@ function getTilawahKhatamCount(userId: number, range?: { from: string; to: strin
 }
 
 // Progress to next khatam = tilawah logged after the most recent khatam event.
+// Compare by date_wib, not created_at: backfilled khatam events carry an
+// INSERT timestamp far later than the real khatam date, which would zero out
+// legitimate progress.
 function getTilawahProgressSinceLastKhatam(userId: number, tilawahJuz: number): number {
   const last = db
     .prepare(
-      "SELECT created_at FROM khatam_events WHERE user_id = ? AND type = 'tilawah' ORDER BY created_at DESC LIMIT 1"
+      "SELECT date_wib FROM khatam_events WHERE user_id = ? AND type = 'tilawah' ORDER BY date_wib DESC, created_at DESC LIMIT 1"
     )
-    .get(userId) as { created_at: string } | null;
+    .get(userId) as { date_wib: string } | null;
   if (!last) return tilawahJuz;
   const row = db
-    .prepare("SELECT COALESCE(SUM(juz_amount), 0) AS total FROM tilawah_logs WHERE user_id = ? AND created_at > ?")
-    .get(userId, last.created_at) as { total: number };
+    .prepare("SELECT COALESCE(SUM(juz_amount), 0) AS total FROM tilawah_logs WHERE user_id = ? AND date_wib > ?")
+    .get(userId, last.date_wib) as { total: number };
   return round2(row.total || 0);
 }
 
