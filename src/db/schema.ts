@@ -135,6 +135,7 @@ export function initializeDatabase() {
   if (!tilawahColNames.includes("start_surah")) db.exec("ALTER TABLE tilawah_logs ADD COLUMN start_surah INTEGER");
   if (!tilawahColNames.includes("start_ayah"))  db.exec("ALTER TABLE tilawah_logs ADD COLUMN start_ayah INTEGER");
   if (!tilawahColNames.includes("start_juz"))   db.exec("ALTER TABLE tilawah_logs ADD COLUMN start_juz INTEGER");
+  if (!tilawahColNames.includes("updated_at"))  db.exec("ALTER TABLE tilawah_logs ADD COLUMN updated_at TEXT");
 
   // Position columns on murojaah_logs
   const murojaahColumns = db
@@ -149,6 +150,7 @@ export function initializeDatabase() {
   if (!murojaahColNames.includes("start_surah")) db.exec("ALTER TABLE murojaah_logs ADD COLUMN start_surah INTEGER");
   if (!murojaahColNames.includes("start_ayah"))  db.exec("ALTER TABLE murojaah_logs ADD COLUMN start_ayah INTEGER");
   if (!murojaahColNames.includes("start_juz"))   db.exec("ALTER TABLE murojaah_logs ADD COLUMN start_juz INTEGER");
+  if (!murojaahColNames.includes("updated_at"))  db.exec("ALTER TABLE murojaah_logs ADD COLUMN updated_at TEXT");
 
   // user_targets
   db.exec(`

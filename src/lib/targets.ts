@@ -1,5 +1,10 @@
 import { db } from "../db/connection.ts";
 
+// Sanity ceilings per WIB day (anti-abuse bound, not a target).
+// Targets are goals; logging above target is allowed up to these limits.
+export const TILAWAH_DAILY_CEILING_JUZ = 30;
+export const MUROJAAH_DAILY_CEILING_JUZ = 60;
+
 export type UserTarget = {
   user_id: number;
   tilawah_juz_daily: number;

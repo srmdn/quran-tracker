@@ -40,9 +40,9 @@ Environment variables: see README.md and `.env.example`.
 
 `src/index.tsx` initializes the DB, cleans expired sessions, mounts all routes, starts `Bun.serve()`. Middleware chain: `langMiddleware` (en/id) -> `authMiddleware` (session cookie resolves `User` into `c.get("user")`, typed via `Env` in `src/types.ts`) -> `memberMiddleware` (blocks pending/suspended) -> `targetMiddleware` (redirects to `/setup` without a target); `adminMiddleware` guards `/admin`. Routes render pages from `src/views/pages/` via `c.html(...)`.
 
-Active data model: `tilawah_logs`, `murojaah_logs` (daily juz entries keyed by WIB date, optional start/end surah+ayah); `user_targets` (daily targets, also enforced as hard cap on log POSTs); `user_streaks` + `streak_freezes` (2 credits/month); `khatam_events` (log ends at An-Nas 114:6 + lifetime 30-juz cycle crossing + once per user/type/day); `monthly_leaderboard_snapshots` (trigger-locked); `email_log`; `enrollments`. `progress_entries`/`progress_log` are legacy with no active code path; dropping them is a pending decision.
+Active data model: `tilawah_logs`, `murojaah_logs` (daily juz entries keyed by WIB date, optional start/end surah+ayah, `updated_at` stamped on edit); `user_targets` (daily goals, NOT caps: logging above target is allowed up to sanity ceilings of 30 juz/day tilawah and 60 juz/day murojaah, enforced against the log's own date so backdated entries are covered); `user_streaks` + `streak_freezes` (2 credits/month); `khatam_events` (tilawah-only: created when a log ends at An-Nas 114:6, once per user/day); `monthly_leaderboard_snapshots` (trigger-locked); `email_log`; `enrollments`. `progress_entries`/`progress_log` are legacy with no active code path; dropping them is a pending decision.
 
-Score = tilawah x 10 + murojaah x 7 + khatam x 300. The monthly leaderboard computes khatam as `floor(monthly tilawah / 30)` and does not read `khatam_events`; current month is live, past months come from snapshots. All day boundaries are WIB (`src/lib/wib-date.ts`); backdating is limited to 1 day, deletion within 7 days. Auth: Google OAuth + email/password; first Google signup becomes `super_admin`; new users start `pending`; sessions expire after 7 days.
+Score = tilawah x 10 + murojaah x 7 + khatam x 300. The monthly leaderboard reads khatam from `khatam_events` (position-verified completions), not from juz totals; past months come from snapshots, and snapshots created before the khatam semantics change used the old `floor(tilawah/30)` derivation, so archived months are not comparable to live months. All day boundaries are WIB (`src/lib/wib-date.ts`); backdating is limited to 1 day, edit/delete within 7 days (date immutable on edit; edit revalidates like create and re-evaluates khatam events). Auth: Google OAuth + email/password; first Google signup becomes `super_admin`; new users start `pending`; sessions expire after 7 days.
 
 ## Key Files
 
@@ -53,7 +53,7 @@ Score = tilawah x 10 + murojaah x 7 + khatam x 300. The monthly leaderboard comp
 | Session + user upsert | `src/lib/session.ts` |
 | Targets, streaks, scoring | `src/lib/targets.ts`, `src/lib/streak.ts`, `src/lib/activity-calc.ts` |
 | WIB dates, i18n, Quran meta | `src/lib/wib-date.ts`, `src/lib/i18n.ts`, `src/data/quran-meta.ts` |
-| Log + khatam detection | `src/routes/tilawah.tsx`, `src/routes/murojaah.tsx` |
+| Log + khatam detection | `src/routes/tilawah.tsx`, `src/routes/murojaah.tsx`, `src/lib/log-validate.ts` |
 | Leaderboard + snapshots | `src/routes/activity.tsx`, `src/lib/monthly-snapshot.ts` |
 | Auth + middleware | `src/routes/auth.ts`, `src/middleware/auth.ts` |
 | Shared types + `Env` | `src/types.ts` |

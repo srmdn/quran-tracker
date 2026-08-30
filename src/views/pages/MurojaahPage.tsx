@@ -22,6 +22,7 @@ type LogEntry = {
   end_ayah: number | null;
   end_juz: number | null;
   created_at: string;
+  updated_at: string | null;
 };
 
 function fmtWibTime(utcStr: string): string {
@@ -84,7 +85,13 @@ export const MurojaahPage: FC<{
           <div class="w-full h-3 rounded-full bg-slate-100 border border-slate-200 overflow-hidden mb-1">
             <div class={`h-full rounded-full ${todayPercent >= 100 ? "bg-emerald-500" : "bg-primary"}`} style={`width: ${todayPercent}%`} />
           </div>
-          <p class="text-xs text-text-secondary">{todayPercent >= 100 ? t(lang, "dailyTargetMet") : `${formatJuz(Math.max(0, target.murojaah_juz_daily - todayTotal), lang)} ${t(lang, "toGo")}`}</p>
+          <p class="text-xs text-text-secondary">
+            {todayPercent >= 100
+              ? todayTotal > target.murojaah_juz_daily
+                ? `${t(lang, "dailyTargetMet")} · ${t(lang, "targetExceeded")} ${formatJuz(todayTotal - target.murojaah_juz_daily, lang)}`
+                : t(lang, "dailyTargetMet")
+              : `${formatJuz(Math.max(0, target.murojaah_juz_daily - todayTotal), lang)} ${t(lang, "toGo")}`}
+          </p>
         </div>
 
         {/* Last position */}
@@ -102,19 +109,7 @@ export const MurojaahPage: FC<{
           {/* Log form */}
           <div class="bg-white border border-border-light rounded-xl p-6">
             <h3 class="text-text-main text-lg font-bold mb-4">{t(lang, "logMurojaah")}</h3>
-            {todayPercent >= 100 ? (
-              <div class="flex flex-col items-center justify-center gap-4 py-6 text-center">
-                <div class="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center">
-                  <span class="material-symbols-outlined text-emerald-600 text-3xl">check_circle</span>
-                </div>
-                <div>
-                  <p class="font-bold text-text-main">{t(lang, "targetMetForToday")}</p>
-                  <p class="text-xs text-text-secondary mt-1 max-w-xs">{t(lang, "targetMetForTodayDesc")}</p>
-                </div>
-                <a href="/setup" class="text-xs font-semibold text-primary hover:underline">{t(lang, "updateTargetLink")}</a>
-              </div>
-            ) : (
-              <form method="post" action="/murojaah" class="space-y-4">
+            <form method="post" action="/murojaah" class="space-y-4">
                 <div>
                   <label class="block text-xs font-semibold text-text-secondary mb-1">{t(lang, "dateWib")}</label>
                   <input type="date" name="date_wib" value={todayWib}
@@ -210,9 +205,7 @@ export const MurojaahPage: FC<{
                   {t(lang, "saveMurojaah")}
                 </button>
               </form>
-            )}
-            {todayPercent < 100 && (
-              <script dangerouslySetInnerHTML={{ __html: `(function(){
+            <script dangerouslySetInnerHTML={{ __html: `(function(){
   var AC=${JSON.stringify(Object.fromEntries(SURAHS.map(s => [s.number, s.totalAyahs])))};
   // Start position pre-fill
   var startSel=document.getElementById('mur-start-surah-sel');
@@ -259,7 +252,6 @@ export const MurojaahPage: FC<{
   btnJuz.addEventListener('click',function(){setMode('juz');});
   btnPages.addEventListener('click',function(){setMode('pages');});
 })();` }} />
-            )}
           </div>
 
           {/* Stats */}
@@ -322,9 +314,20 @@ export const MurojaahPage: FC<{
                       </div>
                       <div class="flex items-center gap-3 flex-shrink-0">
                         <div class="text-right">
-                          <span class="text-xs text-text-secondary block">{log.date_wib}</span>
+                          <span class="text-xs text-text-secondary block">
+                            {log.date_wib}
+                            {log.updated_at && (
+                              <span class="text-text-secondary/60"> · {t(lang, "editedLabel")}</span>
+                            )}
+                          </span>
                           <span class="text-xs text-text-secondary/60">{fmtWibTime(log.created_at)} WIB</span>
                         </div>
+                        {canDelete && (
+                          <a href={`/murojaah/logs/${log.id}/edit`} title={t(lang, "editEntry")}
+                            class="text-slate-400 hover:text-primary transition-colors">
+                            <span class="material-symbols-outlined text-lg">edit</span>
+                          </a>
+                        )}
                         {canDelete && (
                           <form method="POST" action={`/murojaah/logs/${log.id}/delete`}
                             onsubmit="return confirm('Delete this entry?')">

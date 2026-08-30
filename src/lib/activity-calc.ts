@@ -5,7 +5,6 @@ import { getWibMonthRange, getWibYearMonth } from "./wib-date.ts";
 export const TILAWAH_POINT_PER_JUZ = 10;
 export const MUROJAAH_POINT_PER_JUZ = 7;
 export const KHATAM_BONUS_POINT = 300;
-export const JUZ_PER_KHATAM = 30;
 
 export type ActivityTotals = {
   tilawahJuz: number;
@@ -39,10 +38,33 @@ function round2(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
-function toKhatamStats(tilawahJuz: number): { totalKhatam: number; progressToNextKhatam: number } {
-  const totalKhatam = Math.floor(tilawahJuz / JUZ_PER_KHATAM);
-  const progressToNextKhatam = round2(tilawahJuz - totalKhatam * JUZ_PER_KHATAM);
-  return { totalKhatam, progressToNextKhatam };
+// Khatam is position-verified only (tilawah log ending at An-Nas 114:6),
+// recorded in khatam_events. Murojaah never counts as khatam.
+function getTilawahKhatamCount(userId: number, range?: { from: string; to: string }): number {
+  const row = range
+    ? db
+        .prepare(
+          "SELECT COUNT(*) AS cnt FROM khatam_events WHERE user_id = ? AND type = 'tilawah' AND date_wib BETWEEN ? AND ?"
+        )
+        .get(userId, range.from, range.to) as { cnt: number }
+    : db
+        .prepare("SELECT COUNT(*) AS cnt FROM khatam_events WHERE user_id = ? AND type = 'tilawah'")
+        .get(userId) as { cnt: number };
+  return row.cnt;
+}
+
+// Progress to next khatam = tilawah logged after the most recent khatam event.
+function getTilawahProgressSinceLastKhatam(userId: number, tilawahJuz: number): number {
+  const last = db
+    .prepare(
+      "SELECT created_at FROM khatam_events WHERE user_id = ? AND type = 'tilawah' ORDER BY created_at DESC LIMIT 1"
+    )
+    .get(userId) as { created_at: string } | null;
+  if (!last) return tilawahJuz;
+  const row = db
+    .prepare("SELECT COALESCE(SUM(juz_amount), 0) AS total FROM tilawah_logs WHERE user_id = ? AND created_at > ?")
+    .get(userId, last.created_at) as { total: number };
+  return round2(row.total || 0);
 }
 
 function calcScore(tilawahJuz: number, murojaahJuz: number, khatamCount: number): number {
@@ -84,33 +106,14 @@ function getSum(
 export function getUserActivityTotals(userId: number): ActivityTotals {
   const tilawahJuz = getSum("tilawah_logs", userId);
   const murojaahJuz = getSum("murojaah_logs", userId);
-  const { totalKhatam, progressToNextKhatam } = toKhatamStats(tilawahJuz);
+  const totalKhatam = getTilawahKhatamCount(userId);
 
   return {
     tilawahJuz,
     murojaahJuz,
     totalJuz: round2(tilawahJuz + murojaahJuz),
     totalKhatam,
-    progressToNextKhatam,
-  };
-}
-
-export function getUserMonthlyActivityTotals(
-  userId: number,
-  year: number,
-  month: number
-): ActivityTotals {
-  const range = getWibMonthRange(year, month);
-  const tilawahJuz = getSum("tilawah_logs", userId, range);
-  const murojaahJuz = getSum("murojaah_logs", userId, range);
-  const { totalKhatam, progressToNextKhatam } = toKhatamStats(tilawahJuz);
-
-  return {
-    tilawahJuz,
-    murojaahJuz,
-    totalJuz: round2(tilawahJuz + murojaahJuz),
-    totalKhatam,
-    progressToNextKhatam,
+    progressToNextKhatam: getTilawahProgressSinceLastKhatam(userId, tilawahJuz),
   };
 }
 
@@ -140,7 +143,8 @@ export function getMonthlyActivityLeaderboard(params: {
          u.avatar_url,
          u.role,
          COALESCE(t.tilawah_juz, 0) AS tilawah_juz,
-         COALESCE(m.murojaah_juz, 0) AS murojaah_juz
+         COALESCE(m.murojaah_juz, 0) AS murojaah_juz,
+         COALESCE(k.khatam_cnt, 0) AS khatam_cnt
        FROM users u
        LEFT JOIN (
          SELECT user_id, SUM(juz_amount) AS tilawah_juz
@@ -154,22 +158,29 @@ export function getMonthlyActivityLeaderboard(params: {
          WHERE date_wib BETWEEN ? AND ?
          GROUP BY user_id
        ) m ON m.user_id = u.id
+       LEFT JOIN (
+         SELECT user_id, COUNT(*) AS khatam_cnt
+         FROM khatam_events
+         WHERE type = 'tilawah' AND date_wib BETWEEN ? AND ?
+         GROUP BY user_id
+       ) k ON k.user_id = u.id
        WHERE u.role IN (${rolesSql}) AND u.suspended_at IS NULL AND EXISTS (SELECT 1 FROM user_targets ut WHERE ut.user_id = u.id)`
-    )
-    .all(range.from, range.to, range.from, range.to) as Array<{
+     )
+    .all(range.from, range.to, range.from, range.to, range.from, range.to) as Array<{
     id: number;
     name: string;
     avatar_url: string | null;
     role: string;
     tilawah_juz: number;
     murojaah_juz: number;
+    khatam_cnt: number;
   }>;
 
   const ranked = users
     .map((u) => {
       const tilawah = round2(u.tilawah_juz || 0);
       const murojaah = round2(u.murojaah_juz || 0);
-      const khatam = Math.floor(tilawah / JUZ_PER_KHATAM);
+      const khatam = u.khatam_cnt || 0;
       const score = calcScore(tilawah, murojaah, khatam);
       return {
         id: u.id,

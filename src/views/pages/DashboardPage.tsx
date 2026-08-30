@@ -169,7 +169,11 @@ export const DashboardPage: FC<{
                 />
               </div>
               <p class={`text-xs mt-1 font-semibold ${tilawahPercent >= 100 ? "text-emerald-600" : "text-text-secondary"}`}>
-                {tilawahPercent >= 100 ? t(lang, "targetMet") : `${formatJuz(Math.max(0, target.tilawah_juz_daily - todayTilawah), lang)} ${t(lang, "toGo")}`}
+                {tilawahPercent >= 100
+                  ? todayTilawah > target.tilawah_juz_daily
+                    ? `${t(lang, "targetMet")} ${t(lang, "targetExceeded")} ${formatJuz(todayTilawah - target.tilawah_juz_daily, lang)}`
+                    : t(lang, "targetMet")
+                  : `${formatJuz(Math.max(0, target.tilawah_juz_daily - todayTilawah), lang)} ${t(lang, "toGo")}`}
               </p>
             </div>
             {/* Murojaah bar */}
@@ -185,7 +189,11 @@ export const DashboardPage: FC<{
                 />
               </div>
               <p class={`text-xs mt-1 font-semibold ${murojaahPercent >= 100 ? "text-emerald-600" : "text-text-secondary"}`}>
-                {murojaahPercent >= 100 ? t(lang, "targetMet") : `${formatJuz(Math.max(0, target.murojaah_juz_daily - todayMurojaah), lang)} ${t(lang, "toGo")}`}
+                {murojaahPercent >= 100
+                  ? todayMurojaah > target.murojaah_juz_daily
+                    ? `${t(lang, "targetMet")} ${t(lang, "targetExceeded")} ${formatJuz(todayMurojaah - target.murojaah_juz_daily, lang)}`
+                    : t(lang, "targetMet")
+                  : `${formatJuz(Math.max(0, target.murojaah_juz_daily - todayMurojaah), lang)} ${t(lang, "toGo")}`}
               </p>
             </div>
           </div>
