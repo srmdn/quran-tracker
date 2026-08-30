@@ -7,7 +7,6 @@ import { getUserStreak, getYearActivityHeatmap, getFreezeCreditsLeft, isFrozen, 
 import { getWibDateYmd, getWibYearMonth } from "../lib/wib-date.ts";
 import { ACTIVE_MEMBER_ROLES } from "../lib/roles.ts";
 import { DashboardPage } from "../views/pages/DashboardPage.tsx";
-import { getRandomFastabiqEntry } from "../lib/fastabiq-verses.ts";
 import type { Env } from "../types.ts";
 
 const dashboard = new Hono<Env>();
@@ -134,8 +133,6 @@ dashboard.get("/", (c) => {
     .prepare(`SELECT COUNT(*) AS cnt FROM users WHERE role IN (${rolesSql}) AND suspended_at IS NULL`)
     .get() as { cnt: number }).cnt;
 
-  const fastabiqEntry = getRandomFastabiqEntry();
-
   return c.html(
     <DashboardPage
       user={user}
@@ -153,7 +150,6 @@ dashboard.get("/", (c) => {
       recentLogs={recentLogs}
       totalKhatam={khatamRow.cnt}
       totalActiveUsers={totalActiveUsers}
-      fastabiqEntry={fastabiqEntry}
       freezeCreditsLeft={freezeCreditsLeft}
       todayFrozen={todayFrozen}
       hasTodayLog={hasTodayLog}

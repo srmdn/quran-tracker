@@ -10,7 +10,6 @@ import type { ActivityTotals, UserMonthlyActivityRank } from "../../lib/activity
 import type { RecentLogEntry, HeatmapCell } from "../../routes/dashboard.tsx";
 import { t, type Lang } from "../../lib/i18n.ts";
 import { formatJuz, formatLogAmount } from "../../lib/format-juz.ts";
-import type { FastabiqEntry } from "../../lib/fastabiq-verses.ts";
 
 export const DashboardPage: FC<{
   user: User;
@@ -28,7 +27,6 @@ export const DashboardPage: FC<{
   recentLogs: RecentLogEntry[];
   totalKhatam: number;
   totalActiveUsers: number;
-  fastabiqEntry: FastabiqEntry;
   freezeCreditsLeft: number;
   todayFrozen: boolean;
   hasTodayLog: boolean;
@@ -50,7 +48,6 @@ export const DashboardPage: FC<{
   recentLogs,
   totalKhatam,
   totalActiveUsers,
-  fastabiqEntry,
   freezeCreditsLeft,
   todayFrozen,
   hasTodayLog,
@@ -258,24 +255,6 @@ export const DashboardPage: FC<{
             <p class="text-text-secondary text-xs font-medium mb-1">{t(lang, "bestStreakLabel")}</p>
             <p class="text-2xl font-black text-orange-500">{streak.longest_streak}</p>
             <p class="text-xs text-text-secondary">{t(lang, "days")}</p>
-          </div>
-        </div>
-
-        {/* Daily reminder: one slim rotating strip */}
-        <div class="w-full bg-amber-950 border border-amber-900 rounded-xl px-4 py-2.5 mb-5">
-          <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-1.5">
-            <p class="text-amber-400/70 text-[10px] font-bold uppercase tracking-widest shrink-0">
-              {lang === "id" ? "Renungan" : "Reminder"}
-            </p>
-            <p
-              class="text-amber-100 text-base sm:text-lg font-black leading-relaxed shrink-0"
-              style="font-family: 'Amiri', 'Traditional Arabic', serif; direction: rtl;"
-            >
-              {fastabiqEntry.verseArabic}
-            </p>
-            <p class="text-amber-200/80 text-[11px] sm:text-xs italic min-w-0 flex-1">
-              "{lang === "en" ? fastabiqEntry.verseEn : fastabiqEntry.verseId}" — {fastabiqEntry.verseRef}
-            </p>
           </div>
         </div>
 
