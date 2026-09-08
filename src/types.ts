@@ -14,6 +14,7 @@ export interface User {
     | "alumni"
     | "asatidz";
   suspended_at?: string | null;
+  email_notif_enabled?: number;
   created_at: string;
   updated_at: string;
 }

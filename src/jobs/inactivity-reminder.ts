@@ -69,16 +69,22 @@ for (const user of candidates) {
   const message = buildInactivityEmail({ name: user.name, lastActivityDate });
 
   try {
-    await sendTrackedEmail({
+    const result = await sendTrackedEmail({
       to: user.email,
       subject: message.subject,
       text: message.text,
       html: message.html,
       emailType: "inactivity_reminder",
       userId: user.id,
+      notif: true,
     });
-    sent++;
-    console.log(`[inactivity-reminder] sent to ${user.email} (last activity: ${lastActivityDate ?? "never"})`);
+    if (result === "sent") {
+      sent++;
+      console.log(`[inactivity-reminder] sent to ${user.email} (last activity: ${lastActivityDate ?? "never"})`);
+    } else {
+      skipped++;
+      console.log(`[inactivity-reminder] skipped for ${user.email} (notifications off)`);
+    }
   } catch (err) {
     failed++;
     console.error(`[inactivity-reminder] failed for ${user.email}: ${err instanceof Error ? err.message : err}`);

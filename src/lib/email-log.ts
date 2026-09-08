@@ -32,11 +32,21 @@ export async function sendTrackedEmail(params: {
   html?: string;
   emailType: string;
   userId?: number | null;
-}): Promise<void> {
-  const { emailType, userId = null, ...smtpParams } = params;
+  notif?: boolean;
+}): Promise<"sent" | "failed" | "skipped"> {
+  const { emailType, userId = null, notif = false, ...smtpParams } = params;
+  if (notif && userId) {
+    const row = db.prepare("SELECT email_notif_enabled FROM users WHERE id = ?").get(userId) as
+      | { email_notif_enabled: number | null }
+      | undefined;
+    if (row && row.email_notif_enabled === 0) {
+      return "skipped";
+    }
+  }
   try {
     await sendSmtpMail(smtpParams);
     logEmail({ userId, emailType, recipient: params.to, subject: params.subject, status: "sent" });
+    return "sent";
   } catch (err) {
     logEmail({
       userId,

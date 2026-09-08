@@ -9,6 +9,7 @@ export function initializeDatabase() {
       name        TEXT NOT NULL,
       avatar_url  TEXT,
       role        TEXT NOT NULL DEFAULT 'pending',
+      email_notif_enabled INTEGER NOT NULL DEFAULT 1,
       created_at  TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
     );
@@ -120,6 +121,9 @@ export function initializeDatabase() {
   }
   if (!userColNames.includes("suspended_at")) {
     db.exec("ALTER TABLE users ADD COLUMN suspended_at TEXT DEFAULT NULL");
+  }
+  if (!userColNames.includes("email_notif_enabled")) {
+    db.exec("ALTER TABLE users ADD COLUMN email_notif_enabled INTEGER NOT NULL DEFAULT 1");
   }
 
   // Position columns on tilawah_logs

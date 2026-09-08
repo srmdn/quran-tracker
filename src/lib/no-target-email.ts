@@ -3,8 +3,8 @@ import { sendTrackedEmail } from "./email-log.ts";
 import { escapeHtml, ctaButton, baseEmailHtml } from "./email-base.ts";
 import type { User } from "../types.ts";
 
-export async function sendNoTargetNudgeEmail(user: User): Promise<void> {
-  if (!user.email) return;
+export async function sendNoTargetNudgeEmail(user: User): Promise<"sent" | "failed" | "skipped"> {
+  if (!user.email) return "skipped";
 
   const firstName = user.name.split(" ")[0]!;
   const ctaUrl = `${PUBLIC_BASE_URL}/dashboard`;
@@ -43,5 +43,5 @@ export async function sendNoTargetNudgeEmail(user: User): Promise<void> {
 
   const html = baseEmailHtml({ subtitle: "Set Your Daily Target", bodyHtml });
 
-  await sendTrackedEmail({ to: user.email, subject, text, html, emailType: "no_target_nudge", userId: user.id });
+  return sendTrackedEmail({ to: user.email, subject, text, html, emailType: "no_target_nudge", userId: user.id, notif: true });
 }

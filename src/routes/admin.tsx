@@ -21,6 +21,7 @@ import { AdminEmailLogPage } from "../views/pages/AdminEmailLogPage.tsx";
 import type { EnrollmentRow } from "../views/pages/AdminEnrollmentsPage.tsx";
 import type { Enrollment } from "../views/pages/AdminEnrollmentDetailPage.tsx";
 import type { EmailLogRow } from "../views/pages/AdminEmailLogPage.tsx";
+import { toWib } from "../views/pages/AdminEmailLogPage.tsx";
 import type { RecentLogEntry } from "../routes/dashboard.tsx";
 import type { Env, User } from "../types.ts";
 
@@ -42,12 +43,25 @@ admin.get("/", (c) => {
     .prepare("SELECT * FROM users WHERE role != 'pending' ORDER BY role DESC, name ASC")
     .all() as User[];
 
+  const suspendedCount = (
+    db.prepare("SELECT COUNT(*) AS cnt FROM users WHERE role != 'pending' AND suspended_at IS NOT NULL").get() as { cnt: number }
+  ).cnt;
+
+  const emailStats = db
+    .prepare("SELECT status, COUNT(*) AS cnt FROM email_log WHERE sent_at >= datetime('now', 'start of day') GROUP BY status")
+    .all() as { status: string; cnt: number }[];
+  const emailsSentToday = emailStats.find((s) => s.status === "sent")?.cnt ?? 0;
+  const emailsFailedToday = emailStats.find((s) => s.status === "failed")?.cnt ?? 0;
+
   return c.html(
     <AdminPage
       user={user}
       lang={lang}
       pendingUsers={pendingUsers}
       allUsers={allUsers}
+      suspendedCount={suspendedCount}
+      emailsSentToday={emailsSentToday}
+      emailsFailedToday={emailsFailedToday}
       success={success}
       error={error}
     />
@@ -134,6 +148,7 @@ admin.post("/users/:id/update", async (c) => {
   const email = ((body.email as string) || "").trim().toLowerCase();
   const role = ((body.role as string) || "").trim();
   const password = ((body.password as string) || "").trim();
+  const emailNotifEnabled = body.email_notif_enabled === "1" ? 1 : 0;
 
   if (!name || !email || !email.includes("@")) {
     return c.redirect(`/admin/members/${userId}/edit?error=Name and a valid email are required.`);
@@ -149,12 +164,12 @@ admin.post("/users/:id/update", async (c) => {
     if (password) {
       const passwordHash = await Bun.password.hash(password, { algorithm: "bcrypt" });
       db.prepare(
-        "UPDATE users SET name = ?, email = ?, role = ?, password_hash = ?, updated_at = datetime('now') WHERE id = ?"
-      ).run(name, email, role, passwordHash, userId);
+        "UPDATE users SET name = ?, email = ?, role = ?, email_notif_enabled = ?, password_hash = ?, updated_at = datetime('now') WHERE id = ?"
+      ).run(name, email, role, emailNotifEnabled, passwordHash, userId);
     } else {
       db.prepare(
-        "UPDATE users SET name = ?, email = ?, role = ?, updated_at = datetime('now') WHERE id = ?"
-      ).run(name, email, role, userId);
+        "UPDATE users SET name = ?, email = ?, role = ?, email_notif_enabled = ?, updated_at = datetime('now') WHERE id = ?"
+      ).run(name, email, role, emailNotifEnabled, userId);
     }
   } catch {
     return c.redirect(`/admin/members/${userId}/edit?error=Failed to update user. Email may already exist.`);
@@ -248,6 +263,25 @@ admin.post("/users/:id/unsuspend", (c) => {
   return c.redirect("/admin?success=User unsuspended.");
 });
 
+admin.post("/users/:id/email-notif", async (c) => {
+  const currentUser = c.get("user");
+  if (!isSuperAdminRole(currentUser.role)) {
+    return c.redirect(`/admin/members/${c.req.param("id")}?error=Only super admin can change email notification settings.`);
+  }
+  const userId = parseInt(c.req.param("id"), 10);
+  if (!Number.isInteger(userId)) {
+    return c.redirect("/admin?error=Invalid user id.");
+  }
+  const body = await c.req.parseBody();
+  const enabled = body.enabled === "1" ? 1 : 0;
+  const target = db.prepare("SELECT id FROM users WHERE id = ?").get(userId) as { id: number } | null;
+  if (!target) return c.redirect("/admin?error=User not found.");
+  db.prepare("UPDATE users SET email_notif_enabled = ?, updated_at = datetime('now') WHERE id = ?").run(enabled, userId);
+  return c.redirect(
+    `/admin/members/${userId}?success=${enabled ? "Email notifications enabled." : "Email notifications disabled for this member."}`
+  );
+});
+
 admin.post("/users/:id/delete", (c) => {
   const currentUser = c.get("user");
   if (!isSuperAdminRole(currentUser.role)) {
@@ -297,11 +331,11 @@ admin.post("/snapshots/run", async (c) => {
 admin.post("/email/test-approval", async (c) => {
   const user = c.get("user");
   if (!user.email) {
-    return c.redirect("/admin?error=Your account has no email address.");
+    return c.redirect("/admin/email-log?error=Your account has no email address.");
   }
   try {
     await sendApprovalEmail(user);
-    return c.redirect("/admin?success=Test approval email sent to " + user.email);
+    return c.redirect("/admin/email-log?success=Test approval email sent to " + user.email);
   } catch (err) {
     console.error("[admin] test-approval email failed:", err);
     return c.redirect("/admin?error=Failed to send test approval email. Check server logs.");
@@ -311,11 +345,11 @@ admin.post("/email/test-approval", async (c) => {
 admin.post("/email/test-reminder", async (c) => {
   const user = c.get("user");
   if (!user.email) {
-    return c.redirect("/admin?error=Your account has no email address.");
+    return c.redirect("/admin/email-log?error=Your account has no email address.");
   }
   try {
     await sendTestReminderEmail({ id: user.id, name: user.name, email: user.email });
-    return c.redirect("/admin?success=Test reminder email sent to " + user.email);
+    return c.redirect("/admin/email-log?success=Test reminder email sent to " + user.email);
   } catch (err) {
     console.error("[admin] test-reminder email failed:", err);
     return c.redirect("/admin?error=Failed to send test reminder email. Check server logs.");
@@ -325,12 +359,12 @@ admin.post("/email/test-reminder", async (c) => {
 admin.post("/email/test-snapshot", async (c) => {
   const user = c.get("user");
   if (!user.email) {
-    return c.redirect("/admin?error=Your account has no email address.");
+    return c.redirect("/admin/email-log?error=Your account has no email address.");
   }
   try {
     const { year, month } = getWibYearMonth();
     await sendSnapshotPreviewEmail({ to: user.email, year, month });
-    return c.redirect("/admin?success=Test snapshot email sent to " + user.email);
+    return c.redirect("/admin/email-log?success=Test snapshot email sent to " + user.email);
   } catch (err) {
     console.error("[admin] test-snapshot email failed:", err);
     return c.redirect("/admin?error=Failed to send test snapshot email. Check server logs.");
@@ -340,11 +374,11 @@ admin.post("/email/test-snapshot", async (c) => {
 admin.post("/email/test-khatam", async (c) => {
   const user = c.get("user");
   if (!user.email) {
-    return c.redirect("/admin?error=Your account has no email address.");
+    return c.redirect("/admin/email-log?error=Your account has no email address.");
   }
   try {
-    await sendKhatamEmail(user, 1);
-    return c.redirect("/admin?success=Test khatam email sent to " + user.email);
+    await sendKhatamEmail(user, 1, { notif: false });
+    return c.redirect("/admin/email-log?success=Test khatam email sent to " + user.email);
   } catch (err) {
     console.error("[admin] test-khatam email failed:", err);
     return c.redirect("/admin?error=Failed to send test khatam email. Check server logs.");
@@ -354,11 +388,11 @@ admin.post("/email/test-khatam", async (c) => {
 admin.post("/email/test-streak", async (c) => {
   const user = c.get("user");
   if (!user.email) {
-    return c.redirect("/admin?error=Your account has no email address.");
+    return c.redirect("/admin/email-log?error=Your account has no email address.");
   }
   try {
-    await sendStreakMilestoneEmail(user, 7);
-    return c.redirect("/admin?success=Test streak email (7 days) sent to " + user.email);
+    await sendStreakMilestoneEmail(user, 7, { notif: false });
+    return c.redirect("/admin/email-log?success=Test streak email (7 days) sent to " + user.email);
   } catch (err) {
     console.error("[admin] test-streak email failed:", err);
     return c.redirect("/admin?error=Failed to send test streak email. Check server logs.");
@@ -467,8 +501,17 @@ admin.get("/email-log", (c) => {
 
   const total = (db.prepare(`SELECT COUNT(*) AS cnt FROM email_log ${where}`).get(...args) as { cnt: number }).cnt;
   const rows = db
-    .prepare(`SELECT id, user_id, email_type, recipient, subject, status, error, sent_at FROM email_log ${where} ORDER BY sent_at DESC LIMIT ? OFFSET ?`)
+    .prepare(`SELECT el.id, el.user_id, el.email_type, el.recipient, el.subject, el.status, el.error, el.sent_at, u.name AS user_name FROM email_log el LEFT JOIN users u ON u.id = el.user_id ${where.replaceAll("status = ?", "el.status = ?").replaceAll("email_type = ?", "el.email_type = ?")} ORDER BY el.sent_at DESC LIMIT ? OFFSET ?`)
     .all(...args, perPage, (page - 1) * perPage) as EmailLogRow[];
+
+  const sentTotal = (db.prepare("SELECT COUNT(*) AS cnt FROM email_log WHERE status = 'sent'").get() as { cnt: number }).cnt;
+  const failedTotal = (db.prepare("SELECT COUNT(*) AS cnt FROM email_log WHERE status = 'failed'").get() as { cnt: number }).cnt;
+  const todaySent = (db.prepare("SELECT COUNT(*) AS cnt FROM email_log WHERE status = 'sent' AND sent_at >= datetime('now', 'start of day')").get() as { cnt: number }).cnt;
+  const todayFailed = (db.prepare("SELECT COUNT(*) AS cnt FROM email_log WHERE status = 'failed' AND sent_at >= datetime('now', 'start of day')").get() as { cnt: number }).cnt;
+
+  const smtpConfigured = Boolean(
+    process.env.SMTP_HOST && process.env.SMTP_PORT && process.env.SMTP_USER && process.env.SMTP_PASS && process.env.SMTP_FROM
+  );
 
   const allTypes = [
     "approval", "daily_reminder", "inactivity_reminder", "khatam",
@@ -483,6 +526,11 @@ admin.get("/email-log", (c) => {
       lang={lang}
       rows={rows}
       total={total}
+      sentTotal={sentTotal}
+      failedTotal={failedTotal}
+      todaySent={todaySent}
+      todayFailed={todayFailed}
+      smtpConfigured={smtpConfigured}
       page={page}
       perPage={perPage}
       filterStatus={filterStatus}
@@ -492,6 +540,44 @@ admin.get("/email-log", (c) => {
       flashError={flashError}
     />
   );
+});
+
+admin.get("/email-log/export", (c) => {
+  const filterStatus = c.req.query("status") || "";
+  const filterType = c.req.query("type") || "";
+
+  const conditions: string[] = [];
+  const args: string[] = [];
+  if (filterStatus === "sent" || filterStatus === "failed") {
+    conditions.push("el.status = ?");
+    args.push(filterStatus);
+  }
+  if (filterType) {
+    conditions.push("el.email_type = ?");
+    args.push(filterType);
+  }
+  const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+
+  const rows = db
+    .prepare(`SELECT el.email_type, el.recipient, el.subject, el.status, el.error, el.sent_at, u.name AS user_name FROM email_log el LEFT JOIN users u ON u.id = el.user_id ${where} ORDER BY el.sent_at DESC`)
+    .all(...args) as Array<{ email_type: string; recipient: string; subject: string; status: string; error: string | null; sent_at: string; user_name: string | null }>;
+
+  const escapeCsv = (value: string | null | undefined): string => {
+    const s = value ?? "";
+    return `"${s.replaceAll('"', '""')}"`;
+  };
+
+  const header = "sent_at_wib,email_type,status,recipient,user_name,subject,error";
+  const lines = rows.map((row) =>
+    [toWib(row.sent_at), row.email_type, row.status, row.recipient, row.user_name, row.subject, row.error].map(escapeCsv).join(",")
+  );
+  const csv = [header, ...lines].join("\r\n");
+
+  const filename = `email-log-${getWibDateYmd()}.csv`;
+  return c.body(csv, 200, {
+    "Content-Type": "text/csv; charset=utf-8",
+    "Content-Disposition": `attachment; filename="${filename}"`,
+  });
 });
 
 admin.post("/email-log/:id/resend", async (c) => {

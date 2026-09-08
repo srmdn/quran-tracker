@@ -82,6 +82,21 @@ export const AdminEditMemberPage: FC<{
                     <option value="super_admin" selected={member.role === "super_admin"}>super_admin</option>
                   </select>
                 </div>
+                <div>
+                  <label class="flex items-center gap-2.5 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      name="email_notif_enabled"
+                      value="1"
+                      checked={member.email_notif_enabled !== 0}
+                      class="rounded border-slate-300 text-primary focus:ring-primary/30"
+                    />
+                    <span class="text-sm text-text-main font-semibold">Email notifications enabled</span>
+                  </label>
+                  <p class="text-xs text-text-secondary mt-1 ml-6">
+                    Uncheck to stop automated notification emails (reminders, snapshots, milestones) for this member.
+                  </p>
+                </div>
                 <button
                   type="submit"
                   class="px-5 py-2.5 bg-primary text-white rounded-lg font-bold text-sm hover:bg-primary-dark transition-colors shadow-sm"

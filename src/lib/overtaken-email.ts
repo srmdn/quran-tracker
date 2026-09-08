@@ -55,7 +55,7 @@ async function sendOvertakenEmail(
   `;
 
   const html = baseEmailHtml({ subtitle: "You've been overtaken", bodyHtml });
-  await sendTrackedEmail({ to: recipient.email, subject, text, html, emailType: "overtaken", userId: recipient.id });
+  await sendTrackedEmail({ to: recipient.email, subject, text, html, emailType: "overtaken", userId: recipient.id, notif: true });
 }
 
 export async function notifyOvertakenUsers(

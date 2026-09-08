@@ -9,7 +9,7 @@ export function isStreakMilestone(streak: number): boolean {
   return STREAK_MILESTONES.includes(streak);
 }
 
-export async function sendKhatamEmail(user: User, khatamNumber: number): Promise<void> {
+export async function sendKhatamEmail(user: User, khatamNumber: number, opts: { notif?: boolean } = {}): Promise<void> {
   if (!user.email) return;
 
   const firstName = user.name.split(" ")[0]!;
@@ -48,10 +48,10 @@ export async function sendKhatamEmail(user: User, khatamNumber: number): Promise
 
   const html = baseEmailHtml({ subtitle: `Khatam #${khatamNumber} — Alhamdulillah!`, bodyHtml });
 
-  await sendTrackedEmail({ to: user.email, subject, text, html, emailType: "khatam", userId: user.id });
+  await sendTrackedEmail({ to: user.email, subject, text, html, emailType: "khatam", userId: user.id, notif: opts.notif ?? true });
 }
 
-export async function sendStreakMilestoneEmail(user: User, streak: number): Promise<void> {
+export async function sendStreakMilestoneEmail(user: User, streak: number, opts: { notif?: boolean } = {}): Promise<void> {
   if (!user.email) return;
 
   const firstName = user.name.split(" ")[0]!;
@@ -86,5 +86,5 @@ export async function sendStreakMilestoneEmail(user: User, streak: number): Prom
 
   const html = baseEmailHtml({ subtitle: `${streak}-Day Streak Milestone`, bodyHtml });
 
-  await sendTrackedEmail({ to: user.email, subject, text, html, emailType: "streak_milestone", userId: user.id });
+  await sendTrackedEmail({ to: user.email, subject, text, html, emailType: "streak_milestone", userId: user.id, notif: opts.notif ?? true });
 }

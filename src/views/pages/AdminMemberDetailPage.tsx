@@ -154,6 +154,53 @@ export const AdminMemberDetailPage: FC<{
           )}
         </div>
 
+        {/* Email notifications */}
+        {isSuperAdminRole(adminUser.role) && (
+          <div class="w-full bg-white border border-border-light rounded-xl p-6 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex items-start gap-3">
+              <span
+                class={`material-symbols-outlined text-xl mt-0.5 ${member.email_notif_enabled === 0 ? "text-slate-400" : "text-emerald-500"}`}
+              >
+                {member.email_notif_enabled === 0 ? "notifications_off" : "notifications_active"}
+              </span>
+              <div>
+                <h2 class="text-text-main font-bold">Email Notifications</h2>
+                <p class="text-text-secondary text-sm">
+                  {member.email_notif_enabled === 0
+                    ? "Disabled. This member will not receive automated emails (daily reminders, inactivity reminders, monthly snapshots, milestone emails)."
+                    : "Enabled. This member receives automated emails (daily reminders, inactivity reminders, monthly snapshots, milestone emails)."}
+                </p>
+                <p class="text-text-secondary/60 text-xs mt-1">
+                  Transactional emails (approval, welcome, suspend notice) are always sent.
+                </p>
+              </div>
+            </div>
+            {member.email_notif_enabled === 0 ? (
+              <form method="POST" action={`/admin/users/${member.id}/email-notif`} class="flex-shrink-0">
+                <input type="hidden" name="enabled" value="1" />
+                <button
+                  type="submit"
+                  class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white rounded-lg font-bold text-sm hover:bg-emerald-700 transition-colors shadow-sm"
+                >
+                  <span class="material-symbols-outlined text-base">notifications_active</span>
+                  Enable
+                </button>
+              </form>
+            ) : (
+              <form method="POST" action={`/admin/users/${member.id}/email-notif`} class="flex-shrink-0" onsubmit="return confirm('Disable email notifications for this member?')">
+                <input type="hidden" name="enabled" value="0" />
+                <button
+                  type="submit"
+                  class="inline-flex items-center gap-1.5 px-4 py-2 bg-white text-text-secondary border border-border-light rounded-lg font-bold text-sm hover:bg-slate-50 hover:text-text-main transition-colors"
+                >
+                  <span class="material-symbols-outlined text-base">notifications_off</span>
+                  Disable
+                </button>
+              </form>
+            )}
+          </div>
+        )}
+
         {/* Today's progress */}
         <div class="w-full bg-white border border-border-light rounded-xl p-6 mb-6">
           <h2 class="text-text-main font-bold mb-4 flex items-center gap-2">

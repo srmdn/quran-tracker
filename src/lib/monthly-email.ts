@@ -24,7 +24,7 @@ function getMonthLabel(year: number, month: number): string {
 function getActiveRecipients(): Array<{ id: number; email: string; name: string }> {
   const rolesSql = ACTIVE_MEMBER_ROLES.map((r) => `'${r}'`).join(", ");
   const rows = db
-    .prepare(`SELECT id, email, name FROM users WHERE role IN (${rolesSql}) AND email IS NOT NULL AND suspended_at IS NULL`)
+    .prepare(`SELECT id, email, name FROM users WHERE role IN (${rolesSql}) AND email IS NOT NULL AND suspended_at IS NULL AND email_notif_enabled = 1`)
     .all() as Array<{ id: number; email: string; name: string }>;
   return rows.filter((r) => !!r.email);
 }
@@ -208,6 +208,7 @@ export async function sendMonthlySnapshotEmails(params: {
         html: message.html,
         emailType: "monthly_snapshot",
         userId: recipient.id,
+        notif: true,
       });
       sent += 1;
     } catch (err) {
