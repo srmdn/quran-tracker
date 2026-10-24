@@ -1,3 +1,4 @@
+import { CsrfInput } from "../components/CsrfInput.tsx";
 import type { FC } from "hono/jsx";
 import { Layout } from "../Layout.tsx";
 import { APP_NAME } from "../../config.ts";
@@ -75,6 +76,7 @@ export const EnrollPage: FC<{
           )}
 
           <form method="post" action="/enroll" class="flex flex-col gap-6">
+            <CsrfInput />
             {/* Personal info */}
             <div class="bg-white border border-border-light rounded-xl p-6">
               <h2 class="text-text-main font-bold mb-4">Data Pribadi</h2>

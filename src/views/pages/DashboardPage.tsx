@@ -1,3 +1,4 @@
+import { CsrfInput } from "../components/CsrfInput.tsx";
 import type { FC } from "hono/jsx";
 import { Layout } from "../Layout.tsx";
 import { Header } from "../components/Header.tsx";
@@ -96,6 +97,7 @@ export const DashboardPage: FC<{
                 </span>
                 {!hasTodayLog && !todayFrozen && freezeCreditsLeft > 0 && (
                   <form method="post" action="/dashboard/freeze" class="inline">
+                    <CsrfInput />
                     <button type="submit"
                       class="flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-md border border-sky-300 bg-sky-50 text-sky-700 hover:bg-sky-100 transition-colors">
                       <span class="material-symbols-outlined text-sm">ac_unit</span>
@@ -421,6 +423,7 @@ export const DashboardPage: FC<{
               </button>
             </div>
             <form method="post" action="/dashboard/set-target" class="space-y-5">
+              <CsrfInput />
               <div>
                 <label class="block text-sm font-bold text-text-main mb-1">{t(lang, "dailyTilawahTarget")}</label>
                 <p class="text-xs text-text-secondary mb-2">{t(lang, "howManyJuzRead")}</p>

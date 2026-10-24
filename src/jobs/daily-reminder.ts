@@ -54,14 +54,14 @@ for (const user of recipients) {
       const res = await sendNoTargetNudgeEmail(user);
       if (res === "sent") {
         sent++;
-        console.log(`[daily-reminder] no-target nudge sent to ${user.email}`);
+        console.log(`[daily-reminder] no-target nudge sent to user ${user.id}`);
       } else {
         skipped++;
-        console.log(`[daily-reminder] no-target nudge skipped for ${user.email}`);
+        console.log(`[daily-reminder] no-target nudge skipped for user ${user.id}`);
       }
     } catch (err) {
       failed++;
-      console.error(`[daily-reminder] no-target nudge failed for ${user.email}: ${err instanceof Error ? err.message : err}`);
+      console.error(`[daily-reminder] no-target nudge failed for user ${user.id}: ${err instanceof Error ? err.message : err}`);
     }
     continue;
   }
@@ -96,14 +96,14 @@ for (const user of recipients) {
     const result = await sendTrackedEmail({ to: user.email, subject: message.subject, text: message.text, html: message.html, emailType: "daily_reminder", userId: user.id, notif: true });
     if (result === "sent") {
       sent++;
-      console.log(`[daily-reminder] sent to ${user.email}`);
+      console.log(`[daily-reminder] sent to user ${user.id}`);
     } else {
       skipped++;
-      console.log(`[daily-reminder] skipped for ${user.email} (notifications off)`);
+      console.log(`[daily-reminder] skipped for user ${user.id} (notifications off)`);
     }
   } catch (err) {
     failed++;
-    console.error(`[daily-reminder] failed for ${user.email}: ${err instanceof Error ? err.message : err}`);
+    console.error(`[daily-reminder] failed for user ${user.id}: ${err instanceof Error ? err.message : err}`);
   }
 }
 

@@ -1,3 +1,4 @@
+import { CsrfInput } from "../components/CsrfInput.tsx";
 import type { FC } from "hono/jsx";
 import { Layout } from "../Layout.tsx";
 import { Header } from "../components/Header.tsx";
@@ -286,6 +287,7 @@ export const AdminEmailLogPage: FC<{
                       <td class="px-4 py-3">
                         {row.status === "failed" && RESENDABLE_TYPES.has(row.email_type) && (
                           <form method="post" action={`/admin/email-log/${row.id}/resend`}>
+                            <CsrfInput />
                             <button type="submit" class="px-2.5 py-1 text-xs font-semibold border border-primary/30 text-primary rounded hover:bg-primary-light transition-colors">
                               Resend
                             </button>
@@ -329,6 +331,7 @@ export const AdminEmailLogPage: FC<{
           </p>
           <div class="flex flex-wrap gap-3">
             <form method="post" action="/admin/email/test-reminder">
+              <CsrfInput />
               <button
                 type="submit"
                 class="px-4 py-2.5 bg-white text-primary border border-primary/30 rounded-lg font-bold text-sm hover:bg-primary-light transition-colors"
@@ -337,6 +340,7 @@ export const AdminEmailLogPage: FC<{
               </button>
             </form>
             <form method="post" action="/admin/email/test-snapshot">
+              <CsrfInput />
               <button
                 type="submit"
                 class="px-4 py-2.5 bg-white text-primary border border-primary/30 rounded-lg font-bold text-sm hover:bg-primary-light transition-colors"
@@ -345,6 +349,7 @@ export const AdminEmailLogPage: FC<{
               </button>
             </form>
             <form method="post" action="/admin/email/test-approval">
+              <CsrfInput />
               <button
                 type="submit"
                 class="px-4 py-2.5 bg-white text-primary border border-primary/30 rounded-lg font-bold text-sm hover:bg-primary-light transition-colors"
@@ -353,6 +358,7 @@ export const AdminEmailLogPage: FC<{
               </button>
             </form>
             <form method="post" action="/admin/email/test-khatam">
+              <CsrfInput />
               <button
                 type="submit"
                 class="px-4 py-2.5 bg-white text-primary border border-primary/30 rounded-lg font-bold text-sm hover:bg-primary-light transition-colors"
@@ -361,6 +367,7 @@ export const AdminEmailLogPage: FC<{
               </button>
             </form>
             <form method="post" action="/admin/email/test-streak">
+              <CsrfInput />
               <button
                 type="submit"
                 class="px-4 py-2.5 bg-white text-primary border border-primary/30 rounded-lg font-bold text-sm hover:bg-primary-light transition-colors"

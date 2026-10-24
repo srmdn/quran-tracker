@@ -1,3 +1,4 @@
+import { CsrfInput } from "../components/CsrfInput.tsx";
 import type { FC } from "hono/jsx";
 import { Layout } from "../Layout.tsx";
 import { Header } from "../components/Header.tsx";
@@ -144,6 +145,7 @@ export const AdminPage: FC<{
                   </div>
                   <div class="flex items-center gap-2 flex-shrink-0">
                     <form method="post" action={`/admin/users/${u.id}/approve`}>
+                      <CsrfInput />
                       <button
                         type="submit"
                         class="px-4 py-2 bg-primary text-white rounded-lg font-bold text-sm hover:bg-primary-dark transition-colors shadow-sm"
@@ -152,6 +154,7 @@ export const AdminPage: FC<{
                       </button>
                     </form>
                     <form method="post" action={`/admin/users/${u.id}/reject`}>
+                      <CsrfInput />
                       <button
                         type="submit"
                         class="px-4 py-2 bg-white text-red-500 border border-red-200 rounded-lg font-bold text-sm hover:bg-red-50 transition-colors"
@@ -272,8 +275,9 @@ export const AdminPage: FC<{
                           Edit
                         </a>
                       )}
-                      {!isAdminRole(u.role) && u.id !== user.id && (
-                        <form method="post" action={`/admin/users/${u.id}/role`} onsubmit={`return confirm('Make ${u.name} an admin? This grants full admin access.')`}>
+                      {isSuperAdminRole(user.role) && !isAdminRole(u.role) && u.id !== user.id && (
+                        <form method="post" action={`/admin/users/${u.id}/role`} data-confirm={`Make ${u.name} an admin? This grants full admin access.`}>
+                          <CsrfInput />
                           <button type="submit" class="w-full text-left px-3 py-1.5 text-sm text-text-main hover:bg-slate-50 hover:text-primary transition-colors">
                             Make Admin
                           </button>
@@ -282,20 +286,23 @@ export const AdminPage: FC<{
                       {isSuperAdminRole(user.role) && !isAdminRole(u.role) && u.id !== user.id && (
                         u.suspended_at ? (
                           <form method="post" action={`/admin/users/${u.id}/unsuspend`}>
+                            <CsrfInput />
                             <button type="submit" class="w-full text-left px-3 py-1.5 text-sm text-emerald-600 hover:bg-emerald-50 transition-colors">
                               Unsuspend
                             </button>
                           </form>
                         ) : (
-                          <form method="post" action={`/admin/users/${u.id}/suspend`} onsubmit={`return confirm('Suspend ${u.name}? They will not be able to access the app.')`}>
+                          <form method="post" action={`/admin/users/${u.id}/suspend`} data-confirm={`Suspend ${u.name}? They will not be able to access the app.`}>
+                            <CsrfInput />
                             <button type="submit" class="w-full text-left px-3 py-1.5 text-sm text-amber-600 hover:bg-amber-50 transition-colors">
                               Suspend
                             </button>
                           </form>
                         )
                       )}
-                      {!isAdminRole(u.role) && u.id !== user.id && (
-                        <form method="post" action={`/admin/users/${u.id}/delete`} onsubmit={`return confirm('Permanently delete ${u.name}? All their logs and data will be removed.')`}>
+                      {isSuperAdminRole(user.role) && !isAdminRole(u.role) && u.id !== user.id && (
+                        <form method="post" action={`/admin/users/${u.id}/delete`} data-confirm={`Permanently delete ${u.name}? All their logs and data will be removed.`}>
+                          <CsrfInput />
                           <button type="submit" class="w-full text-left px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 transition-colors">
                             Remove
                           </button>
@@ -339,6 +346,7 @@ export const AdminPage: FC<{
             <div class="mb-6">
               <h3 class="text-text-main text-sm font-bold mb-2">Create User</h3>
               <form method="post" action="/admin/users/create" class="grid md:grid-cols-4 gap-3">
+                <CsrfInput />
                 <input
                   name="name"
                   placeholder="Full name"
@@ -357,8 +365,11 @@ export const AdminPage: FC<{
                 <input
                   type="password"
                   name="password"
-                  placeholder="Password (optional)"
+                  placeholder="Password"
+                  minlength={8}
+                  autocomplete="new-password"
                   class="rounded-lg border-slate-200 bg-slate-50 text-sm"
+                  required
                 />
                 <select name="role" class="rounded-lg border-slate-200 bg-slate-50 text-sm" required>
                   <option value="santri">santri</option>
@@ -386,6 +397,7 @@ export const AdminPage: FC<{
                   </p>
                 </div>
                 <form method="post" action="/admin/snapshots/run">
+                  <CsrfInput />
                   <button
                     type="submit"
                     class="px-4 py-2.5 bg-primary text-white rounded-lg font-bold text-sm hover:bg-primary-dark transition-colors shadow-sm"
@@ -447,6 +459,12 @@ document.addEventListener('click', function(e) {
   document.querySelectorAll('#member-list details[open]').forEach(function(d) {
     if (!d.contains(e.target)) d.removeAttribute('open');
   });
+});
+
+document.addEventListener('submit', function(e) {
+  var form = e.target;
+  if (!form || !form.dataset || !form.dataset.confirm) return;
+  if (!window.confirm(form.dataset.confirm)) e.preventDefault();
 });
 
 applyPagination();

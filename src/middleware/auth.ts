@@ -33,6 +33,12 @@ export const memberMiddleware = createMiddleware<Env>(async (c, next) => {
 
 export const adminMiddleware = createMiddleware<Env>(async (c, next) => {
   const user = c.get("user");
+  if (isPendingRole(user.role)) {
+    return c.redirect("/pending");
+  }
+  if (user.suspended_at) {
+    return c.redirect("/suspended");
+  }
   if (!isAdminRole(user.role)) {
     return c.redirect("/leaderboard");
   }

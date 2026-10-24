@@ -80,14 +80,14 @@ for (const user of candidates) {
     });
     if (result === "sent") {
       sent++;
-      console.log(`[inactivity-reminder] sent to ${user.email} (last activity: ${lastActivityDate ?? "never"})`);
+      console.log(`[inactivity-reminder] sent to user ${user.id} (last activity: ${lastActivityDate ?? "never"})`);
     } else {
       skipped++;
-      console.log(`[inactivity-reminder] skipped for ${user.email} (notifications off)`);
+      console.log(`[inactivity-reminder] skipped for user ${user.id} (notifications off)`);
     }
   } catch (err) {
     failed++;
-    console.error(`[inactivity-reminder] failed for ${user.email}: ${err instanceof Error ? err.message : err}`);
+    console.error(`[inactivity-reminder] failed for user ${user.id}: ${err instanceof Error ? err.message : err}`);
   }
 }
 

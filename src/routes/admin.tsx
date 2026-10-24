@@ -1,6 +1,9 @@
 import { Hono } from "hono";
 import { authMiddleware, adminMiddleware } from "../middleware/auth.ts";
 import { db } from "../db/connection.ts";
+import { deleteSessionsForUser } from "../lib/session.ts";
+import { normalizeDisplayName, parsePage, validatePassword } from "../lib/validation.ts";
+import { t } from "../lib/i18n.ts";
 import { sendMonthlySnapshotEmails, sendSnapshotPreviewEmail } from "../lib/monthly-email.ts";
 import { createPreviousMonthSnapshot } from "../lib/monthly-snapshot.ts";
 import { sendTestReminderEmail } from "../lib/reminder-email.ts";
@@ -97,23 +100,34 @@ admin.post("/users/create", async (c) => {
   }
 
   const body = await c.req.parseBody();
-  const name = ((body.name as string) || "").trim();
+  const nameResult = normalizeDisplayName((body.name as string) || "");
   const email = ((body.email as string) || "").trim().toLowerCase();
   const role = ((body.role as string) || "").trim();
   const password = ((body.password as string) || "").trim();
 
-  if (!name || !email || !email.includes("@")) {
-    return c.redirect("/admin?error=Name and a valid email are required.");
+  if (!nameResult.ok) {
+    return c.redirect(`/admin?error=${encodeURIComponent(t("en", nameResult.error))}`);
+  }
+  if (!email || !email.includes("@")) {
+    return c.redirect("/admin?error=A valid email is required.");
   }
   if (!isAssignableRole(role)) {
     return c.redirect("/admin?error=Invalid role.");
   }
+  if (!password) {
+    return c.redirect("/admin?error=Password is required for email/password accounts.");
+  }
+
+  const passwordError = validatePassword(password, role);
+  if (passwordError) {
+    return c.redirect(`/admin?error=${encodeURIComponent(passwordError)}`);
+  }
 
   try {
-    const passwordHash = password ? await Bun.password.hash(password, { algorithm: "bcrypt" }) : null;
+    const passwordHash = await Bun.password.hash(password, { algorithm: "bcrypt" });
     db.prepare(
       "INSERT INTO users (google_id, email, name, avatar_url, role, password_hash) VALUES (?, ?, ?, NULL, ?, ?)"
-    ).run(`manual:${crypto.randomUUID()}`, email, name, role, passwordHash);
+    ).run(`manual:${crypto.randomUUID()}`, email, nameResult.value, role, passwordHash);
   } catch {
     return c.redirect("/admin?error=Failed to create user. Email may already exist.");
   }
@@ -144,14 +158,17 @@ admin.post("/users/:id/update", async (c) => {
   }
 
   const body = await c.req.parseBody();
-  const name = ((body.name as string) || "").trim();
+  const nameResult = normalizeDisplayName((body.name as string) || "");
   const email = ((body.email as string) || "").trim().toLowerCase();
   const role = ((body.role as string) || "").trim();
   const password = ((body.password as string) || "").trim();
   const emailNotifEnabled = body.email_notif_enabled === "1" ? 1 : 0;
 
-  if (!name || !email || !email.includes("@")) {
-    return c.redirect(`/admin/members/${userId}/edit?error=Name and a valid email are required.`);
+  if (!nameResult.ok) {
+    return c.redirect(`/admin/members/${userId}/edit?error=${encodeURIComponent(t("en", nameResult.error))}`);
+  }
+  if (!email || !email.includes("@")) {
+    return c.redirect(`/admin/members/${userId}/edit?error=A valid email is required.`);
   }
   if (!isAssignableRole(role)) {
     return c.redirect(`/admin/members/${userId}/edit?error=Invalid role.`);
@@ -160,16 +177,24 @@ admin.post("/users/:id/update", async (c) => {
     return c.redirect(`/admin/members/${userId}/edit?error=Cannot demote your own super admin role.`);
   }
 
+  if (password) {
+    const passwordError = validatePassword(password, role);
+    if (passwordError) {
+      return c.redirect(`/admin/members/${userId}/edit?error=${encodeURIComponent(passwordError)}`);
+    }
+  }
+
   try {
     if (password) {
       const passwordHash = await Bun.password.hash(password, { algorithm: "bcrypt" });
       db.prepare(
         "UPDATE users SET name = ?, email = ?, role = ?, email_notif_enabled = ?, password_hash = ?, updated_at = datetime('now') WHERE id = ?"
-      ).run(name, email, role, emailNotifEnabled, passwordHash, userId);
+      ).run(nameResult.value, email, role, emailNotifEnabled, passwordHash, userId);
+      deleteSessionsForUser(userId);
     } else {
       db.prepare(
         "UPDATE users SET name = ?, email = ?, role = ?, email_notif_enabled = ?, updated_at = datetime('now') WHERE id = ?"
-      ).run(name, email, role, emailNotifEnabled, userId);
+      ).run(nameResult.value, email, role, emailNotifEnabled, userId);
     }
   } catch {
     return c.redirect(`/admin/members/${userId}/edit?error=Failed to update user. Email may already exist.`);
@@ -194,29 +219,53 @@ admin.post("/users/:id/password", async (c) => {
     return c.redirect("/admin?error=Invalid user id.");
   }
 
+  const target = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as User | null;
+  if (!target) {
+    return c.redirect("/admin?error=User not found.");
+  }
+
   const body = await c.req.parseBody();
   const password = ((body.password as string) || "").trim();
-  if (!password || password.length < 8) {
-    return c.redirect(`/admin/members/${userId}/edit?error=Password must be at least 8 characters.`);
+  const passwordError = validatePassword(password, target.role);
+  if (passwordError) {
+    return c.redirect(`/admin/members/${userId}/edit?error=${encodeURIComponent(passwordError)}`);
   }
 
   const hash = await Bun.password.hash(password, { algorithm: "bcrypt" });
   db.prepare("UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?").run(hash, userId);
+  deleteSessionsForUser(userId);
   return c.redirect(`/admin/members/${userId}/edit?success=Password updated.`);
 });
 
 admin.post("/users/:id/role", async (c) => {
+  const currentUser = c.get("user");
   const userId = parseInt(c.req.param("id"), 10);
-  if (!Number.isFinite(userId)) return c.redirect("/admin?error=Invalid user ID.");
+  if (!Number.isInteger(userId)) return c.redirect("/admin?error=Invalid user ID.");
+
   const body = await c.req.parseBody();
   const role = body.role as string;
-  const currentUser = c.get("user");
 
   if (!isAssignableRole(role)) {
-    return c.redirect("/admin");
+    return c.redirect("/admin?error=Invalid role.");
   }
   if (!isSuperAdminRole(currentUser.role)) {
     return c.redirect("/admin?error=Only super admin can change roles.");
+  }
+  if (userId === currentUser.id) {
+    return c.redirect("/admin?error=Cannot change your own role.");
+  }
+
+  const target = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as User | null;
+  if (!target) {
+    return c.redirect("/admin?error=User not found.");
+  }
+  if (isSuperAdminRole(target.role) && !isSuperAdminRole(role)) {
+    const count = db
+      .prepare("SELECT COUNT(*) AS c FROM users WHERE role = 'super_admin'")
+      .get() as { c: number };
+    if (count.c <= 1) {
+      return c.redirect("/admin?error=Cannot demote the last super admin.");
+    }
   }
 
   db.prepare("UPDATE users SET role = ?, updated_at = datetime('now') WHERE id = ?").run(role, userId);
@@ -288,6 +337,9 @@ admin.post("/users/:id/delete", (c) => {
     return c.redirect("/admin?error=Only super admin can delete users.");
   }
   const userId = parseInt(c.req.param("id"), 10);
+  if (!Number.isInteger(userId)) {
+    return c.redirect("/admin?error=Invalid user id.");
+  }
 
   // Cannot delete yourself
   if (userId === currentUser.id) {
@@ -301,7 +353,16 @@ admin.post("/users/:id/delete", (c) => {
     return c.redirect("/admin?error=Cannot delete a super admin account.");
   }
 
-  // ON DELETE CASCADE handles sessions, progress_entries, progress_log
+  const snapshotCount = db
+    .prepare("SELECT COUNT(*) AS c FROM monthly_leaderboard_snapshots WHERE user_id = ?")
+    .get(userId) as { c: number };
+  if (snapshotCount.c > 0) {
+    return c.redirect(
+      "/admin?error=This member has leaderboard snapshots. Disable the account instead of deleting it."
+    );
+  }
+
+  // ON DELETE CASCADE handles sessions, logs, targets, streaks, freezes, and khatam events.
   db.prepare("DELETE FROM users WHERE id = ?").run(userId);
   return c.redirect("/admin?success=Member removed successfully.");
 });
@@ -401,6 +462,10 @@ admin.post("/email/test-streak", async (c) => {
 
 admin.get("/members/:id/edit", (c) => {
   const adminUser = c.get("user");
+  if (!isSuperAdminRole(adminUser.role)) {
+    return c.redirect("/admin?error=Only super admin can edit users.");
+  }
+
   const memberId = parseInt(c.req.param("id"), 10);
   if (!Number.isInteger(memberId)) return c.redirect("/admin?error=Invalid member ID.");
 
@@ -481,7 +546,7 @@ admin.get("/email-log", (c) => {
   const user = c.get("user");
   const lang = c.get("lang");
   const perPage = 50;
-  const page = Math.max(1, parseInt(c.req.query("page") || "1", 10));
+  const requestedPage = parsePage(c.req.query("page"));
   const filterStatus = c.req.query("status") || "";
   const filterType = c.req.query("type") || "";
   const flashSuccess = c.req.query("success") || "";
@@ -500,6 +565,8 @@ admin.get("/email-log", (c) => {
   const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 
   const total = (db.prepare(`SELECT COUNT(*) AS cnt FROM email_log ${where}`).get(...args) as { cnt: number }).cnt;
+  const totalPages = Math.max(1, Math.ceil(total / perPage));
+  const page = Math.min(requestedPage, totalPages);
   const rows = db
     .prepare(`SELECT el.id, el.user_id, el.email_type, el.recipient, el.subject, el.status, el.error, el.sent_at, u.name AS user_name FROM email_log el LEFT JOIN users u ON u.id = el.user_id ${where.replaceAll("status = ?", "el.status = ?").replaceAll("email_type = ?", "el.email_type = ?")} ORDER BY el.sent_at DESC LIMIT ? OFFSET ?`)
     .all(...args, perPage, (page - 1) * perPage) as EmailLogRow[];
@@ -617,7 +684,7 @@ admin.get("/enrollments", (c) => {
   const user = c.get("user");
   const lang = c.get("lang");
   const perPage = 20;
-  const page = Math.max(1, parseInt(c.req.query("page") || "1", 10));
+  const requestedPage = parsePage(c.req.query("page"));
   const statusFilter = c.req.query("status") || "pending";
   const success = c.req.query("success") || "";
   const error = c.req.query("error") || "";
@@ -629,6 +696,8 @@ admin.get("/enrollments", (c) => {
   const args: (string | number)[] = safeStatus === "all" ? [] : [safeStatus];
 
   const total = (db.prepare(`SELECT COUNT(*) AS cnt FROM enrollments ${where}`).get(...args) as { cnt: number }).cnt;
+  const totalPages = Math.max(1, Math.ceil(total / perPage));
+  const page = Math.min(requestedPage, totalPages);
   const rows = db
     .prepare(
       `SELECT id, full_name, gender, whatsapp, program_type, quran_level, submitted_at, status FROM enrollments ${where} ORDER BY submitted_at DESC LIMIT ? OFFSET ?`
@@ -645,7 +714,7 @@ admin.get("/enrollments", (c) => {
 });
 
 admin.post("/enrollments/bulk", async (c) => {
-  const fd = await c.req.raw.formData();
+  const fd = await c.req.formData();
   const action = (fd.get("action") as string | null) || "";
   const rawIds = fd.getAll("ids");
   const ids = rawIds

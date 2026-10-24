@@ -1,3 +1,4 @@
+import { CsrfInput } from "../components/CsrfInput.tsx";
 import type { FC } from "hono/jsx";
 import { Layout } from "../Layout.tsx";
 import { Header } from "../components/Header.tsx";
@@ -68,6 +69,7 @@ export const AdminMemberDetailPage: FC<{
             {isSuperAdminRole(adminUser.role) && !isAdminRole(member.role) && adminUser.id !== member.id && (
               member.suspended_at ? (
                 <form method="post" action={`/admin/users/${member.id}/unsuspend`} class="inline">
+                  <CsrfInput />
                   <button
                     type="submit"
                     class="inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-600 hover:text-emerald-700 transition-colors"
@@ -81,8 +83,9 @@ export const AdminMemberDetailPage: FC<{
                   method="post"
                   action={`/admin/users/${member.id}/suspend`}
                   class="inline"
-                  onsubmit={`return confirm('Suspend ${member.name}? They will not be able to access the app.')`}
+                  data-confirm={`Suspend ${member.name}? They will not be able to access the app.`}
                 >
+                  <CsrfInput />
                   <button
                     type="submit"
                     class="inline-flex items-center gap-1.5 text-sm font-semibold text-amber-600 hover:text-amber-700 transition-colors"
@@ -93,13 +96,15 @@ export const AdminMemberDetailPage: FC<{
                 </form>
               )
             )}
-            <a
-              href={`/admin/members/${member.id}/edit`}
-              class="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary-dark transition-colors"
-            >
-              <span class="material-symbols-outlined text-base">edit</span>
-              Edit
-            </a>
+            {isSuperAdminRole(adminUser.role) && (
+              <a
+                href={`/admin/members/${member.id}/edit`}
+                class="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary-dark transition-colors"
+              >
+                <span class="material-symbols-outlined text-base">edit</span>
+                Edit
+              </a>
+            )}
           </div>
         </div>
 
@@ -177,6 +182,7 @@ export const AdminMemberDetailPage: FC<{
             </div>
             {member.email_notif_enabled === 0 ? (
               <form method="post" action={`/admin/users/${member.id}/email-notif`} class="flex-shrink-0">
+                <CsrfInput />
                 <input type="hidden" name="enabled" value="1" />
                 <button
                   type="submit"
@@ -188,6 +194,7 @@ export const AdminMemberDetailPage: FC<{
               </form>
             ) : (
               <form method="post" action={`/admin/users/${member.id}/email-notif`} class="flex-shrink-0" onsubmit="return confirm('Disable email notifications for this member?')">
+                <CsrfInput />
                 <input type="hidden" name="enabled" value="0" />
                 <button
                   type="submit"
@@ -420,6 +427,12 @@ function logChangePage(delta) {
   logCurrentPage += delta;
   logApplyPagination();
 }
+
+document.addEventListener('submit', function(e) {
+  var form = e.target;
+  if (!form || !form.dataset || !form.dataset.confirm) return;
+  if (!window.confirm(form.dataset.confirm)) e.preventDefault();
+});
 
 logApplyPagination();
         `}} />

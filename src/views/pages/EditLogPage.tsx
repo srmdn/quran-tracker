@@ -1,3 +1,4 @@
+import { CsrfInput } from "../components/CsrfInput.tsx";
 import type { FC } from "hono/jsx";
 import { Layout } from "../Layout.tsx";
 import { Header } from "../components/Header.tsx";
@@ -50,6 +51,7 @@ export const EditLogPage: FC<{
 
         <div class="w-full bg-white border border-border-light rounded-xl p-6">
           <form method="post" action={`/${logType}/logs/${log.id}/edit`} class="space-y-4">
+            <CsrfInput />
             <div>
               <label class="block text-xs font-semibold text-text-secondary mb-1">{t(lang, "dateWib")}</label>
               <input type="text" value={log.date_wib} disabled

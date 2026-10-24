@@ -1,3 +1,4 @@
+import { CsrfInput } from "../components/CsrfInput.tsx";
 import type { FC } from "hono/jsx";
 import { Layout } from "../Layout.tsx";
 import { Header } from "../components/Header.tsx";
@@ -146,6 +147,7 @@ export const TilawahPage: FC<{
           <div class="bg-white border border-border-light rounded-xl p-6">
             <h3 class="text-text-main text-lg font-bold mb-4">{t(lang, "logTilawah")}</h3>
             <form method="post" action="/tilawah" class="space-y-4">
+              <CsrfInput />
                 <div>
                   <label class="block text-xs font-semibold text-text-secondary mb-1">{t(lang, "dateWib")}</label>
                   <input type="date" name="date_wib" value={todayWib}
@@ -423,6 +425,7 @@ export const TilawahPage: FC<{
                         {canDelete && (
                           <form method="post" action={`/tilawah/logs/${log.id}/delete`}
                             onsubmit="return confirm('Delete this entry?')">
+                            <CsrfInput />
                             <button type="submit" title={t(lang, "delete")}
                               class="text-slate-400 hover:text-red-500 transition-colors">
                               <span class="material-symbols-outlined text-lg">delete</span>

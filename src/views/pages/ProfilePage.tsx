@@ -1,9 +1,11 @@
+import { CsrfInput } from "../components/CsrfInput.tsx";
 import type { FC } from "hono/jsx";
 import { Layout } from "../Layout.tsx";
 import { Header } from "../components/Header.tsx";
 import type { User } from "../../types.ts";
 import { APP_NAME } from "../../config.ts";
 import { t, type Lang } from "../../lib/i18n.ts";
+import { passwordMinimum } from "../../lib/validation.ts";
 
 export const ProfilePage: FC<{
   user: User;
@@ -12,6 +14,20 @@ export const ProfilePage: FC<{
   error?: string;
 }> = ({ user, lang, success, error }) => {
   const isEmailUser = !!user.password_hash;
+  const isGoogleUser = !user.google_id.startsWith("manual:");
+  const authMethod = isEmailUser
+    ? t(lang, "authMethodEmail")
+    : isGoogleUser
+      ? t(lang, "authMethodGoogle")
+      : lang === "id"
+        ? "Menunggu pengaturan"
+        : "Pending setup";
+  const authBadgeClass = isEmailUser
+    ? "bg-slate-100 text-slate-600"
+    : isGoogleUser
+      ? "bg-blue-50 text-blue-600"
+      : "bg-amber-50 text-amber-600";
+  const minimumPassword = passwordMinimum(user.role);
   const joined = user.created_at.slice(0, 10);
 
   return (
@@ -47,8 +63,8 @@ export const ProfilePage: FC<{
             <div>
               <p class="text-text-main font-black text-xl">{user.name}</p>
               <p class="text-text-secondary text-sm">{user.email}</p>
-              <span class={`inline-block mt-1 text-xs font-bold px-2 py-0.5 rounded-full ${isEmailUser ? "bg-slate-100 text-slate-600" : "bg-blue-50 text-blue-600"}`}>
-                {isEmailUser ? t(lang, "authMethodEmail") : t(lang, "authMethodGoogle")}
+              <span class={`inline-block mt-1 text-xs font-bold px-2 py-0.5 rounded-full ${authBadgeClass}`}>
+                {authMethod}
               </span>
             </div>
           </div>
@@ -88,6 +104,7 @@ export const ProfilePage: FC<{
           <h3 class="text-text-main font-bold mb-1">{t(lang, "displayName")}</h3>
           <p class="text-xs text-text-secondary mb-4">{t(lang, "displayNameHint")}</p>
           <form method="post" action="/profile/name" class="flex gap-2 items-end">
+            <CsrfInput />
             <div class="flex-1">
               <input
                 type="text"
@@ -111,6 +128,7 @@ export const ProfilePage: FC<{
             <h3 class="text-text-main font-bold mb-1">{t(lang, "customAvatarUrl")}</h3>
             <p class="text-xs text-text-secondary mb-4">{t(lang, "customAvatarHint")}</p>
             <form method="post" action="/profile/avatar" class="space-y-3">
+              <CsrfInput />
               <input
                 type="url"
                 name="avatar_url"
@@ -131,6 +149,7 @@ export const ProfilePage: FC<{
           <div class="w-full bg-white border border-border-light rounded-xl p-6 mb-4">
             <h3 class="text-text-main font-bold mb-4">{t(lang, "changePassword")}</h3>
             <form method="post" action="/profile/password" class="space-y-3">
+              <CsrfInput />
               <div>
                 <label class="block text-xs font-semibold text-text-secondary mb-1">{t(lang, "currentPassword")}</label>
                 <input type="password" name="current_password" required
@@ -138,12 +157,12 @@ export const ProfilePage: FC<{
               </div>
               <div>
                 <label class="block text-xs font-semibold text-text-secondary mb-1">{t(lang, "newPassword")}</label>
-                <input type="password" name="new_password" required minlength={8}
+                <input type="password" name="new_password" required minlength={minimumPassword}
                   class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" />
               </div>
               <div>
                 <label class="block text-xs font-semibold text-text-secondary mb-1">{t(lang, "confirmNewPassword")}</label>
-                <input type="password" name="confirm_password" required minlength={8}
+                <input type="password" name="confirm_password" required minlength={minimumPassword}
                   class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" />
               </div>
               <button type="submit"

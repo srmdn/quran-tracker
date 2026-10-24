@@ -1,3 +1,4 @@
+import { CsrfInput } from "../components/CsrfInput.tsx";
 import type { FC } from "hono/jsx";
 import { Layout } from "../Layout.tsx";
 import { Header } from "../components/Header.tsx";
@@ -81,6 +82,7 @@ export const AdminEnrollmentsPage: FC<{
           </div>
         ) : (
           <form method="post" action="/admin/enrollments/bulk" id="bulk-form" class="w-full">
+            <CsrfInput />
             {/* Bulk action bar (only for pending) */}
             {statusFilter === "pending" && (
               <div class="flex items-center gap-3 mb-3">

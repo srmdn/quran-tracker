@@ -1,3 +1,4 @@
+import { CsrfInput } from "../components/CsrfInput.tsx";
 import type { FC } from "hono/jsx";
 import { Layout } from "../Layout.tsx";
 import { t, type Lang } from "../../lib/i18n.ts";
@@ -27,6 +28,7 @@ export const LandingPage: FC<{
           </a>
           <div class="flex items-center gap-2 sm:gap-3">
             <form method="post" action="/lang">
+              <CsrfInput />
               <input type="hidden" name="locale" value={lang === "en" ? "id" : "en"} />
               <button
                 type="submit"

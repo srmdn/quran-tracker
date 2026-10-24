@@ -30,6 +30,9 @@ jobs:
       - name: Test
         run: bun test
 
+      - name: Audit production dependencies
+        run: bun run audit:runtime
+
       - name: Verify Tailwind artifact
         run: |
           bun run build:css

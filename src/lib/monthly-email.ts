@@ -3,6 +3,7 @@ import { ACTIVE_MEMBER_ROLES } from "./roles.ts";
 import { ORG_NAME, PRODUCT_NAME, PUBLIC_BASE_URL } from "../config.ts";
 import { sendTrackedEmail } from "./email-log.ts";
 import { escapeHtml, ctaButton, baseEmailHtml } from "./email-base.ts";
+import { maskEmail } from "./redact.ts";
 import { getMonthlyActivityLeaderboard, getMonthlyUserActivityRank } from "./activity-calc.ts";
 import { getUserStreak, getFreezeCreditsLeft } from "./streak.ts";
 import { getWibDateYmd } from "./wib-date.ts";
@@ -214,7 +215,7 @@ export async function sendMonthlySnapshotEmails(params: {
     } catch (err) {
       failed += 1;
       failures.push({
-        email: recipient.email,
+        email: maskEmail(recipient.email),
         error: err instanceof Error ? err.message : "Unknown error",
       });
     }

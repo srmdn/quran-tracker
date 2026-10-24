@@ -2,6 +2,7 @@ import { db } from "../db/connection.ts";
 import { ORG_NAME, PRODUCT_NAME, PUBLIC_BASE_URL } from "../config.ts";
 import { sendTrackedEmail } from "./email-log.ts";
 import { escapeHtml, ctaButton, baseEmailHtml } from "./email-base.ts";
+import { isPendingRole } from "./roles.ts";
 import type { User } from "../types.ts";
 
 export async function sendWelcomeEmail(user: User): Promise<void> {
@@ -9,22 +10,30 @@ export async function sendWelcomeEmail(user: User): Promise<void> {
 
   const firstName = user.name.split(" ")[0]!;
   const ctaUrl = `${PUBLIC_BASE_URL}/dashboard`;
+  const pending = isPendingRole(user.role);
 
-  const subject = `Welcome to ${PRODUCT_NAME} — ${ORG_NAME}`;
+  const subject = `Welcome to ${PRODUCT_NAME} - ${ORG_NAME}`;
 
   const text = [
     `Assalamu'alaikum ${firstName},`,
     ``,
     `Welcome to ${PRODUCT_NAME} at ${ORG_NAME}!`,
     ``,
-    `Your account has been registered. Once an admin approves your account, you can start`,
-    `tracking your daily Tilawah and Murojaah.`,
+    ...(pending
+      ? [
+          `Your account has been registered. Once an admin approves your account, you can start`,
+          `tracking your daily Tilawah and Murojaah.`,
+        ]
+      : [
+          `Your account is ready. You can sign in now and start tracking your daily`,
+          `Tilawah and Murojaah.`,
+        ]),
     ``,
     `Visit the app: ${PUBLIC_BASE_URL}`,
     ``,
     `May Allah bless your Quran journey.`,
     ``,
-    `— ${PRODUCT_NAME} (${ORG_NAME})`,
+    `- ${PRODUCT_NAME} (${ORG_NAME})`,
   ].join("\n");
 
   const bodyHtml = `
@@ -34,7 +43,9 @@ export async function sendWelcomeEmail(user: User): Promise<void> {
       Your account has been registered.
     </p>
     <p style="margin:0 0 16px;color:#475569;">
-      Once an admin approves your account, you can start tracking your daily
+      ${pending
+        ? "Once an admin approves your account, you can start tracking your daily"
+        : "Your account is ready. You can sign in now and start tracking your daily"}
       <strong>Tilawah</strong> and <strong>Murojaah</strong>.
     </p>
     ${ctaButton(PUBLIC_BASE_URL, "Go to App")}

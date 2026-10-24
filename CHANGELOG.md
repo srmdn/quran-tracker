@@ -6,6 +6,17 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+### Security
+
+- Upgrade Hono to 4.13.13 and add a production dependency audit gate
+- Add CSRF tokens and origin validation to state-changing requests
+- Remove user data from inline admin confirmation handlers and validate display names
+- Prevent self-demotion and last-super-admin demotion, and block suspended admin access
+- Normalize session expiry and revoke other sessions on password change or reset
+- Enforce role-based password minimums and require a password for admin-created accounts
+- Clamp pagination input, block deletion of members with snapshots, and close the language-switch redirect
+- Redact recipient addresses from scheduled job logs
+
 ### Engineering
 
 - Added a Bun unit test suite, a CI workflow for typecheck, tests, and the Tailwind artifact, and a production dependency audit script

@@ -1,3 +1,4 @@
+import { CsrfInput } from "../components/CsrfInput.tsx";
 import type { FC } from "hono/jsx";
 import { Layout } from "../Layout.tsx";
 import { APP_NAME, ORG_NAME } from "../../config.ts";
@@ -46,6 +47,7 @@ export const LoginPage: FC<{ error?: string; lang: Lang }> = ({ error, lang }) =
             </div>
 
             <form method="post" action="/auth/email/login" class="space-y-3 text-left">
+              <CsrfInput />
               <div>
                 <label class="block text-xs font-semibold text-text-secondary mb-1">Email</label>
                 <input
@@ -84,6 +86,7 @@ export const LoginPage: FC<{ error?: string; lang: Lang }> = ({ error, lang }) =
               </a>
               <span class="text-border-light">·</span>
               <form method="post" action="/lang">
+                <CsrfInput />
                 <input type="hidden" name="locale" value={lang === "en" ? "id" : "en"} />
                 <button type="submit" class="text-xs font-bold px-2 py-1 rounded-lg border border-border-light bg-slate-50 text-text-secondary hover:text-primary hover:border-primary/30 transition-colors whitespace-nowrap">
                   {t(lang, "switchLang")}

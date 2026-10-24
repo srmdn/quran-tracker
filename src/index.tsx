@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { getCookie } from "hono/cookie";
 import { serveStatic } from "hono/bun";
 import { initializeDatabase } from "./db/schema.ts";
-import { getSessionUser, cleanExpiredSessions } from "./lib/session.ts";
+import { getSessionUser, cleanExpiredSessions, warnIfNoUsers } from "./lib/session.ts";
 import { authRoutes } from "./routes/auth.ts";
 import { activityRoutes } from "./routes/activity.tsx";
 import { adminRoutes } from "./routes/admin.tsx";
@@ -18,6 +18,7 @@ import { PendingPage } from "./views/pages/PendingPage.tsx";
 import { SuspendedPage } from "./views/pages/SuspendedPage.tsx";
 import { Layout } from "./views/Layout.tsx";
 import { authMiddleware } from "./middleware/auth.ts";
+import { csrfMiddleware } from "./middleware/csrf.ts";
 import { langMiddleware } from "./middleware/lang.ts";
 import { isPendingRole } from "./lib/roles.ts";
 import type { Env } from "./types.ts";
@@ -29,13 +30,17 @@ initializeDatabase();
 // Clean expired sessions on startup
 cleanExpiredSessions();
 
+// Warn if the instance has no administrator yet
+warnIfNoUsers();
+
 const app = new Hono<Env>();
 
 // Static files (no middleware needed)
 app.use("/public/*", serveStatic({ root: "./" }));
 
-// Language middleware on all non-static routes
+// Language and CSRF middleware on all non-static routes
 app.use("*", langMiddleware);
+app.use("*", csrfMiddleware);
 
 // Root route - redirect logged-in users, show landing page to guests
 app.get("/", (c) => {

@@ -1,6 +1,9 @@
 import { Hono } from "hono";
+import { getCookie } from "hono/cookie";
 import { authMiddleware, memberMiddleware } from "../middleware/auth.ts";
 import { db } from "../db/connection.ts";
+import { deleteOtherSessions } from "../lib/session.ts";
+import { normalizeDisplayName, passwordMinimum } from "../lib/validation.ts";
 import { t } from "../lib/i18n.ts";
 import { ProfilePage } from "../views/pages/ProfilePage.tsx";
 import type { Env } from "../types.ts";
@@ -32,13 +35,11 @@ profile.post("/name", async (c) => {
   const user = c.get("user");
   const lang = c.get("lang");
   const body = await c.req.parseBody();
-  const name = ((body.name as string) || "").trim();
-
-  if (name.length < 1) return c.redirect(redirectWith("error", t(lang, "nameTooShort")));
-  if (name.length > 100) return c.redirect(redirectWith("error", t(lang, "nameTooLong")));
+  const result = normalizeDisplayName((body.name as string) || "");
+  if (!result.ok) return c.redirect(redirectWith("error", t(lang, result.error)));
 
   db.prepare("UPDATE users SET name = ?, updated_at = datetime('now') WHERE id = ?")
-    .run(name, user.id);
+    .run(result.value, user.id);
 
   return c.redirect(redirectWith("success", t(lang, "profileUpdated")));
 });
@@ -85,12 +86,19 @@ profile.post("/password", async (c) => {
 
   const validCurrent = await Bun.password.verify(currentPassword, freshUser.password_hash);
   if (!validCurrent) return c.redirect(redirectWith("error", t(lang, "passwordIncorrect")));
-  if (newPassword.length < 8) return c.redirect(redirectWith("error", t(lang, "passwordTooShort")));
+
+  const minimum = passwordMinimum(user.role);
+  if (newPassword.length < minimum) {
+    return c.redirect(redirectWith("error", t(lang, minimum >= 12 ? "passwordTooShortAdmin" : "passwordTooShort")));
+  }
   if (newPassword !== confirmPassword) return c.redirect(redirectWith("error", t(lang, "passwordMismatch")));
 
   const newHash = await Bun.password.hash(newPassword, { algorithm: "bcrypt" });
   db.prepare("UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?")
     .run(newHash, user.id);
+
+  const currentSessionId = getCookie(c, "session");
+  if (currentSessionId) deleteOtherSessions(user.id, currentSessionId);
 
   return c.redirect(redirectWith("success", t(lang, "passwordChanged")));
 });

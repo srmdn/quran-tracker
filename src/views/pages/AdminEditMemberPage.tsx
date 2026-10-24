@@ -1,3 +1,4 @@
+import { CsrfInput } from "../components/CsrfInput.tsx";
 import type { FC } from "hono/jsx";
 import { Layout } from "../Layout.tsx";
 import { Header } from "../components/Header.tsx";
@@ -50,6 +51,7 @@ export const AdminEditMemberPage: FC<{
             <div class="w-full bg-white border border-border-light rounded-xl p-6 shadow-sm mb-4">
               <h2 class="text-text-main text-base font-bold mb-4">Account Details</h2>
               <form method="post" action={`/admin/users/${member.id}/update`} class="space-y-4">
+                <CsrfInput />
                 <div>
                   <label class="block text-xs font-semibold text-text-secondary mb-1">Name</label>
                   <input
@@ -109,6 +111,7 @@ export const AdminEditMemberPage: FC<{
             <div class="w-full bg-white border border-border-light rounded-xl p-6 shadow-sm">
               <h2 class="text-text-main text-base font-bold mb-4">Reset Password</h2>
               <form method="post" action={`/admin/users/${member.id}/password`} class="flex gap-3">
+                <CsrfInput />
                 <input
                   type="password"
                   name="password"

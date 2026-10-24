@@ -8,6 +8,7 @@ import { getUserTarget, getTodayMurojaahTotal, MUROJAAH_DAILY_CEILING_JUZ } from
 import { checkAndUpdateStreak, rebuildStreak } from "../lib/streak.ts";
 import { getUserActivityTotals } from "../lib/activity-calc.ts";
 import { parseLogSubmission } from "../lib/log-validate.ts";
+import { parsePage } from "../lib/validation.ts";
 import { sendStreakMilestoneEmail, isStreakMilestone } from "../lib/milestone-email.ts";
 import { t } from "../lib/i18n.ts";
 import { MurojaahPage } from "../views/pages/MurojaahPage.tsx";
@@ -66,8 +67,10 @@ murojaah.get("/", (c) => {
     .get(user.id) as MurojaahLog | null;
 
   const perPage = 15;
-  const page = Math.max(1, parseInt(c.req.query("page") || "1", 10));
+  const requestedPage = parsePage(c.req.query("page"));
   const totalLogs = (db.prepare("SELECT COUNT(*) AS cnt FROM murojaah_logs WHERE user_id = ?").get(user.id) as { cnt: number }).cnt;
+  const totalPages = Math.max(1, Math.ceil(totalLogs / perPage));
+  const page = Math.min(requestedPage, totalPages);
   const recentLogs = db
     .prepare(`SELECT ${LOG_SELECT} FROM murojaah_logs WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`)
     .all(user.id, perPage, (page - 1) * perPage) as MurojaahLog[];

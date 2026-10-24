@@ -1,3 +1,4 @@
+import { CsrfInput } from "../components/CsrfInput.tsx";
 import type { FC } from "hono/jsx";
 import { Layout } from "../Layout.tsx";
 import type { User } from "../../types.ts";
@@ -37,6 +38,7 @@ export const PendingPage: FC<{ user: User; lang: Lang }> = ({ user, lang }) => {
               <p class="text-xs text-blue-500">{t(lang, "awaitingApprovalWaitTime")}</p>
             </div>
             <form method="post" action="/auth/logout" class="mt-6">
+              <CsrfInput />
               <button
                 type="submit"
                 class="text-text-secondary hover:text-red-500 transition-colors text-sm font-medium"

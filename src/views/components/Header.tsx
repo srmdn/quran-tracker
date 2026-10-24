@@ -1,3 +1,4 @@
+import { CsrfInput } from "./CsrfInput.tsx";
 import type { FC } from "hono/jsx";
 import type { User } from "../../types.ts";
 import { APP_NAME } from "../../config.ts";
@@ -11,6 +12,7 @@ const Logo: FC = () => (
 
 const LangToggle: FC<{ lang: Lang }> = ({ lang }) => (
   <form method="post" action="/lang" class="inline">
+    <CsrfInput />
     <input type="hidden" name="locale" value={lang === "en" ? "id" : "en"} />
     <button
       type="submit"
@@ -158,6 +160,7 @@ export const Header: FC<{ user: User | null; currentPath: string; lang: Lang }> 
                       {t(lang, "profileLink")}
                     </a>
                     <form method="post" action="/auth/logout" class="my-0 py-0">
+                      <CsrfInput />
                       <button
                         type="submit"
                         class="w-full text-left flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
@@ -265,6 +268,7 @@ export const Header: FC<{ user: User | null; currentPath: string; lang: Lang }> 
                 <div class="flex gap-2">
                   <LangToggle lang={lang} />
                   <form method="post" action="/auth/logout" class="flex-1">
+                    <CsrfInput />
                     <button
                       type="submit"
                       class="w-full flex items-center justify-center gap-2 text-red-600 bg-white hover:bg-red-50 transition-colors text-sm font-bold px-4 py-3 rounded-xl border border-border-light hover:border-red-100 shadow-sm"
