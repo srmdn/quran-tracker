@@ -6,6 +6,11 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+### Engineering
+
+- Added a Bun unit test suite, a CI workflow for typecheck, tests, and the Tailwind artifact, and a production dependency audit script
+- Fixed the translation dictionary typing and form attribute types so `bunx tsc --noEmit` passes
+
 ---
 
 ## [1.4.0] — 2026-05-05

@@ -93,7 +93,7 @@ export const ProfilePage: FC<{
                 type="text"
                 name="name"
                 value={user.name}
-                maxlength="100"
+                maxlength={100}
                 required
                 class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm"
               />
@@ -115,7 +115,7 @@ export const ProfilePage: FC<{
                 type="url"
                 name="avatar_url"
                 placeholder="https://..."
-                maxlength="500"
+                maxlength={500}
                 class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm"
               />
               <button type="submit"
@@ -138,12 +138,12 @@ export const ProfilePage: FC<{
               </div>
               <div>
                 <label class="block text-xs font-semibold text-text-secondary mb-1">{t(lang, "newPassword")}</label>
-                <input type="password" name="new_password" required minlength="8"
+                <input type="password" name="new_password" required minlength={8}
                   class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" />
               </div>
               <div>
                 <label class="block text-xs font-semibold text-text-secondary mb-1">{t(lang, "confirmNewPassword")}</label>
-                <input type="password" name="confirm_password" required minlength="8"
+                <input type="password" name="confirm_password" required minlength={8}
                   class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" />
               </div>
               <button type="submit"

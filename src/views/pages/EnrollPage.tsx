@@ -74,7 +74,7 @@ export const EnrollPage: FC<{
             </div>
           )}
 
-          <form method="POST" action="/enroll" class="flex flex-col gap-6">
+          <form method="post" action="/enroll" class="flex flex-col gap-6">
             {/* Personal info */}
             <div class="bg-white border border-border-light rounded-xl p-6">
               <h2 class="text-text-main font-bold mb-4">Data Pribadi</h2>

@@ -298,7 +298,7 @@ const en = {
   profileLink: "Profile",
 } as const;
 
-const id: typeof en = {
+const id: Record<keyof typeof en, string> = {
   // Common
   logout: "Keluar",
   signedIn: "Masuk sebagai",

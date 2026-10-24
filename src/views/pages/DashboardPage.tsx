@@ -95,7 +95,7 @@ export const DashboardPage: FC<{
                   {streak.current_streak} {t(lang, "dayStreak")}
                 </span>
                 {!hasTodayLog && !todayFrozen && freezeCreditsLeft > 0 && (
-                  <form method="POST" action="/dashboard/freeze" class="inline">
+                  <form method="post" action="/dashboard/freeze" class="inline">
                     <button type="submit"
                       class="flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-md border border-sky-300 bg-sky-50 text-sky-700 hover:bg-sky-100 transition-colors">
                       <span class="material-symbols-outlined text-sm">ac_unit</span>

@@ -9,14 +9,14 @@ Collaboration rules for AI tools working in this repository.
 3. No em dashes (`—`) in any written output: commit messages, docs, or code comments.
 4. Repo is PUBLIC: no server IPs, internal paths, or infrastructure references in code, docs, or commits.
 5. Security findings follow `docs/risk-assessment-rubric.md`; Tier 2+ requires a decision record in `docs/decisions/` before fixing.
-6. Before every commit: `bunx tsc --noEmit` plus a `bun run dev` smoke test. No automated test suite yet; run `bun test` if one is added.
+6. Before every commit: `bunx tsc --noEmit`, `bun test`, and a `bun run dev` smoke test.
 
 ## Stack
 
 - Bun (not Node): `bun:sqlite`, `Bun.serve()`. Bun auto-loads `.env`; no dotenv.
 - Hono with JSX SSR. Use `hono/jsx` types (`FC`, `Child`), not React. Route files that render JSX must use a `.tsx` extension.
 - SQLite at `data/ngaji.db` (gitignored, created on start). WAL + foreign keys. Prepared statements only; `.get()` returns `unknown`, always cast: `.get(...) as Type | null`.
-- TailwindCSS v3 compiled from `src/input.css` (theme tokens in `tailwind.config.js`). Production runs under PM2 (`ecosystem.config.cjs`); no hot reload, restarts required.
+- TailwindCSS v3 compiled from `src/input.css` (theme tokens in `tailwind.config.js`). Production runs as a single Bun process under a process supervisor; no hot reload, restarts required.
 - Email (SMTP) is optional and degrades gracefully when env vars are absent.
 
 ## Commands
@@ -27,6 +27,8 @@ bun run dev               # dev server (no hot reload)
 bun run start             # production entrypoint
 bun run build:css         # regenerate public/tailwind.css from src/input.css
 bun run snapshot:monthly  # monthly leaderboard snapshot (SNAPSHOT_YEAR/SNAPSHOT_MONTH override)
+bun test                  # unit tests
+bun run audit:runtime     # production dependency audit
 bunx tsc --noEmit         # typecheck
 ```
 

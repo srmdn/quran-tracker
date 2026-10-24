@@ -6,7 +6,9 @@
     "dev": "bun run src/index.tsx",
     "start": "bun run src/index.tsx",
     "snapshot:monthly": "bun run src/jobs/monthly-snapshot.ts",
-    "build:css": "tailwindcss -i src/input.css -o public/tailwind.css --minify"
+    "build:css": "tailwindcss -i src/input.css -o public/tailwind.css --minify",
+    "test": "bun test",
+    "audit:runtime": "bun run scripts/audit-runtime.ts"
   },
   "devDependencies": {
     "@tailwindcss/container-queries": "^0.1.1",

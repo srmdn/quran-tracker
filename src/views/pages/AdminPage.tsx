@@ -143,7 +143,7 @@ export const AdminPage: FC<{
                     </div>
                   </div>
                   <div class="flex items-center gap-2 flex-shrink-0">
-                    <form method="POST" action={`/admin/users/${u.id}/approve`}>
+                    <form method="post" action={`/admin/users/${u.id}/approve`}>
                       <button
                         type="submit"
                         class="px-4 py-2 bg-primary text-white rounded-lg font-bold text-sm hover:bg-primary-dark transition-colors shadow-sm"
@@ -151,7 +151,7 @@ export const AdminPage: FC<{
                         Approve
                       </button>
                     </form>
-                    <form method="POST" action={`/admin/users/${u.id}/reject`}>
+                    <form method="post" action={`/admin/users/${u.id}/reject`}>
                       <button
                         type="submit"
                         class="px-4 py-2 bg-white text-red-500 border border-red-200 rounded-lg font-bold text-sm hover:bg-red-50 transition-colors"
@@ -273,7 +273,7 @@ export const AdminPage: FC<{
                         </a>
                       )}
                       {!isAdminRole(u.role) && u.id !== user.id && (
-                        <form method="POST" action={`/admin/users/${u.id}/role`} onsubmit={`return confirm('Make ${u.name} an admin? This grants full admin access.')`}>
+                        <form method="post" action={`/admin/users/${u.id}/role`} onsubmit={`return confirm('Make ${u.name} an admin? This grants full admin access.')`}>
                           <button type="submit" class="w-full text-left px-3 py-1.5 text-sm text-text-main hover:bg-slate-50 hover:text-primary transition-colors">
                             Make Admin
                           </button>
@@ -281,13 +281,13 @@ export const AdminPage: FC<{
                       )}
                       {isSuperAdminRole(user.role) && !isAdminRole(u.role) && u.id !== user.id && (
                         u.suspended_at ? (
-                          <form method="POST" action={`/admin/users/${u.id}/unsuspend`}>
+                          <form method="post" action={`/admin/users/${u.id}/unsuspend`}>
                             <button type="submit" class="w-full text-left px-3 py-1.5 text-sm text-emerald-600 hover:bg-emerald-50 transition-colors">
                               Unsuspend
                             </button>
                           </form>
                         ) : (
-                          <form method="POST" action={`/admin/users/${u.id}/suspend`} onsubmit={`return confirm('Suspend ${u.name}? They will not be able to access the app.')`}>
+                          <form method="post" action={`/admin/users/${u.id}/suspend`} onsubmit={`return confirm('Suspend ${u.name}? They will not be able to access the app.')`}>
                             <button type="submit" class="w-full text-left px-3 py-1.5 text-sm text-amber-600 hover:bg-amber-50 transition-colors">
                               Suspend
                             </button>
@@ -295,7 +295,7 @@ export const AdminPage: FC<{
                         )
                       )}
                       {!isAdminRole(u.role) && u.id !== user.id && (
-                        <form method="POST" action={`/admin/users/${u.id}/delete`} onsubmit={`return confirm('Permanently delete ${u.name}? All their logs and data will be removed.')`}>
+                        <form method="post" action={`/admin/users/${u.id}/delete`} onsubmit={`return confirm('Permanently delete ${u.name}? All their logs and data will be removed.')`}>
                           <button type="submit" class="w-full text-left px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 transition-colors">
                             Remove
                           </button>
@@ -338,7 +338,7 @@ export const AdminPage: FC<{
             {/* Create user */}
             <div class="mb-6">
               <h3 class="text-text-main text-sm font-bold mb-2">Create User</h3>
-              <form method="POST" action="/admin/users/create" class="grid md:grid-cols-4 gap-3">
+              <form method="post" action="/admin/users/create" class="grid md:grid-cols-4 gap-3">
                 <input
                   name="name"
                   placeholder="Full name"
@@ -385,7 +385,7 @@ export const AdminPage: FC<{
                     Runs previous month activity snapshot (idempotent, safe to re-run).
                   </p>
                 </div>
-                <form method="POST" action="/admin/snapshots/run">
+                <form method="post" action="/admin/snapshots/run">
                   <button
                     type="submit"
                     class="px-4 py-2.5 bg-primary text-white rounded-lg font-bold text-sm hover:bg-primary-dark transition-colors shadow-sm"

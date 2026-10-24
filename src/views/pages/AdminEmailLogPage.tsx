@@ -207,7 +207,7 @@ export const AdminEmailLogPage: FC<{
             {statusFilterBtn(`Failed (${failedTotal})`, "failed", "bg-red-600 text-white")}
           </div>
           {allTypes.length > 0 && (
-            <form method="GET" action="/admin/email-log" class="flex items-center gap-2 text-sm">
+            <form method="get" action="/admin/email-log" class="flex items-center gap-2 text-sm">
               {filterStatus && <input type="hidden" name="status" value={filterStatus} />}
               <input type="hidden" name="page" value="1" />
               <select
@@ -285,7 +285,7 @@ export const AdminEmailLogPage: FC<{
                       </td>
                       <td class="px-4 py-3">
                         {row.status === "failed" && RESENDABLE_TYPES.has(row.email_type) && (
-                          <form method="POST" action={`/admin/email-log/${row.id}/resend`}>
+                          <form method="post" action={`/admin/email-log/${row.id}/resend`}>
                             <button type="submit" class="px-2.5 py-1 text-xs font-semibold border border-primary/30 text-primary rounded hover:bg-primary-light transition-colors">
                               Resend
                             </button>
@@ -328,7 +328,7 @@ export const AdminEmailLogPage: FC<{
             Send a test email to your own account ({user.email}).
           </p>
           <div class="flex flex-wrap gap-3">
-            <form method="POST" action="/admin/email/test-reminder">
+            <form method="post" action="/admin/email/test-reminder">
               <button
                 type="submit"
                 class="px-4 py-2.5 bg-white text-primary border border-primary/30 rounded-lg font-bold text-sm hover:bg-primary-light transition-colors"
@@ -336,7 +336,7 @@ export const AdminEmailLogPage: FC<{
                 Send Test Daily Reminder
               </button>
             </form>
-            <form method="POST" action="/admin/email/test-snapshot">
+            <form method="post" action="/admin/email/test-snapshot">
               <button
                 type="submit"
                 class="px-4 py-2.5 bg-white text-primary border border-primary/30 rounded-lg font-bold text-sm hover:bg-primary-light transition-colors"
@@ -344,7 +344,7 @@ export const AdminEmailLogPage: FC<{
                 Send Test Monthly Snapshot
               </button>
             </form>
-            <form method="POST" action="/admin/email/test-approval">
+            <form method="post" action="/admin/email/test-approval">
               <button
                 type="submit"
                 class="px-4 py-2.5 bg-white text-primary border border-primary/30 rounded-lg font-bold text-sm hover:bg-primary-light transition-colors"
@@ -352,7 +352,7 @@ export const AdminEmailLogPage: FC<{
                 Send Test Approval
               </button>
             </form>
-            <form method="POST" action="/admin/email/test-khatam">
+            <form method="post" action="/admin/email/test-khatam">
               <button
                 type="submit"
                 class="px-4 py-2.5 bg-white text-primary border border-primary/30 rounded-lg font-bold text-sm hover:bg-primary-light transition-colors"
@@ -360,7 +360,7 @@ export const AdminEmailLogPage: FC<{
                 Send Test Khatam (#1)
               </button>
             </form>
-            <form method="POST" action="/admin/email/test-streak">
+            <form method="post" action="/admin/email/test-streak">
               <button
                 type="submit"
                 class="px-4 py-2.5 bg-white text-primary border border-primary/30 rounded-lg font-bold text-sm hover:bg-primary-light transition-colors"

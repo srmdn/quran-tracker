@@ -131,7 +131,7 @@ public/
 - Styling is compiled with `bun run build:css`; regenerate `public/tailwind.css` after changing Tailwind classes
 - SQLite tables are initialized on startup
 - Expired sessions are cleaned on startup
-- There is currently no automated test suite in the repository
+- Run `bun test` for unit tests and `bunx tsc --noEmit` for typechecking
 
 ## Contributing
 

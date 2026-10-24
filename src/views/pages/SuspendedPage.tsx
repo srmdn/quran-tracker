@@ -31,7 +31,7 @@ export const SuspendedPage: FC<{ user: User; lang: Lang }> = ({ user, lang }) =>
                 </span>
               </div>
             </div>
-            <form method="POST" action="/auth/logout" class="mt-6">
+            <form method="post" action="/auth/logout" class="mt-6">
               <button
                 type="submit"
                 class="text-text-secondary hover:text-red-500 transition-colors text-sm font-medium"
