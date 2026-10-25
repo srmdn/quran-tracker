@@ -9,6 +9,11 @@ All notable changes to this project are documented here.
 ### Redesign
 
 - Phase 3 Stage A: new public shell, landing, login, pending, suspended, and 404 pages with local Fraunces and Amiri fonts
+- Phase 3 Stage B: member dashboard, target modal, annual heatmap, streak and freeze, redesigned tilawah, murojaah, and edit forms, optional position details, and amount-only quick logging
+
+### Changed
+
+- Log submission accepts an explicit amount without start or end position, rejects start-after-end, same-position, and incomplete positions, and stores nullable ending positions safely
 
 ### Security
 
