@@ -14,7 +14,7 @@ export const AdminEditMemberPage: FC<{
 }> = ({ adminUser, member, error, success }) => {
   return (
     <Layout title={`Edit ${member.name} — ${APP_NAME}`}>
-      <Header user={adminUser} currentPath="/admin" lang="en" />
+      <Header user={adminUser} currentPath="/admin" lang="id" />
       <main class="flex-1 flex flex-col items-center w-full px-4 sm:px-6 lg:px-8 py-8 max-w-2xl mx-auto">
 
         <div class="w-full mb-6">

@@ -10,20 +10,6 @@ const Logo: FC = () => (
   <img src="/public/logo.png" alt="Markaz Talaqqi Logo" class="w-full h-full object-contain" />
 );
 
-const LangToggle: FC<{ lang: Lang }> = ({ lang }) => (
-  <form method="post" action="/lang" class="inline">
-    <CsrfInput />
-    <input type="hidden" name="locale" value={lang === "en" ? "id" : "en"} />
-    <button
-      type="submit"
-      title={lang === "en" ? "Switch to Indonesian" : "Switch to English"}
-      class="text-xs font-bold px-2 py-1 rounded-lg border border-border-light bg-slate-50 text-text-secondary hover:text-primary hover:border-primary/30 transition-colors"
-    >
-      {t(lang, "switchLang")}
-    </button>
-  </form>
-);
-
 export const Header: FC<{ user: User | null; currentPath: string; lang: Lang }> = ({
   user,
   currentPath,
@@ -113,7 +99,6 @@ export const Header: FC<{ user: User | null; currentPath: string; lang: Lang }> 
                 </a>
               )}
             </nav>
-            <LangToggle lang={lang} />
             {user && (
               <>
                 <div class="h-8 w-px bg-border-light"></div>
@@ -266,8 +251,7 @@ export const Header: FC<{ user: User | null; currentPath: string; lang: Lang }> 
                   {t(lang, "profileLink")}
                 </a>
                 <div class="flex gap-2">
-                  <LangToggle lang={lang} />
-                  <form method="post" action="/auth/logout" class="flex-1">
+                        <form method="post" action="/auth/logout" class="flex-1">
                     <CsrfInput />
                     <button
                       type="submit"

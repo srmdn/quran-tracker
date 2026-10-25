@@ -9,7 +9,6 @@ import { adminRoutes } from "./routes/admin.tsx";
 import { dashboardRoutes } from "./routes/dashboard.tsx";
 import { tilawahRoutes } from "./routes/tilawah.tsx";
 import { murojaahRoutes } from "./routes/murojaah.tsx";
-import { langRoutes } from "./routes/lang.ts";
 import { landingRoutes } from "./routes/landing.tsx";
 import { profileRoutes } from "./routes/profile.tsx";
 import { enrollRoutes } from "./routes/enroll.tsx";
@@ -86,7 +85,6 @@ app.get("/suspended", authMiddleware, (c) => {
 
 // Mount routes
 app.route("/landing", landingRoutes);
-app.route("/lang", langRoutes);
 app.route("/auth", authRoutes);
 app.route("/tilawah", tilawahRoutes);
 app.route("/murojaah", murojaahRoutes);

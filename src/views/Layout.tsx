@@ -7,7 +7,7 @@ export const Layout: FC<{ title?: string; description?: string; url?: string; ch
   const resolvedUrl = url || PUBLIC_BASE_URL;
   const ogImage = `${PUBLIC_BASE_URL}/public/logo.png`;
   return (
-    <html lang="en">
+    <html lang="id">
       <head>
         <meta charset="utf-8" />
         <meta content="width=device-width, initial-scale=1.0" name="viewport" />
