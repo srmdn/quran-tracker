@@ -9,6 +9,7 @@ All notable changes to this project are documented here.
 ### Redesign
 
 - Phase 3 Stage A: new public shell, landing, login, pending, suspended, and 404 pages with local Fraunces and Amiri fonts
+- Indonesian-only interface: removed the language switch from public, member, and admin pages, removed the `/lang` route, and ignored the legacy language cookie
 - Phase 3 Stage B: member dashboard, target modal, annual heatmap, streak and freeze, redesigned tilawah, murojaah, and edit forms, optional position details, and amount-only quick logging
 
 ### Changed

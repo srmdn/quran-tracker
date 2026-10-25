@@ -106,7 +106,7 @@ admin.post("/users/create", async (c) => {
   const password = ((body.password as string) || "").trim();
 
   if (!nameResult.ok) {
-    return c.redirect(`/admin?error=${encodeURIComponent(t("en", nameResult.error))}`);
+    return c.redirect(`/admin?error=${encodeURIComponent(t("id", nameResult.error))}`);
   }
   if (!email || !email.includes("@")) {
     return c.redirect("/admin?error=A valid email is required.");
@@ -165,7 +165,7 @@ admin.post("/users/:id/update", async (c) => {
   const emailNotifEnabled = body.email_notif_enabled === "1" ? 1 : 0;
 
   if (!nameResult.ok) {
-    return c.redirect(`/admin/members/${userId}/edit?error=${encodeURIComponent(t("en", nameResult.error))}`);
+    return c.redirect(`/admin/members/${userId}/edit?error=${encodeURIComponent(t("id", nameResult.error))}`);
   }
   if (!email || !email.includes("@")) {
     return c.redirect(`/admin/members/${userId}/edit?error=A valid email is required.`);

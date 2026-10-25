@@ -86,17 +86,6 @@ export const MemberLayout: FC<{
                   <span class="target-label">{t(lang, "setTargets")}</span>
                 </button>
               )}
-              <form method="get" action="/lang" class="lang-form">
-                <input type="hidden" name="locale" value={lang === "en" ? "id" : "en"} />
-                <button
-                  class="btn btn-secondary btn-sm"
-                  type="submit"
-                  title={t(lang, "memberLanguage")}
-                  aria-label={t(lang, "memberLanguage")}
-                >
-                  {lang === "en" ? "ID" : "EN"}
-                </button>
-              </form>
               {isAdminRole(user.role) && (
                 <a
                   class="btn btn-secondary btn-sm"

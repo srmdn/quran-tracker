@@ -1,9 +1,5 @@
 export type Lang = "en" | "id";
 
-export function getLang(cookieValue: string | undefined): Lang {
-  return cookieValue === "en" ? "en" : "id";
-}
-
 const en = {
   // Common
   logout: "Logout",

@@ -6,8 +6,6 @@ import { t } from "../../lib/i18n.ts";
 import type { Lang } from "../../lib/i18n.ts";
 
 export const LoginPage: FC<{ error?: string; lang: Lang }> = ({ error, lang }) => {
-  const languageTarget = lang === "en" ? "id" : "en";
-
   return (
     <PublicLayout title={`${t(lang, "marketingLogin")} | ${APP_NAME}`} lang={lang}>
       <a class="skip-link" href="#main">
@@ -100,12 +98,6 @@ export const LoginPage: FC<{ error?: string; lang: Lang }> = ({ error, lang }) =
               <a href="/enroll" style="color: var(--primary); font-weight: 700">
                 {t(lang, "marketingEnroll")}
               </a>
-              <form method="get" action="/lang" style="display: inline">
-                <input type="hidden" name="locale" value={languageTarget} />
-                <button class="btn btn-secondary btn-sm" type="submit">
-                  {t(lang, "switchLang")}
-                </button>
-              </form>
             </div>
           </div>
         </main>
