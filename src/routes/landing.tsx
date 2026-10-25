@@ -1,7 +1,5 @@
 import { Hono } from "hono";
 import { db } from "../db/connection.ts";
-import { getLang } from "../lib/i18n.ts";
-import { getCookie } from "hono/cookie";
 import { LandingPage } from "../views/pages/LandingPage.tsx";
 import { getRandomFastabiqEntry } from "../lib/fastabiq-verses.ts";
 import type { Env } from "../types.ts";
@@ -9,7 +7,7 @@ import type { Env } from "../types.ts";
 const landing = new Hono<Env>();
 
 landing.get("/", (c) => {
-  const lang = c.get("lang");
+  const lang = "id" as const;
 
   const totalMembers = (
     db
