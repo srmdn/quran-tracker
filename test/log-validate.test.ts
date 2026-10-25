@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { parseLogSubmission } from "../src/lib/log-validate.ts";
+import { isKhatamPosition, parseLogSubmission } from "../src/lib/log-validate.ts";
 import { PAGES_PER_JUZ } from "../src/lib/format-juz.ts";
 
 const base = {
@@ -90,6 +90,12 @@ describe("log submission validation", () => {
     expect(result.ok).toBe(false);
   });
 
+  test("detects the khatam position", () => {
+    expect(isKhatamPosition(114, 6)).toBe(true);
+    expect(isKhatamPosition(114, 5)).toBe(false);
+    expect(isKhatamPosition(null, null)).toBe(false);
+  });
+
   test("validates repetition count only when requested", () => {
     const without = parseLogSubmission({ ...base, amount: "1", repetition_count: "999" }, "en", { withRepetition: false });
     expect(without.ok).toBe(true);
@@ -100,5 +106,55 @@ describe("log submission validation", () => {
     expect(valid.ok).toBe(true);
     if (!valid.ok) return;
     expect(valid.values.repetitionCount).toBe(3);
+  });
+
+  test("accepts an explicit amount without an ending position", () => {
+    const result = parseLogSubmission({ input_mode: "juz", amount: "2" }, "en", { withRepetition: false });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.values.juzAmount).toBe(2);
+    expect(result.values.endSurah).toBeNull();
+    expect(result.values.endAyah).toBeNull();
+    expect(result.values.endJuz).toBeNull();
+    expect(result.values.endSurahName).toBeNull();
+  });
+
+  test("requires an ending position for auto-calculation", () => {
+    const result = parseLogSubmission(
+      { input_mode: "juz", start_surah: "1", start_ayah: "1" },
+      "en",
+      { withRepetition: false }
+    );
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error).toBe("Fill in the ending position to auto-calculate the amount.");
+  });
+
+  test("rejects start-after-end and same-position logs", () => {
+    const after = parseLogSubmission(
+      { ...base, amount: "1", start_surah: "2", start_ayah: "5", end_surah: "1", end_ayah: "1" },
+      "en",
+      { withRepetition: false }
+    );
+    expect(after.ok).toBe(false);
+    if (!after.ok) expect(after.error).toBe("The starting position cannot be after the ending position.");
+
+    const same = parseLogSubmission(
+      { ...base, amount: "1", start_surah: "1", start_ayah: "1", end_surah: "1", end_ayah: "1" },
+      "en",
+      { withRepetition: false }
+    );
+    expect(same.ok).toBe(false);
+    if (!same.ok) expect(same.error).toBe("Starting and ending positions cannot be the same when the amount is greater than zero.");
+  });
+
+  test("rejects incomplete start and end positions", () => {
+    const startOnly = parseLogSubmission({ ...base, amount: "1", start_surah: "1" }, "en", { withRepetition: false });
+    expect(startOnly.ok).toBe(false);
+    if (!startOnly.ok) expect(startOnly.error).toBe("Fill in both the starting surah and ayah, or leave both empty.");
+
+    const endOnly = parseLogSubmission({ ...base, amount: "1", end_surah: "1", end_ayah: "" }, "en", { withRepetition: false });
+    expect(endOnly.ok).toBe(false);
+    if (!endOnly.ok) expect(endOnly.error).toBe("Fill in both the ending surah and ayah, or leave both empty.");
   });
 });

@@ -7,11 +7,11 @@ import { getUserMonthScore, notifyOvertakenUsers } from "../lib/overtaken-email.
 import { getUserTarget, getTodayTilawahTotal, TILAWAH_DAILY_CEILING_JUZ } from "../lib/targets.ts";
 import { checkAndUpdateStreak, rebuildStreak } from "../lib/streak.ts";
 import { getUserActivityTotals } from "../lib/activity-calc.ts";
-import { parseLogSubmission } from "../lib/log-validate.ts";
+import { isKhatamPosition, parseLogSubmission } from "../lib/log-validate.ts";
 import { parsePage } from "../lib/validation.ts";
 import { sendKhatamEmail, sendStreakMilestoneEmail, isStreakMilestone } from "../lib/milestone-email.ts";
 import { t } from "../lib/i18n.ts";
-import { TilawahPage } from "../views/pages/TilawahPage.tsx";
+import { MemberLogPage } from "../views/components/MemberLogPage.tsx";
 import { EditLogPage } from "../views/pages/EditLogPage.tsx";
 import type { Env } from "../types.ts";
 
@@ -45,7 +45,7 @@ function redirectWith(kind: "success" | "error", message: string) {
 // Khatam (tilawah only) = log ending at An-Nas 114:6, recorded in khatam_events.
 // Dedup: at most one event per user/type/day.
 function recordKhatamIfCompleted(userId: number, dateWib: string, endSurah: number, endAyah: number): string | null {
-  if (endSurah !== 114 || endAyah !== 6) return null;
+  if (!isKhatamPosition(endSurah, endAyah)) return null;
   const alreadyToday = db
     .prepare("SELECT 1 FROM khatam_events WHERE user_id = ? AND type = 'tilawah' AND date_wib = ? LIMIT 1")
     .get(userId, dateWib);
@@ -119,7 +119,8 @@ tilawah.get("/", (c) => {
   for (const row of coverageAllTimeRows) juzCoverageAllTime[row.end_juz] = row.cnt;
 
   return c.html(
-    <TilawahPage
+    <MemberLogPage
+      kind="tilawah"
       user={user}
       lang={lang}
       success={c.req.query("success")}
@@ -135,8 +136,7 @@ tilawah.get("/", (c) => {
       page={page}
       totalLogs={totalLogs}
       perPage={perPage}
-      juzCoverageMonth={juzCoverageMonth}
-      juzCoverageAllTime={juzCoverageAllTime}
+      coverage={{ month: juzCoverageMonth, allTime: juzCoverageAllTime }}
     />
   );
 });
@@ -176,9 +176,11 @@ tilawah.post("/", async (c) => {
     "INSERT INTO tilawah_logs (user_id, date_wib, juz_amount, start_surah, start_ayah, start_juz, end_surah, end_ayah, end_juz, log_unit, log_amount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
   ).run(user.id, dateCheck.date, juzAmount, startSurah, startAyah, startJuz, endSurah, endAyah, endJuz, logUnit, logAmount);
 
-  // Khatam detection — completed the mushaf at An-Nas (114:6)
+  // Khatam detection for logs that include an ending position.
   let khatamMsg = "";
-  const khatamResult = recordKhatamIfCompleted(user.id, dateCheck.date, endSurah, endAyah);
+  const khatamResult = endSurah !== null && endAyah !== null
+    ? recordKhatamIfCompleted(user.id, dateCheck.date, endSurah, endAyah)
+    : null;
   if (khatamResult === "khatamRecorded") {
     khatamMsg = ` ${t(lang, "khatamRecorded")}`;
     const khatamCount = (db.prepare("SELECT COUNT(*) AS cnt FROM khatam_events WHERE user_id = ? AND type = 'tilawah'")
@@ -200,7 +202,10 @@ tilawah.post("/", async (c) => {
   const amountLabel = logUnit === "pages"
     ? `${logAmount} ${lang === "id" ? "halaman" : "pages"}`
     : `${logAmount} juz`;
-  return c.redirect(redirectWith("success", `${t(lang, "tilawahLogged")} ${amountLabel} — ${t(lang, "endedAtMsg")} ${endSurahName} ayah ${endAyah} (Juz ${endJuz}).${khatamMsg}`));
+  const endMsg = endSurahName !== null && endAyah !== null && endJuz !== null
+    ? `, ${t(lang, "endedAtMsg")} ${endSurahName} ayah ${endAyah} (Juz ${endJuz}).`
+    : ".";
+  return c.redirect(redirectWith("success", `${t(lang, "tilawahLogged")} ${amountLabel}${endMsg}${khatamMsg}`));
 });
 
 tilawah.get("/logs/:id/edit", (c) => {
@@ -262,26 +267,32 @@ tilawah.post("/logs/:id/edit", async (c) => {
     return c.redirect(redirectWith("error", t(lang, "dailyCeilingTilawah")));
   }
 
-  const wasCompletion = log.end_surah === 114 && log.end_ayah === 6;
+  const wasCompletion = isKhatamPosition(log.end_surah, log.end_ayah);
 
   db.prepare(
     `UPDATE tilawah_logs SET juz_amount = ?, start_surah = ?, start_ayah = ?, start_juz = ?, end_surah = ?, end_ayah = ?, end_juz = ?, log_unit = ?, log_amount = ?, updated_at = datetime('now') WHERE id = ?`
   ).run(juzAmount, startSurah, startAyah, startJuz, endSurah, endAyah, endJuz, logUnit, logAmount, logId);
 
-  // Khatam re-evaluation for the log's date
+  // Khatam re-evaluation for the log's date.
   let khatamMsg = "";
-  const khatamResult = recordKhatamIfCompleted(user.id, log.date_wib, endSurah, endAyah);
+  const nowCompletion = isKhatamPosition(endSurah, endAyah);
+  const khatamResult = nowCompletion && endSurah !== null && endAyah !== null
+    ? recordKhatamIfCompleted(user.id, log.date_wib, endSurah, endAyah)
+    : null;
   if (khatamResult === "khatamRecorded") {
     khatamMsg = ` ${t(lang, "khatamRecorded")}`;
     const khatamCount = (db.prepare("SELECT COUNT(*) AS cnt FROM khatam_events WHERE user_id = ? AND type = 'tilawah'")
       .get(user.id) as { cnt: number }).cnt;
     sendKhatamEmail(user, khatamCount).catch(() => {});
   }
-  if (wasCompletion && !(endSurah === 114 && endAyah === 6)) {
+  if (wasCompletion && !nowCompletion) {
     removeKhatamIfUnqualified(user.id, log.date_wib, logId);
   }
 
-  return c.redirect(redirectWith("success", `${t(lang, "entryUpdated")} — ${t(lang, "endedAtMsg")} ${endSurahName} ayah ${endAyah} (Juz ${endJuz}).${khatamMsg}`));
+  const endMsg = endSurahName !== null && endAyah !== null && endJuz !== null
+    ? `, ${t(lang, "endedAtMsg")} ${endSurahName} ayah ${endAyah} (Juz ${endJuz}).`
+    : ".";
+  return c.redirect(redirectWith("success", `${t(lang, "entryUpdated")}${endMsg}${khatamMsg}`));
 });
 
 tilawah.post("/logs/:id/delete", (c) => {

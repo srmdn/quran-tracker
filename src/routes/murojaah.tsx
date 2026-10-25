@@ -11,7 +11,7 @@ import { parseLogSubmission } from "../lib/log-validate.ts";
 import { parsePage } from "../lib/validation.ts";
 import { sendStreakMilestoneEmail, isStreakMilestone } from "../lib/milestone-email.ts";
 import { t } from "../lib/i18n.ts";
-import { MurojaahPage } from "../views/pages/MurojaahPage.tsx";
+import { MemberLogPage } from "../views/components/MemberLogPage.tsx";
 import { EditLogPage } from "../views/pages/EditLogPage.tsx";
 import type { Env } from "../types.ts";
 
@@ -76,7 +76,8 @@ murojaah.get("/", (c) => {
     .all(user.id, perPage, (page - 1) * perPage) as MurojaahLog[];
 
   return c.html(
-    <MurojaahPage
+    <MemberLogPage
+      kind="murojaah"
       user={user}
       lang={lang}
       success={c.req.query("success")}
@@ -143,7 +144,10 @@ murojaah.post("/", async (c) => {
     ? `${logAmount} ${lang === "id" ? "halaman" : "pages"}`
     : `${logAmount} juz`;
   const repMsg = repetitionCount ? ` · ${repetitionCount}x ${t(lang, "repetitionSuffix")}` : "";
-  return c.redirect(redirectWith("success", `${t(lang, "murojaahLogged")} ${amountLabel} — ${t(lang, "endedAtMsg")} ${endSurahName} ayah ${endAyah} (Juz ${endJuz}).${repMsg}`));
+  const endMsg = endSurahName !== null && endAyah !== null && endJuz !== null
+    ? `, ${t(lang, "endedAtMsg")} ${endSurahName} ayah ${endAyah} (Juz ${endJuz}).`
+    : ".";
+  return c.redirect(redirectWith("success", `${t(lang, "murojaahLogged")} ${amountLabel}${endMsg}${repMsg}`));
 });
 
 murojaah.get("/logs/:id/edit", (c) => {
@@ -210,7 +214,10 @@ murojaah.post("/logs/:id/edit", async (c) => {
   ).run(juzAmount, repetitionCount, startSurah, startAyah, startJuz, endSurah, endAyah, endJuz, logUnit, logAmount, logId);
 
   const repMsg = repetitionCount ? ` · ${repetitionCount}x ${t(lang, "repetitionSuffix")}` : "";
-  return c.redirect(redirectWith("success", `${t(lang, "entryUpdated")} — ${t(lang, "endedAtMsg")} ${endSurahName} ayah ${endAyah} (Juz ${endJuz}).${repMsg}`));
+  const endMsg = endSurahName !== null && endAyah !== null && endJuz !== null
+    ? `, ${t(lang, "endedAtMsg")} ${endSurahName} ayah ${endAyah} (Juz ${endJuz}).`
+    : ".";
+  return c.redirect(redirectWith("success", `${t(lang, "entryUpdated")}${endMsg}${repMsg}`));
 });
 
 murojaah.post("/logs/:id/delete", (c) => {

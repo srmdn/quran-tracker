@@ -9,10 +9,10 @@ export type ParsedLogValues = {
   startSurah: number | null;
   startAyah: number | null;
   startJuz: number | null;
-  endSurah: number;
-  endAyah: number;
-  endJuz: number;
-  endSurahName: string;
+  endSurah: number | null;
+  endAyah: number | null;
+  endJuz: number | null;
+  endSurahName: string | null;
   repetitionCount: number | null;
 };
 
@@ -20,8 +20,26 @@ export type ParseLogResult =
   | { ok: true; values: ParsedLogValues }
   | { ok: false; error: string };
 
+export function isKhatamPosition(endSurah: number | null, endAyah: number | null): boolean {
+  return endSurah === 114 && endAyah === 6;
+}
+
+function comparePosition(
+  startSurah: number,
+  startAyah: number,
+  endSurah: number,
+  endAyah: number
+): number {
+  if (startSurah !== endSurah) return startSurah < endSurah ? -1 : 1;
+  if (startAyah !== endAyah) return startAyah < endAyah ? -1 : 1;
+  return 0;
+}
+
 // Shared field parsing + validation for create and edit log submissions.
 // Date handling is NOT part of this helper (create validates it; edit keeps it immutable).
+//
+// An explicit amount is the fast path: start and end positions are optional.
+// If the amount is left empty, both start and end are required for auto-calculation.
 export function parseLogSubmission(
   body: Record<string, string | File>,
   lang: Lang,
@@ -72,13 +90,16 @@ export function parseLogSubmission(
     }
   }
 
-  // Optional start position
+  // Optional start position.
   let startSurah: number | null = null;
   let startAyah: number | null = null;
   let startJuz: number | null = null;
-  const startSurahRaw = (body.start_surah as string) || "";
-  const startAyahRaw = (body.start_ayah as string) || "";
-  if (startSurahRaw && startAyahRaw) {
+  const startSurahRaw = ((body.start_surah as string) || "").trim();
+  const startAyahRaw = ((body.start_ayah as string) || "").trim();
+  if (startSurahRaw || startAyahRaw) {
+    if (!startSurahRaw || !startAyahRaw) {
+      return { ok: false, error: t(lang, "startPositionIncomplete") };
+    }
     const parsedStartSurah = parseInt(startSurahRaw, 10);
     const parsedStartAyah = parseInt(startAyahRaw, 10);
     const startSurahMeta = SURAHS.find((s) => s.number === parsedStartSurah);
@@ -94,24 +115,45 @@ export function parseLogSubmission(
     startJuz = getJuzForPosition(startSurah, startAyah);
   }
 
-  // Required end position
-  const endSurah = parseInt((body.end_surah as string) || "", 10);
-  const endAyah = parseInt((body.end_ayah as string) || "", 10);
-
-  const surahMeta = SURAHS.find((s) => s.number === endSurah);
-  if (!surahMeta) return { ok: false, error: t(lang, "invalidSurah") };
-  if (!Number.isInteger(endAyah) || endAyah < 1 || endAyah > surahMeta.totalAyahs) {
-    return {
-      ok: false,
-      error: `${t(lang, "ayahMustBeBetween")} ${surahMeta.totalAyahs} ${t(lang, "forSurah")} ${surahMeta.name}.`,
-    };
+  // Optional end position.
+  let endSurah: number | null = null;
+  let endAyah: number | null = null;
+  let endJuz: number | null = null;
+  let endSurahName: string | null = null;
+  const endSurahRaw = ((body.end_surah as string) || "").trim();
+  const endAyahRaw = ((body.end_ayah as string) || "").trim();
+  if (endSurahRaw || endAyahRaw) {
+    if (!endSurahRaw || !endAyahRaw) {
+      return { ok: false, error: t(lang, "endPositionIncomplete") };
+    }
+    const parsedEndSurah = parseInt(endSurahRaw, 10);
+    const parsedEndAyah = parseInt(endAyahRaw, 10);
+    const endSurahMeta = SURAHS.find((s) => s.number === parsedEndSurah);
+    if (!endSurahMeta) return { ok: false, error: t(lang, "invalidSurah") };
+    if (!Number.isInteger(parsedEndAyah) || parsedEndAyah < 1 || parsedEndAyah > endSurahMeta.totalAyahs) {
+      return {
+        ok: false,
+        error: `${t(lang, "ayahMustBeBetween")} ${endSurahMeta.totalAyahs} ${t(lang, "forSurah")} ${endSurahMeta.name}.`,
+      };
+    }
+    endSurah = parsedEndSurah;
+    endAyah = parsedEndAyah;
+    endJuz = getJuzForPosition(endSurah, endAyah);
+    endSurahName = endSurahMeta.name;
   }
 
-  const endJuz = getJuzForPosition(endSurah, endAyah);
+  if (startSurah !== null && startAyah !== null && endSurah !== null && endAyah !== null) {
+    const order = comparePosition(startSurah, startAyah, endSurah, endAyah);
+    if (order > 0) return { ok: false, error: t(lang, "startAfterEnd") };
+    if (order === 0) return { ok: false, error: t(lang, "samePosition") };
+  }
 
   if (needsAutoCalc) {
     if (startSurah === null || startAyah === null) {
       return { ok: false, error: t(lang, "autoCalcNeedsStart") };
+    }
+    if (endSurah === null || endAyah === null) {
+      return { ok: false, error: t(lang, "autoCalcNeedsEnd") };
     }
     if (logUnit === "pages") {
       const startPage = getPageForPosition(startSurah, startAyah);
@@ -123,13 +165,10 @@ export function parseLogSubmission(
       logAmount = pageDiff;
       juzAmount = pageDiff / PAGES_PER_JUZ;
     } else {
-      if (startJuz === null) {
+      if (startJuz === null || endJuz === null) {
         return { ok: false, error: t(lang, "autoCalcNeedsStart") };
       }
       const diff = endJuz - startJuz;
-      if (diff < 0) {
-        return { ok: false, error: t(lang, "autoCalcNegative") };
-      }
       logAmount = diff + 1;
       juzAmount = diff + 1;
     }
@@ -158,7 +197,7 @@ export function parseLogSubmission(
       endSurah,
       endAyah,
       endJuz,
-      endSurahName: surahMeta.name,
+      endSurahName,
       repetitionCount,
     },
   };

@@ -70,13 +70,21 @@ function getTilawahProgressSinceLastKhatam(userId: number, tilawahJuz: number): 
   return round2(row.total || 0);
 }
 
-function calcScore(tilawahJuz: number, murojaahJuz: number, khatamCount: number): number {
+export function calculateActivityScore(
+  tilawahJuz: number,
+  murojaahJuz: number,
+  khatamCount: number
+): number {
   // Score is stored/displayed as integer points.
   const raw =
     tilawahJuz * TILAWAH_POINT_PER_JUZ +
     murojaahJuz * MUROJAAH_POINT_PER_JUZ +
     khatamCount * KHATAM_BONUS_POINT;
   return Math.round(raw);
+}
+
+function calcScore(tilawahJuz: number, murojaahJuz: number, khatamCount: number): number {
+  return calculateActivityScore(tilawahJuz, murojaahJuz, khatamCount);
 }
 
 function activeRolesSqlList(): string {

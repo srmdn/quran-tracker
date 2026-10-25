@@ -164,4 +164,124 @@
       });
     });
   });
+
+  Array.prototype.forEach.call(document.querySelectorAll('[data-log-form]'), function (form) {
+    var mode = form.querySelector('[data-log-mode]');
+    var unitButtons = form.querySelectorAll('[data-log-unit]');
+    var juzFields = form.querySelector('[data-log-juz]');
+    var pagesFields = form.querySelector('[data-log-pages]');
+    var amount = form.querySelector('[data-log-amount]');
+    var pagesWhole = form.querySelector('[data-log-pages-whole]');
+    var pagesHalf = form.querySelector('[data-log-pages-half]');
+    var summaryAmount = form.querySelector('[data-log-summary-amount]');
+    var summaryEquivalent = form.querySelector('[data-log-summary-equivalent]');
+    var presets = form.querySelectorAll('[data-log-preset]');
+    var unitJuz = form.getAttribute('data-unit-juz') || 'juz';
+    var unitPages = form.getAttribute('data-unit-pages') || 'pages';
+    if (!mode || !amount || !pagesWhole || !summaryAmount || !summaryEquivalent) return;
+
+    function formatAmount(value) {
+      return Number.isInteger(value) ? String(value) : String(value).replace('.5', '½');
+    }
+
+    function currentValue() {
+      if (mode.value === 'pages') {
+        var whole = Number(pagesWhole.value) || 0;
+        return whole + (pagesHalf && pagesHalf.checked ? 0.5 : 0);
+      }
+      return Number(amount.value) || 0;
+    }
+
+    function updateSummary() {
+      var value = currentValue();
+      var isPages = mode.value === 'pages';
+      summaryAmount.textContent = isPages
+        ? formatAmount(value) + ' ' + unitPages
+        : formatAmount(value) + ' ' + unitJuz;
+      summaryEquivalent.textContent = isPages
+        ? (value / 20).toFixed(2) + ' ' + unitJuz
+        : Math.round(value * 20) + ' ' + unitPages;
+    }
+
+    function setMode(next, convert) {
+      if (next !== 'pages' && next !== 'juz') return;
+      if (convert && next !== mode.value) {
+        if (next === 'pages') {
+          pagesWhole.value = String(Math.max(1, Math.round((Number(amount.value) || 0) * 20)));
+          if (pagesHalf) pagesHalf.checked = false;
+        } else {
+          var pages = Number(pagesWhole.value) || 0;
+          amount.value = String(Math.max(1, Math.round(pages / 20)));
+        }
+      }
+      mode.value = next;
+      juzFields.hidden = next !== 'juz';
+      pagesFields.hidden = next !== 'pages';
+      Array.prototype.forEach.call(unitButtons, function (button) {
+        button.setAttribute('aria-pressed', button.getAttribute('data-log-unit') === next ? 'true' : 'false');
+      });
+      updateSummary();
+    }
+
+    Array.prototype.forEach.call(unitButtons, function (button) {
+      button.addEventListener('click', function () {
+        setMode(button.getAttribute('data-log-unit'), true);
+        Array.prototype.forEach.call(presets, function (preset) {
+          preset.setAttribute('aria-pressed', 'false');
+        });
+      });
+    });
+
+    Array.prototype.forEach.call(presets, function (preset) {
+      preset.addEventListener('click', function () {
+        var unit = preset.getAttribute('data-unit');
+        var value = preset.getAttribute('data-amount') || '1';
+        setMode(unit, false);
+        if (unit === 'pages') {
+          pagesWhole.value = value;
+          if (pagesHalf) pagesHalf.checked = false;
+        } else {
+          amount.value = value;
+        }
+        Array.prototype.forEach.call(presets, function (item) {
+          item.setAttribute('aria-pressed', item === preset ? 'true' : 'false');
+        });
+        updateSummary();
+      });
+    });
+
+    [amount, pagesWhole, pagesHalf].forEach(function (input) {
+      if (!input) return;
+      function changed() {
+        Array.prototype.forEach.call(presets, function (preset) {
+          preset.setAttribute('aria-pressed', 'false');
+        });
+        updateSummary();
+      }
+      input.addEventListener('input', changed);
+      input.addEventListener('change', changed);
+    });
+
+    setMode(mode.value === 'pages' ? 'pages' : 'juz', false);
+    updateSummary();
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll('[data-coverage]'), function (group) {
+    var tabs = group.querySelectorAll('[data-coverage-tab]');
+    var panels = group.querySelectorAll('[data-coverage-panel]');
+    function show(name) {
+      Array.prototype.forEach.call(tabs, function (tab) {
+        tab.setAttribute('aria-pressed', tab.getAttribute('data-coverage-tab') === name ? 'true' : 'false');
+      });
+      Array.prototype.forEach.call(panels, function (panel) {
+        panel.hidden = panel.getAttribute('data-coverage-panel') !== name;
+      });
+    }
+    Array.prototype.forEach.call(tabs, function (tab) {
+      tab.addEventListener('click', function () {
+        show(tab.getAttribute('data-coverage-tab'));
+      });
+    });
+    show('month');
+  });
 })();
