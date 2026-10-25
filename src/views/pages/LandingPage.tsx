@@ -1,6 +1,5 @@
 import type { FC } from "hono/jsx";
 import { PublicLayout } from "../PublicLayout.tsx";
-import { CsrfInput } from "../components/CsrfInput.tsx";
 import { t, type Lang } from "../../lib/i18n.ts";
 import { APP_NAME, PUBLIC_BASE_URL } from "../../config.ts";
 import type { FastabiqEntry } from "../../lib/fastabiq-verses.ts";
@@ -42,8 +41,7 @@ export const LandingPage: FC<{
             <a href="/enroll">{t(lang, "marketingEnroll")}</a>
           </nav>
           <div style="display: flex; align-items: center; gap: 8px">
-            <form method="post" action="/lang">
-              <CsrfInput />
+            <form method="get" action="/lang">
               <input type="hidden" name="locale" value={languageTarget} />
               <button class="btn btn-secondary btn-sm" type="submit" title={t(lang, "switchLang")}>
                 {t(lang, "switchLang")}

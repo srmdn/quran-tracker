@@ -100,8 +100,7 @@ export const LoginPage: FC<{ error?: string; lang: Lang }> = ({ error, lang }) =
               <a href="/enroll" style="color: var(--primary); font-weight: 700">
                 {t(lang, "marketingEnroll")}
               </a>
-              <form method="post" action="/lang" style="display: inline">
-                <CsrfInput />
+              <form method="get" action="/lang" style="display: inline">
                 <input type="hidden" name="locale" value={languageTarget} />
                 <button class="btn btn-secondary btn-sm" type="submit">
                   {t(lang, "switchLang")}
