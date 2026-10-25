@@ -1,6 +1,6 @@
-import { CsrfInput } from "../components/CsrfInput.tsx";
 import type { FC } from "hono/jsx";
-import { Layout } from "../Layout.tsx";
+import { PublicLayout } from "../PublicLayout.tsx";
+import { CsrfInput } from "../components/CsrfInput.tsx";
 import { t, type Lang } from "../../lib/i18n.ts";
 import { APP_NAME, PUBLIC_BASE_URL } from "../../config.ts";
 import type { FastabiqEntry } from "../../lib/fastabiq-verses.ts";
@@ -10,423 +10,275 @@ export const LandingPage: FC<{
   totalMembers: number;
   totalTilawahJuz: number;
   totalMurojaahJuz: number;
+  totalKhatam: number;
   fastabiqEntry: FastabiqEntry;
-}> = ({ lang, totalMembers, totalTilawahJuz, totalMurojaahJuz, fastabiqEntry }) => {
+}> = ({ lang, totalMembers, totalTilawahJuz, totalMurojaahJuz, totalKhatam, fastabiqEntry }) => {
+  const languageTarget = lang === "en" ? "id" : "en";
+  const number = new Intl.NumberFormat(lang === "id" ? "id-ID" : "en-US", {
+    maximumFractionDigits: 1,
+  });
 
   return (
-    <Layout
-      title={`${APP_NAME} | ${t(lang, "landingTagline")}`}
-      description={t(lang, "landingAboutMarkaz")}
+    <PublicLayout
+      title={`${APP_NAME} | ${t(lang, "marketingHeroTitle")}`}
+      description={t(lang, "marketingHeroLead")}
       url={`${PUBLIC_BASE_URL}/landing`}
+      lang={lang}
     >
-      {/* ── Navbar ── */}
-      <header class="sticky top-0 z-20 w-full bg-white/90 backdrop-blur border-b border-border-light">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-          <a href="/landing" class="flex items-center gap-2.5 shrink-0">
-            <img src="/public/logo.png" alt="Logo" class="size-8 object-contain" />
-            <span class="font-black text-text-main text-base leading-none">{APP_NAME}</span>
+      <a class="skip-link" href="#main">
+        {lang === "id" ? "Lewati ke konten" : "Skip to content"}
+      </a>
+
+      <header class="marketing-header">
+        <div class="container">
+          <a class="brand" href="/landing" aria-label={APP_NAME}>
+            <img src="/public/logo-128.png" alt="" width="34" height="34" />
+            <span>{APP_NAME}</span>
           </a>
-          <div class="flex items-center gap-2 sm:gap-3">
+          <nav class="marketing-nav" aria-label={lang === "id" ? "Navigasi halaman" : "Page navigation"}>
+            <a href="#untuk-siapa">{t(lang, "marketingWhoEyebrow")}</a>
+            <a href="#cara-kerja">{t(lang, "marketingHowEyebrow")}</a>
+            <a href="#manfaat">{t(lang, "marketingBenefitEyebrow")}</a>
+            <a href="/enroll">{t(lang, "marketingEnroll")}</a>
+          </nav>
+          <div style="display: flex; align-items: center; gap: 8px">
             <form method="post" action="/lang">
               <CsrfInput />
-              <input type="hidden" name="locale" value={lang === "en" ? "id" : "en"} />
-              <button
-                type="submit"
-                class="text-xs font-bold px-2.5 py-1.5 rounded-lg border border-border-light bg-slate-50 text-text-secondary hover:text-primary hover:border-primary/40 transition-colors"
-              >
+              <input type="hidden" name="locale" value={languageTarget} />
+              <button class="btn btn-secondary btn-sm" type="submit" title={t(lang, "switchLang")}>
                 {t(lang, "switchLang")}
               </button>
             </form>
-            <a
-              href="/login"
-              class="px-4 py-2 rounded-lg bg-primary text-white text-sm font-bold hover:bg-primary-dark transition-colors shadow-sm whitespace-nowrap"
-            >
-              {t(lang, "signIn")}
+            <a class="btn btn-primary btn-sm" href="/login">
+              {t(lang, "marketingLogin")}
             </a>
           </div>
         </div>
       </header>
 
-      <main class="flex-1 w-full">
-
-        {/* ── Hero ── */}
-        <section class="relative w-full overflow-hidden bg-gradient-to-br from-primary/8 via-white to-primary/4 border-b border-border-light">
-          <div class="pointer-events-none absolute -top-24 -right-24 size-96 rounded-full bg-primary/6 blur-3xl" />
-          <div class="pointer-events-none absolute -bottom-16 -left-16 size-64 rounded-full bg-primary/5 blur-2xl" />
-
-          <div class="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28 lg:py-32">
-            <div class="max-w-3xl mx-auto text-center">
-              {/* Badge */}
-              <div class="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-bold px-3 py-1.5 rounded-full mb-6 border border-primary/20">
-                <span class="material-symbols-outlined" style="font-size:14px">mosque</span>
-                {t(lang, "landingBadge")}
-              </div>
-
-              {/* Headline */}
-              <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-text-main leading-[1.1] tracking-[-0.03em] mb-4">
-                {t(lang, "landingHeroTitle")}
-              </h1>
-
-              {/* About one-liner */}
-              <p class="text-text-secondary text-base sm:text-lg leading-relaxed max-w-xl mx-auto mb-3">
-                {t(lang, "landingAboutMarkaz")}
-              </p>
-
-              {/* Hero sub */}
-              <p class="text-text-secondary text-sm max-w-lg mx-auto mb-8">
-                {t(lang, "landingHeroDesc")}
-              </p>
-
-              {/* CTA buttons */}
-              <div class="flex flex-col sm:flex-row items-center justify-center gap-3 mb-4">
-                <a
-                  href="/login"
-                  class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-primary text-white font-bold text-base hover:bg-primary-dark transition-colors shadow-md"
-                >
-                  {t(lang, "landingCta")}
-                  <span class="material-symbols-outlined" style="font-size:18px">arrow_forward</span>
+      <main id="main">
+        <section class="hero">
+          <div class="container">
+            <div class="hero-copy reveal">
+              <p class="eyebrow">Markaz Talaqqi</p>
+              <h1>{t(lang, "marketingHeroTitle")}</h1>
+              <p class="hero-lead">{t(lang, "marketingHeroLead")}</p>
+              <div class="hero-actions">
+                <a class="btn btn-primary" href="/login">
+                  {t(lang, "marketingStart")}
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 12h14M13 6l6 6-6 6" />
+                  </svg>
                 </a>
-                <a
-                  href="#who-can-join"
-                  class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl border border-border-light bg-white text-text-main font-bold text-base hover:bg-slate-50 transition-colors"
-                >
-                  <span class="material-symbols-outlined" style="font-size:18px">group</span>
-                  {t(lang, "landingWhoCanJoinTitle")}
+                <a class="btn btn-secondary" href="#cara-kerja">
+                  {t(lang, "marketingHowCta")}
                 </a>
               </div>
-
-              {/* Join note */}
-              <p class="text-xs text-text-secondary/80">
-                {t(lang, "landingJoinNote")}
+              <p class="hero-note">
+                {t(lang, "marketingHeroNote")} <a href="/enroll">{t(lang, "marketingEnroll")}</a>
               </p>
             </div>
-          </div>
-        </section>
 
-        {/* ── Fastabiqul Khoirot ── */}
-        <section class="w-full bg-primary border-b border-primary-dark">
-          <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
-            <div class="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
-              {/* Quran verse */}
-              <div class="flex-1 text-center lg:text-left">
-                <p class="text-white/50 text-xs font-bold uppercase tracking-widest mb-3">{fastabiqEntry.verseRef}</p>
-                <p
-                  class="text-white text-2xl sm:text-3xl font-black leading-relaxed mb-3"
-                  style="font-family: 'Amiri', 'Traditional Arabic', serif; direction: rtl;"
-                >
-                  {fastabiqEntry.verseArabic}
-                </p>
-                <p class="text-white/80 text-base sm:text-lg font-semibold italic">
-                  "{lang === "en" ? fastabiqEntry.verseEn : fastabiqEntry.verseId}"
-                </p>
+            <div class="hero-art reveal reveal-delay-1">
+              <div class="arch">
+                <div class="arch-content">
+                  <p class="arabic" lang="ar" dir="rtl">
+                    {fastabiqEntry.verseArabic}
+                  </p>
+                  <p class="arch-translation">
+                    {lang === "en" ? fastabiqEntry.verseEn : fastabiqEntry.verseId}
+                  </p>
+                  <p class="arch-ref">{fastabiqEntry.verseRef}</p>
+                </div>
               </div>
-
-              {/* Divider */}
-              <div class="hidden lg:block w-px h-24 bg-white/20" />
-              <div class="lg:hidden w-16 h-px bg-white/20" />
-
-              {/* Hadith */}
-              <div class="flex-1 text-center lg:text-left">
-                <p class="text-white/50 text-xs font-bold uppercase tracking-widest mb-3">Hadith</p>
-                <p
-                  class="text-white text-xl sm:text-2xl font-black leading-relaxed mb-3"
-                  style="font-family: 'Amiri', 'Traditional Arabic', serif; direction: rtl;"
-                >
-                  {fastabiqEntry.hadithArabic}
-                </p>
-                <p class="text-white/80 text-sm sm:text-base font-semibold italic mb-1">
-                  "{lang === "en" ? fastabiqEntry.hadithEn : fastabiqEntry.hadithId}"
-                </p>
-                <p class="text-white/50 text-xs">{fastabiqEntry.hadithRef}</p>
+              <div class="seal" aria-hidden="true">
+                <strong>12</strong>
+                <span>{t(lang, "marketingSealLabel")}</span>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ── Stats ── */}
-        <section class="w-full bg-slate-50/70 border-b border-border-light">
-          <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-            <div class="max-w-2xl mb-10 mx-auto lg:mx-0 text-center lg:text-left">
-              <h2 class="text-2xl sm:text-3xl font-black text-text-main mb-2">{t(lang, "landingStatTitle")}</h2>
+        <section class="stats-strip" aria-label={lang === "id" ? "Statistik komunitas" : "Community statistics"}>
+          <div class="container">
+            <div class="stat-strip-item">
+              <strong class="tabular">{number.format(totalMembers)}</strong>
+              <span>{t(lang, "marketingMembers")}</span>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-              <div class="flex flex-col items-center lg:items-start gap-4 bg-slate-50 rounded-2xl border border-border-light p-6 text-center lg:text-left">
-                <div class="shrink-0 size-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
-                  <span class="material-symbols-outlined" style="font-size:22px">group</span>
-                </div>
-                <div>
-                  <p class="text-3xl font-black text-text-main" data-countup={String(totalMembers)} data-countup-decimals="0">{totalMembers}</p>
-                  <p class="text-text-secondary text-sm mt-0.5">{t(lang, "landingStatMembers")}</p>
-                </div>
-              </div>
-              <div class="flex flex-col items-center lg:items-start gap-4 bg-slate-50 rounded-2xl border border-border-light p-6 text-center lg:text-left">
-                <div class="shrink-0 size-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
-                  <span class="material-symbols-outlined" style="font-size:22px">menu_book</span>
-                </div>
-                <div>
-                  <p class="text-3xl font-black text-text-main" data-countup={String(totalTilawahJuz)} data-countup-decimals="1">{totalTilawahJuz}</p>
-                  <p class="text-text-secondary text-sm mt-0.5">{t(lang, "landingStatTilawah")}</p>
-                </div>
-              </div>
-              <div class="flex flex-col items-center lg:items-start gap-4 bg-slate-50 rounded-2xl border border-border-light p-6 text-center lg:text-left">
-                <div class="shrink-0 size-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
-                  <span class="material-symbols-outlined" style="font-size:22px">refresh</span>
-                </div>
-                <div>
-                  <p class="text-3xl font-black text-text-main" data-countup={String(totalMurojaahJuz)} data-countup-decimals="1">{totalMurojaahJuz}</p>
-                  <p class="text-text-secondary text-sm mt-0.5">{t(lang, "landingStatMurojaah")}</p>
-                </div>
-              </div>
+            <div class="stat-strip-item">
+              <strong class="tabular">{number.format(totalTilawahJuz)}</strong>
+              <span>{t(lang, "marketingTilawah")}</span>
+            </div>
+            <div class="stat-strip-item">
+              <strong class="tabular">{number.format(totalMurojaahJuz)}</strong>
+              <span>{t(lang, "marketingMurojaah")}</span>
+            </div>
+            <div class="stat-strip-item">
+              <strong class="tabular">{number.format(totalKhatam)}</strong>
+              <span>{t(lang, "marketingKhatam")}</span>
             </div>
           </div>
         </section>
 
-        {/* ── About the Program ── */}
-        <section class="w-full bg-white border-b border-border-light">
-          <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-            <div class="max-w-2xl mb-10 mx-auto lg:mx-0 text-center lg:text-left">
-              <h2 class="text-2xl sm:text-3xl font-black text-text-main mb-2">{t(lang, "landingAboutTitle")}</h2>
+        <section class="section" id="untuk-siapa">
+          <div class="container">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">{t(lang, "marketingWhoEyebrow")}</p>
+                <h2>{t(lang, "marketingWhoTitle")}</h2>
+              </div>
+              <p>{t(lang, "marketingWhoBody")}</p>
             </div>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Left: About Markaz */}
-              <div class="flex flex-col gap-4 p-6 bg-slate-50 rounded-2xl border border-border-light">
-                <div class="size-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
-                  <span class="material-symbols-outlined" style="font-size:22px">mosque</span>
+            <div class="card-grid">
+              <article class="feature-card">
+                <div class="feature-icon">
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M3 5.5A2.5 2.5 0 0 1 5.5 3H20v16H5.5A2.5 2.5 0 0 0 3 21.5z" />
+                    <path d="M3 5.5v16M7 7h9M7 11h7" />
+                  </svg>
                 </div>
-                <div>
-                  <h3 class="font-black text-text-main text-base mb-2">{t(lang, "landingAboutProgramTitle")}</h3>
-                  <p class="text-text-secondary text-sm leading-relaxed">{t(lang, "landingAboutProgramDesc")}</p>
+                <h3>{t(lang, "marketingSantriTitle")}</h3>
+                <p>{t(lang, "marketingSantriBody")}</p>
+              </article>
+              <article class="feature-card">
+                <div class="feature-icon">
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
                 </div>
-              </div>
-              {/* Right: two stacked info cards */}
-              <div class="flex flex-col gap-4">
-                <div class="flex gap-4 p-5 bg-slate-50 rounded-2xl border border-border-light">
-                  <div class="size-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
-                    <span class="material-symbols-outlined" style="font-size:20px">emoji_events</span>
-                  </div>
-                  <div>
-                    <h3 class="font-black text-text-main text-sm mb-1">{t(lang, "landingAboutScoringTitle")}</h3>
-                    <p class="text-text-secondary text-sm leading-relaxed">{t(lang, "landingAboutScoringDesc")}</p>
-                  </div>
+                <h3>{t(lang, "marketingAlumniTitle")}</h3>
+                <p>{t(lang, "marketingAlumniBody")}</p>
+              </article>
+              <article class="feature-card">
+                <div class="feature-icon">
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="12" cy="8" r="4" />
+                    <path d="M4 21a8 8 0 0 1 16 0" />
+                  </svg>
                 </div>
-                <div class="flex gap-4 p-5 bg-slate-50 rounded-2xl border border-border-light">
-                  <div class="size-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
-                    <span class="material-symbols-outlined" style="font-size:20px">menu_book</span>
-                  </div>
-                  <div>
-                    <h3 class="font-black text-text-main text-sm mb-1">{t(lang, "landingAboutInputTitle")}</h3>
-                    <p class="text-text-secondary text-sm leading-relaxed">{t(lang, "landingAboutInputDesc")}</p>
-                  </div>
-                </div>
-              </div>
+                <h3>{t(lang, "marketingAsatidzTitle")}</h3>
+                <p>{t(lang, "marketingAsatidzBody")}</p>
+              </article>
             </div>
           </div>
         </section>
 
-        {/* ── Who Can Join ── */}
-        <section id="who-can-join" class="w-full bg-slate-50/70 border-b border-border-light">
-          <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-            <div class="max-w-2xl mb-10 mx-auto lg:mx-0 text-center lg:text-left">
-              <h2 class="text-2xl sm:text-3xl font-black text-text-main mb-2">{t(lang, "landingWhoCanJoinTitle")}</h2>
-              <p class="text-text-secondary text-sm sm:text-base">{t(lang, "landingWhoCanJoinDesc")}</p>
+        <section class="section" id="cara-kerja">
+          <div class="container">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">{t(lang, "marketingHowEyebrow")}</p>
+                <h2>{t(lang, "marketingHowTitle")}</h2>
+              </div>
+              <p>{t(lang, "marketingHowBody")}</p>
             </div>
-
-            {/* Eligibility cards */}
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
-              {[
-                { icon: "school", title: t(lang, "landingEligibilitySantriTitle"), desc: t(lang, "landingEligibilitySantriDesc") },
-                { icon: "history_edu", title: t(lang, "landingEligibilityAlumniTitle"), desc: t(lang, "landingEligibilityAlumniDesc") },
-                { icon: "supervisor_account", title: t(lang, "landingEligibilityAsatidzTitle"), desc: t(lang, "landingEligibilityAsatidzDesc") },
-              ].map((item) => (
-                <div class="flex flex-col gap-4 p-6 bg-white rounded-2xl border border-border-light shadow-sm">
-                  <div class="size-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
-                    <span class="material-symbols-outlined" style="font-size:22px">{item.icon}</span>
-                  </div>
-                  <div>
-                    <h3 class="font-black text-text-main text-base mb-1">{item.title}</h3>
-                    <p class="text-text-secondary text-sm leading-relaxed">{item.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* How to join steps */}
-            <div>
-              <h3 class="font-black text-text-main text-lg sm:text-xl mb-5">{t(lang, "landingHowToJoinTitle")}</h3>
-              <div class="flex flex-col gap-3">
-                {[
-                  { step: "1", text: t(lang, "landingHowToJoinStep1") },
-                  { step: "2", text: t(lang, "landingHowToJoinStep2") },
-                  { step: "3", text: t(lang, "landingHowToJoinStep3") },
-                ].map((item) => (
-                  <div class="flex items-center gap-5 p-5 bg-white rounded-2xl border border-border-light shadow-sm">
-                    <div class="shrink-0 size-16 rounded-2xl bg-primary text-white flex items-center justify-center font-black text-4xl leading-none shadow-sm">
-                      {item.step}
-                    </div>
-                    <p class="text-text-main text-base leading-relaxed">{item.text}</p>
-                  </div>
-                ))}
+            <div class="steps">
+              <div class="step">
+                <div class="step-number">1</div>
+                <h3>{t(lang, "marketingStep1Title")}</h3>
+                <p>{t(lang, "marketingStep1Body")}</p>
+              </div>
+              <div class="step">
+                <div class="step-number">2</div>
+                <h3>{t(lang, "marketingStep2Title")}</h3>
+                <p>{t(lang, "marketingStep2Body")}</p>
+              </div>
+              <div class="step">
+                <div class="step-number">3</div>
+                <h3>{t(lang, "marketingStep3Title")}</h3>
+                <p>{t(lang, "marketingStep3Body")}</p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ── How It Works ── */}
-        <section class="w-full bg-white border-b border-border-light">
-          <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-            <div class="max-w-2xl mb-10 mx-auto lg:mx-0 text-center lg:text-left">
-              <h2 class="text-2xl sm:text-3xl font-black text-text-main mb-2">{t(lang, "landingHowTitle")}</h2>
-              <p class="text-text-secondary text-sm sm:text-base">{t(lang, "landingHowDesc")}</p>
-            </div>
+        <section class="quote-band">
+          <div class="container">
+            <p class="arabic" lang="ar" dir="rtl">
+              {fastabiqEntry.hadithArabic}
+            </p>
+            <blockquote>
+              “{lang === "en" ? fastabiqEntry.hadithEn : fastabiqEntry.hadithId}”
+              <cite>
+                {t(lang, "marketingQuoteLabel")} · {fastabiqEntry.hadithRef}
+              </cite>
+            </blockquote>
+          </div>
+        </section>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[
-                { icon: "edit_note", step: "1", title: t(lang, "landingStep1Title"), desc: t(lang, "landingStep1Desc") },
-                { icon: "local_fire_department", step: "2", title: t(lang, "landingStep2Title"), desc: t(lang, "landingStep2Desc") },
-                { icon: "emoji_events", step: "3", title: t(lang, "landingStep3Title"), desc: t(lang, "landingStep3Desc") },
-              ].map((item, idx) => (
-                <div class="relative flex flex-col gap-4 p-6 bg-slate-50 rounded-2xl border border-border-light hover:border-primary/30 hover:shadow-sm transition-all">
-                  <div class="flex items-center gap-3">
-                    <div class="size-11 rounded-xl bg-primary text-white flex items-center justify-center shadow-sm">
-                      <span class="material-symbols-outlined" style="font-size:20px">{item.icon}</span>
-                    </div>
-                    <span class="text-xs font-black text-text-secondary uppercase tracking-widest">Step {item.step}</span>
-                  </div>
-                  <h3 class="font-black text-text-main text-base">{item.title}</h3>
-                  <p class="text-text-secondary text-sm leading-relaxed">{item.desc}</p>
-                  {idx < 2 && (
-                    <div
-                      class="hidden md:flex absolute top-1/2 -translate-y-1/2 z-10 size-9 rounded-full bg-primary text-white items-center justify-center shadow-md border-2 border-white"
-                      style="right: -18px"
-                    >
-                      <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span>
-                    </div>
-                  )}
+        <section class="section" id="manfaat">
+          <div class="container">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">{t(lang, "marketingBenefitEyebrow")}</p>
+                <h2>{t(lang, "marketingBenefitTitle")}</h2>
+              </div>
+              <p>{t(lang, "marketingBenefitBody")}</p>
+            </div>
+            <div class="card-grid">
+              <article class="feature-card">
+                <div class="feature-icon">
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 22c4 0 7-2.7 7-6.5 0-3-1.8-5.2-3.5-7.1C14 6.6 13 4.6 13 2c-2.5 1.5-4 3.8-4 6.5 0 1.4.5 2.6 1.2 3.6C8.4 11.2 7 9.5 7 7c-1.3 1.8-2 3.8-2 6 0 4.4 3 9 7 9z" />
+                  </svg>
                 </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── Key Features ── */}
-        <section class="w-full bg-slate-50/70 border-b border-border-light">
-          <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-            <div class="max-w-2xl mb-10 mx-auto lg:mx-0 text-center lg:text-left">
-              <h2 class="text-2xl sm:text-3xl font-black text-text-main mb-2">{t(lang, "landingFeaturesTitle")}</h2>
-              <p class="text-text-secondary text-sm sm:text-base">{t(lang, "landingFeaturesDesc")}</p>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[
-                { icon: "ac_unit", title: t(lang, "landingFeatureFreezeTitle"), desc: t(lang, "landingFeatureFreezeDesc") },
-                { icon: "grid_on", title: t(lang, "landingFeatureCoverageTitle"), desc: t(lang, "landingFeatureCoverageDesc") },
-                { icon: "tune", title: t(lang, "landingFeatureInputTitle"), desc: t(lang, "landingFeatureInputDesc") },
-              ].map((item) => (
-                <div class="flex flex-col gap-4 p-6 bg-white rounded-2xl border border-border-light shadow-sm hover:border-primary/30 hover:shadow-md transition-all">
-                  <div class="size-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
-                    <span class="material-symbols-outlined" style="font-size:22px">{item.icon}</span>
-                  </div>
-                  <div>
-                    <h3 class="font-black text-text-main text-base mb-2">{item.title}</h3>
-                    <p class="text-text-secondary text-sm leading-relaxed">{item.desc}</p>
-                  </div>
+                <h3>{t(lang, "marketingBenefit1Title")}</h3>
+                <p>{t(lang, "marketingBenefit1Body")}</p>
+              </article>
+              <article class="feature-card">
+                <div class="feature-icon">
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 19V5M4 19h16" />
+                    <path d="M8 16v-5M13 16V7M18 16v-8" />
+                  </svg>
                 </div>
-              ))}
+                <h3>{t(lang, "marketingBenefit2Title")}</h3>
+                <p>{t(lang, "marketingBenefit2Body")}</p>
+              </article>
+              <article class="feature-card">
+                <div class="feature-icon">
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M8 21h8M12 17v4" />
+                    <path d="M7 4h10v5a5 5 0 0 1-10 0z" />
+                    <path d="M7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3" />
+                  </svg>
+                </div>
+                <h3>{t(lang, "marketingBenefit3Title")}</h3>
+                <p>{t(lang, "marketingBenefit3Body")}</p>
+              </article>
             </div>
           </div>
         </section>
 
-        {/* ── Hadith Reminder ── */}
-        <section class="w-full bg-amber-950 border-b border-amber-900">
-          <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-14">
-            <div class="max-w-2xl mx-auto text-center">
-              <p class="text-amber-400/70 text-xs font-bold uppercase tracking-widest mb-5">
-                {lang === "id" ? "Renungan" : "Reminder"}
-              </p>
-              <p
-                class="text-amber-100 text-2xl sm:text-3xl font-black leading-relaxed mb-4"
-                style="font-family: 'Amiri', 'Traditional Arabic', serif; direction: rtl;"
-              >
-                تَعَاهَدُوا هَذَا الْقُرْآنَ، فَوَالَّذِي نَفْسُ مُحَمَّدٍ بِيَدِهِ، لَهُوَ أَشَدُّ تَفَصِّيًا مِنَ الْإِبِلِ فِي عُقُلِهَا
-              </p>
-              <p class="text-amber-200/90 text-sm sm:text-base font-semibold italic mb-2">
-                {lang === "id"
-                  ? '"Jagalah Al-Qur\'an ini. Demi Dzat yang jiwa Muhammad ada di tangan-Nya, ia lebih mudah lepas daripada unta dari ikatannya."'
-                  : '"Keep refreshing your knowledge of the Quran. By Him in Whose Hand is the soul of Muhammad, it is more prone to escape than a camel from its tether."'}
-              </p>
-              <p class="text-amber-400/60 text-xs">HR. Bukhari (no. 5033) &amp; Muslim (no. 791)</p>
-            </div>
-          </div>
-        </section>
-
-        {/* ── CTA Banner ── */}
-        <section class="w-full bg-primary">
-          <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14 text-center">
-            <h2 class="text-2xl sm:text-3xl font-black text-white mb-3">{t(lang, "landingJoinTitle")}</h2>
-            <p class="text-white/75 text-sm sm:text-base mb-2 max-w-md mx-auto">{t(lang, "landingJoinDesc")}</p>
-            <p class="text-white/50 text-xs mb-8">{t(lang, "landingCtaJoinNote")}</p>
-            <a
-              href="/login"
-              class="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-white text-primary font-bold text-base hover:bg-primary-light transition-colors shadow-md"
-            >
-              {t(lang, "landingCta")}
-              <span class="material-symbols-outlined" style="font-size:18px">arrow_forward</span>
+        <section class="cta-band">
+          <div class="container">
+            <p class="eyebrow" style="color: var(--gold-soft); justify-content: center">
+              {t(lang, "marketingCtaEyebrow")}
+            </p>
+            <h2>{t(lang, "marketingCtaTitle")}</h2>
+            <p>{t(lang, "marketingCtaBody")}</p>
+            <a class="btn" href="/login">
+              {t(lang, "marketingCtaButton")}
             </a>
           </div>
         </section>
       </main>
 
-      {/* ── Footer ── */}
-      <footer class="w-full border-t border-border-light bg-white">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div class="flex items-center gap-2">
-            <img src="/public/logo.png" alt="Logo" class="size-5 object-contain opacity-60" />
-            <p class="text-xs text-text-secondary">© {new Date().getFullYear()} Markaz Talaqqi</p>
+      <footer class="site-footer">
+        <div class="container">
+          <div>
+            <strong>{APP_NAME}</strong>
+            <span> · {t(lang, "marketingFooterNote")}</span>
           </div>
-          <div class="flex items-center gap-4">
-            <a
-              href="https://github.com/srmdn/quran-tracker/blob/main/CHANGELOG.md"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-xs text-text-secondary hover:text-primary transition-colors"
-            >
-              Changelog
-            </a>
-            <a href="/login" class="text-xs font-semibold text-text-secondary hover:text-primary transition-colors">
-              {t(lang, "signIn")} →
-            </a>
+          <div class="footer-links">
+            <a href="/enroll">{t(lang, "marketingEnroll")}</a>
+            <a href="/login">{t(lang, "marketingLogin")}</a>
+            <a href="#main">{t(lang, "marketingTop")}</a>
           </div>
         </div>
       </footer>
-      <script dangerouslySetInnerHTML={{ __html: `
-(function() {
-  function animateCountUp(el) {
-    var target = parseFloat(el.dataset.countup);
-    var decimals = parseInt(el.dataset.countupDecimals || '0', 10);
-    var duration = 1800;
-    var start = performance.now();
-    function step(now) {
-      var elapsed = now - start;
-      var progress = Math.min(elapsed / duration, 1);
-      var eased = 1 - Math.pow(1 - progress, 3);
-      var current = target * eased;
-      el.textContent = decimals > 0 ? current.toFixed(decimals) : Math.round(current).toString();
-      if (progress < 1) requestAnimationFrame(step);
-    }
-    requestAnimationFrame(step);
-  }
-  var observer = new IntersectionObserver(function(entries) {
-    entries.forEach(function(entry) {
-      if (entry.isIntersecting) {
-        animateCountUp(entry.target);
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.4 });
-  document.querySelectorAll('[data-countup]').forEach(function(el) {
-    observer.observe(el);
-  });
-})();
-      `}} />
-    </Layout>
+    </PublicLayout>
   );
 };

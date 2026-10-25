@@ -16,11 +16,12 @@ import { enrollRoutes } from "./routes/enroll.tsx";
 import { LoginPage } from "./views/pages/LoginPage.tsx";
 import { PendingPage } from "./views/pages/PendingPage.tsx";
 import { SuspendedPage } from "./views/pages/SuspendedPage.tsx";
-import { Layout } from "./views/Layout.tsx";
+import { PublicLayout } from "./views/PublicLayout.tsx";
 import { authMiddleware } from "./middleware/auth.ts";
 import { csrfMiddleware } from "./middleware/csrf.ts";
 import { langMiddleware } from "./middleware/lang.ts";
 import { isPendingRole } from "./lib/roles.ts";
+import { t } from "./lib/i18n.ts";
 import type { Env } from "./types.ts";
 import { APP_NAME } from "./config.ts";
 
@@ -99,18 +100,38 @@ app.route("/enroll", enrollRoutes);
 
 // 404
 app.notFound((c) => {
+  const lang = c.get("lang");
   return c.html(
-    <Layout title={`Not Found - ${APP_NAME}`}>
-      <div class="flex-1 flex items-center justify-center">
-        <div class="text-center">
-          <h1 class="text-6xl font-black text-text-secondary mb-4">404</h1>
-          <p class="text-text-secondary mb-6">Page not found</p>
-          <a href="/" class="text-primary font-bold hover:underline">
-            Go Home
+    <PublicLayout title={`${t(lang, "notFoundTitle")} | ${APP_NAME}`} lang={lang}>
+      <header class="marketing-header">
+        <div class="container">
+          <a class="brand" href="/landing" aria-label={APP_NAME}>
+            <img src="/public/logo-128.png" alt="" width="34" height="34" />
+            <span>{APP_NAME}</span>
           </a>
         </div>
-      </div>
-    </Layout>,
+      </header>
+      <main class="status-page" id="main">
+        <div class="status-card">
+          <div class="status-icon">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M15.5 8.5l-2 5-5 2 2-5z" />
+            </svg>
+          </div>
+          <h1>{t(lang, "notFoundTitle")}</h1>
+          <p>{t(lang, "notFoundDesc")}</p>
+          <div class="status-actions">
+            <a class="btn btn-primary" href="/landing">
+              {t(lang, "backToHome")}
+            </a>
+            <a class="btn btn-secondary" href="/login">
+              {t(lang, "marketingLogin")}
+            </a>
+          </div>
+        </div>
+      </main>
+    </PublicLayout>,
     404
   );
 });

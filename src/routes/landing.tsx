@@ -31,6 +31,12 @@ landing.get("/", (c) => {
     }
   ).total;
 
+  const totalKhatam = (
+    db.prepare(`SELECT COUNT(*) AS count FROM khatam_events WHERE type = 'tilawah'`).get() as {
+      count: number;
+    }
+  ).count;
+
   const fastabiqEntry = getRandomFastabiqEntry();
 
   return c.html(
@@ -39,6 +45,7 @@ landing.get("/", (c) => {
       totalMembers={totalMembers}
       totalTilawahJuz={Math.round(totalTilawah * 10) / 10}
       totalMurojaahJuz={Math.round(totalMurojaah * 10) / 10}
+      totalKhatam={totalKhatam}
       fastabiqEntry={fastabiqEntry}
     />
   );

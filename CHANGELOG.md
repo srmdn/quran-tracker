@@ -6,6 +6,10 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+### Redesign
+
+- Phase 3 Stage A: new public shell, landing, login, pending, suspended, and 404 pages with local Fraunces and Amiri fonts
+
 ### Security
 
 - Upgrade Hono to 4.13.13 and add a production dependency audit gate
