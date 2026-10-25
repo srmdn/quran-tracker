@@ -12,7 +12,6 @@ export const LandingPage: FC<{
   totalKhatam: number;
   fastabiqEntry: FastabiqEntry;
 }> = ({ lang, totalMembers, totalTilawahJuz, totalMurojaahJuz, totalKhatam, fastabiqEntry }) => {
-  const languageTarget = lang === "en" ? "id" : "en";
   const number = new Intl.NumberFormat(lang === "id" ? "id-ID" : "en-US", {
     maximumFractionDigits: 1,
   });
@@ -41,12 +40,6 @@ export const LandingPage: FC<{
             <a href="/enroll">{t(lang, "marketingEnroll")}</a>
           </nav>
           <div style="display: flex; align-items: center; gap: 8px">
-            <form method="get" action="/lang">
-              <input type="hidden" name="locale" value={languageTarget} />
-              <button class="btn btn-secondary btn-sm" type="submit" title={t(lang, "switchLang")}>
-                {t(lang, "switchLang")}
-              </button>
-            </form>
             <a class="btn btn-primary btn-sm" href="/login">
               {t(lang, "marketingLogin")}
             </a>
