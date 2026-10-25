@@ -8,6 +8,7 @@ import { getWibDateYmd, getWibYearMonth } from "../lib/wib-date.ts";
 import { PAGES_PER_JUZ } from "../lib/format-juz.ts";
 import { ACTIVE_MEMBER_ROLES } from "../lib/roles.ts";
 import { DashboardPage } from "../views/pages/DashboardPage.tsx";
+import { getRandomFastabiqEntry } from "../lib/fastabiq-verses.ts";
 import type { Env } from "../types.ts";
 
 const dashboard = new Hono<Env>();
@@ -15,6 +16,7 @@ const dashboard = new Hono<Env>();
 dashboard.use("*", authMiddleware, memberMiddleware);
 
 export type RecentLogEntry = {
+  id: number;
   type: "tilawah" | "murojaah";
   date_wib: string;
   juz_amount: number;
@@ -108,13 +110,13 @@ dashboard.get("/", (c) => {
   // Recent logs (last 8 entries across both types)
   const recentLogs = db
     .prepare(
-      `SELECT type, date_wib, juz_amount, log_unit, log_amount, end_surah, end_ayah, end_juz, repetition_count, created_at
+      `SELECT type, id, date_wib, juz_amount, log_unit, log_amount, end_surah, end_ayah, end_juz, repetition_count, created_at
        FROM (
-         SELECT 'tilawah' AS type, date_wib, juz_amount, log_unit, log_amount, end_surah, end_ayah, end_juz,
+         SELECT 'tilawah' AS type, id, date_wib, juz_amount, log_unit, log_amount, end_surah, end_ayah, end_juz,
                 NULL AS repetition_count, created_at
          FROM tilawah_logs WHERE user_id = ?
          UNION ALL
-         SELECT 'murojaah' AS type, date_wib, juz_amount, log_unit, log_amount, end_surah, end_ayah, end_juz,
+         SELECT 'murojaah' AS type, id, date_wib, juz_amount, log_unit, log_amount, end_surah, end_ayah, end_juz,
                 repetition_count, created_at
          FROM murojaah_logs WHERE user_id = ?
        )
@@ -134,6 +136,8 @@ dashboard.get("/", (c) => {
     .prepare(`SELECT COUNT(*) AS cnt FROM users WHERE role IN (${rolesSql}) AND suspended_at IS NULL`)
     .get() as { cnt: number }).cnt;
 
+  const fastabiqEntry = getRandomFastabiqEntry();
+
   return c.html(
     <DashboardPage
       user={user}
@@ -149,6 +153,7 @@ dashboard.get("/", (c) => {
       heatmapYear={selectedYear}
       heatmapYears={yearOptions}
       recentLogs={recentLogs}
+      fastabiqEntry={fastabiqEntry}
       totalKhatam={khatamRow.cnt}
       totalActiveUsers={totalActiveUsers}
       freezeCreditsLeft={freezeCreditsLeft}
