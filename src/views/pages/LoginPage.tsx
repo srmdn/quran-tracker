@@ -7,7 +7,7 @@ import type { Lang } from "../../lib/i18n.ts";
 
 export const LoginPage: FC<{ error?: string; lang: Lang }> = ({ error, lang }) => {
   return (
-    <PublicLayout title={`${t(lang, "marketingLogin")} | ${APP_NAME}`} lang={lang}>
+    <PublicLayout visual title={`${t(lang, "marketingLogin")} | ${APP_NAME}`} lang={lang}>
       <a class="skip-link" href="#main">
         {lang === "id" ? "Lewati ke konten" : "Skip to content"}
       </a>
@@ -93,10 +93,6 @@ export const LoginPage: FC<{ error?: string; lang: Lang }> = ({ error, lang }) =
             <div class="auth-footer" style="margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap">
               <a href="/landing" style="color: var(--primary); font-weight: 700">
                 {t(lang, "backToHome")}
-              </a>
-              <span aria-hidden="true">·</span>
-              <a href="/enroll" style="color: var(--primary); font-weight: 700">
-                {t(lang, "marketingEnroll")}
               </a>
             </div>
           </div>

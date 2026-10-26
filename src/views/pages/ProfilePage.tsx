@@ -1,11 +1,20 @@
-import { CsrfInput } from "../components/CsrfInput.tsx";
 import type { FC } from "hono/jsx";
-import { Layout } from "../Layout.tsx";
-import { Header } from "../components/Header.tsx";
+import { MemberLayout } from "../MemberLayout.tsx";
+import { CsrfInput } from "../components/CsrfInput.tsx";
+import { Icon } from "../components/Icon.tsx";
 import type { User } from "../../types.ts";
-import { APP_NAME } from "../../config.ts";
-import { t, type Lang } from "../../lib/i18n.ts";
+import { t, type Lang, type TranslationKey } from "../../lib/i18n.ts";
 import { passwordMinimum } from "../../lib/validation.ts";
+
+const roleLabels: Record<User["role"], TranslationKey> = {
+  pending: "visualRolePending",
+  member: "visualRoleMember",
+  santri: "visualRoleSantri",
+  alumni: "visualRoleAlumni",
+  asatidz: "visualRoleAsatidz",
+  admin: "visualRoleAdmin",
+  super_admin: "visualRoleSuperAdmin",
+};
 
 export const ProfilePage: FC<{
   user: User;
@@ -15,164 +24,152 @@ export const ProfilePage: FC<{
 }> = ({ user, lang, success, error }) => {
   const isEmailUser = !!user.password_hash;
   const isGoogleUser = !user.google_id.startsWith("manual:");
-  const authMethod = isEmailUser
-    ? t(lang, "authMethodEmail")
-    : isGoogleUser
-      ? t(lang, "authMethodGoogle")
-      : lang === "id"
-        ? "Menunggu pengaturan"
-        : "Pending setup";
-  const authBadgeClass = isEmailUser
-    ? "bg-slate-100 text-slate-600"
-    : isGoogleUser
-      ? "bg-blue-50 text-blue-600"
-      : "bg-amber-50 text-amber-600";
+  const authMethod = isEmailUser && isGoogleUser
+    ? t(lang, "visualProfileCombinedAuth")
+    : isEmailUser
+      ? t(lang, "authMethodEmail")
+      : isGoogleUser
+        ? t(lang, "authMethodGoogle")
+        : t(lang, "visualProfilePendingAuth");
   const minimumPassword = passwordMinimum(user.role);
-  const joined = user.created_at.slice(0, 10);
+  const joined = new Intl.DateTimeFormat("id-ID", {
+    day: "numeric", month: "long", year: "numeric", timeZone: "UTC",
+  }).format(new Date(`${user.created_at.slice(0, 10)}T00:00:00Z`));
+  const initials = user.name.split(/\s+/).filter(Boolean).slice(0, 2)
+    .map(part => part[0]).join("").toUpperCase();
 
   return (
-    <Layout title={`${t(lang, "profileTitle")} - ${APP_NAME}`}>
-      <Header user={user} currentPath="/profile" lang={lang} />
-      <main class="flex-1 flex flex-col items-center w-full px-4 sm:px-6 lg:px-8 py-8 max-w-2xl mx-auto">
-
-        <div class="w-full flex flex-col justify-between items-start gap-2 mb-8">
-          <h1 class="text-text-main text-3xl font-black">{t(lang, "profileTitle")}</h1>
-          <p class="text-text-secondary text-sm">{t(lang, "profileSubtitle")}</p>
+    <MemberLayout title={t(lang, "profileTitle")} description={t(lang, "profileSubtitle")}
+      user={user} lang={lang} currentPath="/profile">
+      <div class="page-head">
+        <div>
+          <p class="eyebrow">{t(lang, "visualProfileEyebrow")}</p>
+          <h1>{t(lang, "profileTitle")}</h1>
+          <p>{t(lang, "profileSubtitle")}</p>
         </div>
+      </div>
 
-        {success && (
-          <div class="w-full bg-emerald-50 text-emerald-700 text-sm px-4 py-3 rounded-lg mb-4 border border-emerald-200">{success}</div>
-        )}
-        {error && (
-          <div class="w-full bg-red-50 text-red-600 text-sm px-4 py-3 rounded-lg mb-4 border border-red-200">{error}</div>
-        )}
+      {success && <div class="alert alert-success" role="status">{success}</div>}
+      {error && <div class="alert alert-error" role="alert">{error}</div>}
 
-        {/* Avatar + account info */}
-        <div class="w-full bg-white border border-border-light rounded-xl p-6 mb-4">
-          <div class="flex items-center gap-4 mb-5">
-            {user.avatar_url ? (
-              <div
-                class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-16 ring-2 ring-border-light flex-shrink-0"
-                style={`background-image: url("${user.avatar_url}");`}
-              />
-            ) : (
-              <div class="size-16 rounded-full bg-slate-100 flex items-center justify-center text-text-secondary text-xl font-bold border border-slate-200 flex-shrink-0">
-                {user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
-              </div>
-            )}
-            <div>
-              <p class="text-text-main font-black text-xl">{user.name}</p>
-              <p class="text-text-secondary text-sm">{user.email}</p>
-              <span class={`inline-block mt-1 text-xs font-bold px-2 py-0.5 rounded-full ${authBadgeClass}`}>
-                {authMethod}
-              </span>
+      <div class="profile-layout">
+        <aside class="profile-rail" aria-label={t(lang, "accountInfo")}>
+          <section class="card profile-identity" aria-labelledby="profile-identity-title">
+            <div class="profile-identity-top">
+              {user.avatar_url ? (
+                <img class="profile-picture" src={user.avatar_url} alt="" width="64" height="64" />
+              ) : (
+                <span class="profile-picture profile-initials" aria-hidden="true">{initials}</span>
+              )}
+              <h2 id="profile-identity-title">{user.name}</h2>
+              <p>{user.email}</p>
+              <span class="profile-role">{t(lang, roleLabels[user.role])}</span>
             </div>
-          </div>
+            <dl class="profile-facts">
+              <div><dt>{t(lang, "authMethod")}</dt><dd>{authMethod}</dd></div>
+              <div><dt>{t(lang, "joinedLabel")}</dt><dd>{joined}</dd></div>
+            </dl>
+          </section>
 
-          <h3 class="text-xs font-bold text-text-secondary uppercase mb-3">{t(lang, "accountInfo")}</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-            <div>
-              <p class="text-xs text-text-secondary">{t(lang, "roleLabel")}</p>
-              <p class="font-medium text-text-main capitalize">{user.role.replace("_", " ")}</p>
+          <section class="card profile-export" aria-labelledby="profile-export-title">
+            <div class="profile-section-head">
+              <span class="profile-section-icon"><Icon name="download" size={19} /></span>
+              <h2 id="profile-export-title">{t(lang, "visualProfileExportTitle")}</h2>
             </div>
-            <div>
-              <p class="text-xs text-text-secondary">{t(lang, "emailLabel")}</p>
-              <p class="font-medium text-text-main">{user.email}</p>
-            </div>
-            <div>
-              <p class="text-xs text-text-secondary">{t(lang, "joinedLabel")}</p>
-              <p class="font-medium text-text-main">{joined}</p>
-            </div>
-          </div>
-        </div>
+            <p class="profile-description">{t(lang, "visualProfileExportHint")}</p>
+            <a class="btn btn-secondary" href="/profile/export.csv">
+              <Icon name="download" size={16} />{t(lang, "visualProfileDownload")}
+            </a>
+          </section>
 
-        {/* Export log history */}
-        <div class="w-full bg-white border border-border-light rounded-xl p-6 mb-4">
-          <h3 class="text-text-main font-bold mb-1">Export Log History</h3>
-          <p class="text-xs text-text-secondary mb-4">Download your full tilawah and murojaah log history as a CSV file.</p>
-          <a
-            href="/profile/export.csv"
-            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 text-slate-700 font-bold text-sm hover:bg-slate-200 transition-colors"
-          >
-            <span class="material-symbols-outlined text-base" style="font-size:1rem;">download</span>
-            Download CSV
-          </a>
-        </div>
-
-        {/* Display name */}
-        <div class="w-full bg-white border border-border-light rounded-xl p-6 mb-4">
-          <h3 class="text-text-main font-bold mb-1">{t(lang, "displayName")}</h3>
-          <p class="text-xs text-text-secondary mb-4">{t(lang, "displayNameHint")}</p>
-          <form method="post" action="/profile/name" class="flex gap-2 items-end">
-            <CsrfInput />
-            <div class="flex-1">
-              <input
-                type="text"
-                name="name"
-                value={user.name}
-                maxlength={100}
-                required
-                class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm"
-              />
-            </div>
-            <button type="submit"
-              class="px-4 py-2 rounded-lg bg-primary text-white font-bold text-sm hover:bg-primary-dark transition-colors flex-shrink-0">
-              {t(lang, "saveDisplayName")}
-            </button>
-          </form>
-        </div>
-
-        {/* Avatar URL (for non-Google users or users who want to override) */}
-        {!user.avatar_url && (
-          <div class="w-full bg-white border border-border-light rounded-xl p-6 mb-4">
-            <h3 class="text-text-main font-bold mb-1">{t(lang, "customAvatarUrl")}</h3>
-            <p class="text-xs text-text-secondary mb-4">{t(lang, "customAvatarHint")}</p>
-            <form method="post" action="/profile/avatar" class="space-y-3">
+          <section class="profile-session" aria-label={t(lang, "logout")}>
+            <form method="post" action="/auth/logout">
               <CsrfInput />
-              <input
-                type="url"
-                name="avatar_url"
-                placeholder="https://..."
-                maxlength={500}
-                class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm"
-              />
-              <button type="submit"
-                class="px-4 py-2 rounded-lg bg-primary text-white font-bold text-sm hover:bg-primary-dark transition-colors">
-                {t(lang, "saveAvatar")}
+              <button class="btn btn-secondary profile-logout" type="submit">
+                <Icon name="logout" size={17} />{t(lang, "logout")}
               </button>
             </form>
-          </div>
-        )}
+          </section>
+        </aside>
 
-        {/* Password change (email users only) */}
-        {isEmailUser && (
-          <div class="w-full bg-white border border-border-light rounded-xl p-6 mb-4">
-            <h3 class="text-text-main font-bold mb-4">{t(lang, "changePassword")}</h3>
-            <form method="post" action="/profile/password" class="space-y-3">
+        <div class="profile-settings">
+          <section class="card profile-setting" aria-labelledby="profile-name-title">
+            <div class="profile-section-head">
+              <span class="profile-section-icon"><Icon name="user" size={19} /></span>
+              <h2 id="profile-name-title">{t(lang, "displayName")}</h2>
+            </div>
+            <p class="profile-description">{t(lang, "displayNameHint")}</p>
+            <form method="post" action="/profile/name" class="profile-name-form">
               <CsrfInput />
-              <div>
-                <label class="block text-xs font-semibold text-text-secondary mb-1">{t(lang, "currentPassword")}</label>
-                <input type="password" name="current_password" required
-                  class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" />
+              <div class="field">
+                <label for="profile-name">{t(lang, "displayName")}</label>
+                <input id="profile-name" type="text" name="name" value={user.name}
+                  maxlength={100} required autocomplete="name" />
               </div>
-              <div>
-                <label class="block text-xs font-semibold text-text-secondary mb-1">{t(lang, "newPassword")}</label>
-                <input type="password" name="new_password" required minlength={minimumPassword}
-                  class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" />
-              </div>
-              <div>
-                <label class="block text-xs font-semibold text-text-secondary mb-1">{t(lang, "confirmNewPassword")}</label>
-                <input type="password" name="confirm_password" required minlength={minimumPassword}
-                  class="w-full rounded-lg border-slate-200 bg-slate-50 text-sm" />
-              </div>
-              <button type="submit"
-                class="px-4 py-2 rounded-lg bg-primary text-white font-bold text-sm hover:bg-primary-dark transition-colors">
-                {t(lang, "savePassword")}
-              </button>
+              <button class="btn btn-primary" type="submit">{t(lang, "saveDisplayName")}</button>
             </form>
-          </div>
-        )}
-      </main>
-    </Layout>
+          </section>
+
+          <section class="card profile-setting" aria-labelledby="profile-photo-title">
+            <div class="profile-section-head">
+              <span class="profile-section-icon"><Icon name="edit" size={19} /></span>
+              <h2 id="profile-photo-title">{t(lang, "customAvatarUrl")}</h2>
+            </div>
+            <p class="profile-description" id="profile-avatar-hint">{t(lang, "customAvatarHint")}</p>
+            <form method="post" action="/profile/avatar" class="profile-form">
+              <CsrfInput />
+              <div class="field">
+                <label for="profile-avatar">{t(lang, "customAvatarUrl")}</label>
+                <input id="profile-avatar" type="url" name="avatar_url" value={user.avatar_url ?? ""}
+                  placeholder="https://..." maxlength={500} aria-describedby="profile-avatar-hint" />
+              </div>
+              <button class="btn btn-primary" type="submit">{t(lang, "saveAvatar")}</button>
+            </form>
+          </section>
+
+          {isEmailUser ? (
+            <section class="card profile-setting profile-security" aria-labelledby="profile-security-title">
+              <div class="profile-section-head">
+                <span class="profile-section-icon"><Icon name="shield" size={19} /></span>
+                <h2 id="profile-security-title">{t(lang, "changePassword")}</h2>
+              </div>
+              <p class="profile-description" id="profile-password-hint">
+                {t(lang, "visualProfilePasswordHint").replace("{count}", String(minimumPassword))}
+              </p>
+              <form method="post" action="/profile/password" class="profile-form">
+                <CsrfInput />
+                <div class="field">
+                  <label for="profile-current-password">{t(lang, "currentPassword")}</label>
+                  <input id="profile-current-password" type="password" name="current_password"
+                    required autocomplete="current-password" />
+                </div>
+                <div class="profile-password-pair">
+                  <div class="field">
+                    <label for="profile-new-password">{t(lang, "newPassword")}</label>
+                    <input id="profile-new-password" type="password" name="new_password"
+                      required minlength={minimumPassword} autocomplete="new-password"
+                      aria-describedby="profile-password-hint" />
+                  </div>
+                  <div class="field">
+                    <label for="profile-confirm-password">{t(lang, "confirmNewPassword")}</label>
+                    <input id="profile-confirm-password" type="password" name="confirm_password"
+                      required minlength={minimumPassword} autocomplete="new-password" />
+                  </div>
+                </div>
+                <button class="btn btn-primary" type="submit">{t(lang, "savePassword")}</button>
+              </form>
+            </section>
+          ) : isGoogleUser ? (
+            <section class="card profile-setting" aria-labelledby="profile-security-title">
+              <div class="profile-section-head">
+                <span class="profile-section-icon"><Icon name="shield" size={19} /></span>
+                <h2 id="profile-security-title">{t(lang, "visualProfileGoogleTitle")}</h2>
+              </div>
+              <p class="profile-description">{t(lang, "visualProfileGoogleHint")}</p>
+            </section>
+          ) : null}
+        </div>
+      </div>
+    </MemberLayout>
   );
 };

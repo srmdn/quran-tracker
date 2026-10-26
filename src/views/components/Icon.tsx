@@ -1,6 +1,13 @@
 import type { FC } from "hono/jsx";
 
 export type IconName =
+  | "mail"
+  | "more"
+  | "clock"
+  | "info"
+  | "download"
+  | "logout"
+  | "plus"
   | "book"
   | "repeat"
   | "chart"
@@ -28,6 +35,13 @@ export const Icon: FC<{ name: IconName; size?: number; class?: string }> = ({
     aria-hidden="true"
     style={`width:${size}px;height:${size}px`}
   >
+    {name === "mail" && <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 6 9 7 9-7" /></>}
+    {name === "more" && <><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></>}
+    {name === "clock" && <><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></>}
+    {name === "info" && <><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7v1"/></>}
+    {name === "download" && <><path d="M12 3v12m-5-5 5 5 5-5" /><path d="M4 16v5h16v-5" /></>}
+    {name === "logout" && <><path d="M9 4H4v16h5M14 8l4 4-4 4M8 12h10" /></>}
+    {name === "plus" && <path d="M12 5v14M5 12h14" />}
     {name === "book" && (
       <>
         <path d="M3 5.5A2.5 2.5 0 0 1 5.5 3H20v16H5.5A2.5 2.5 0 0 0 3 21.5z" />

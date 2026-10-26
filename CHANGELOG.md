@@ -10,11 +10,12 @@ All notable changes to this project are documented here.
 
 - Phase 3 Stage A: new public shell, landing, login, pending, suspended, and 404 pages with local Fraunces and Amiri fonts
 - Indonesian-only interface: removed the language switch from public, member, and admin pages, removed the `/lang` route, and ignored the legacy language cookie
-- Phase 3 Stage B: member dashboard, target modal, annual heatmap, streak and freeze, redesigned tilawah, murojaah, and edit forms, optional position details, and amount-only quick logging
+- Visual B full interface redesign: unified blue visual system across landing, login, pending, suspended, 404, member dashboard, progress, history, tilawah and murojaah logging/editing, community leaderboard, profile, and admin pages
 
 ### Changed
 
-- Log submission accepts an explicit amount without start or end position, rejects start-after-end, same-position, and incomplete positions, and stores nullable ending positions safely
+- Log submission accepts an explicit amount without start or end position, keeps visible start/end surah and ayah fields, supports half-page inputs, rejects start-after-end, same-position, and incomplete positions, and stores nullable ending positions safely
+- Retired public program enrollment (`/enroll`) and admin enrollment management routes while preserving historical enrollment records
 
 ### Security
 

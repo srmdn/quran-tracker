@@ -1,9 +1,8 @@
 import { CsrfInput } from "../components/CsrfInput.tsx";
 import type { FC } from "hono/jsx";
-import { Layout } from "../Layout.tsx";
-import { Header } from "../components/Header.tsx";
+import { AdminLayout } from "../AdminLayout.tsx";
+import { Icon } from "../components/Icon.tsx";
 import type { User } from "../../types.ts";
-import { APP_NAME } from "../../config.ts";
 import type { Lang } from "../../lib/i18n.ts";
 
 export type EmailLogRow = {
@@ -19,22 +18,22 @@ export type EmailLogRow = {
 };
 
 const TYPE_LABELS: Record<string, string> = {
-  approval: "Approval",
-  daily_reminder: "Daily Reminder",
-  inactivity_reminder: "Inactivity Reminder",
+  approval: "Persetujuan akun",
+  daily_reminder: "Pengingat harian",
+  inactivity_reminder: "Pengingat tidak aktif",
   khatam: "Khatam",
-  monthly_snapshot: "Monthly Snapshot",
-  monthly_snapshot_preview: "Snapshot Preview",
-  new_member_alert_admin: "New Member Alert",
-  no_target_nudge: "No Target Nudge",
-  overtaken: "Overtaken",
-  rejection: "Rejection",
-  role_change: "Role Change",
-  streak_milestone: "Streak Milestone",
-  suspend: "Suspend",
-  test_daily_reminder: "Test Reminder",
-  unsuspend: "Unsuspend",
-  welcome: "Welcome",
+  monthly_snapshot: "Arsip bulanan",
+  monthly_snapshot_preview: "Pratinjau arsip",
+  new_member_alert_admin: "Anggota baru",
+  no_target_nudge: "Pengingat target",
+  overtaken: "Perubahan peringkat",
+  rejection: "Penolakan akun",
+  role_change: "Perubahan peran",
+  streak_milestone: "Pencapaian streak",
+  suspend: "Pembatasan akses",
+  test_daily_reminder: "Uji pengingat",
+  unsuspend: "Pemulihan akses",
+  welcome: "Selamat datang",
 };
 
 const NOTIF_TYPES = new Set([
@@ -116,107 +115,84 @@ export const AdminEmailLogPage: FC<{
     );
   };
 
-  const TABS = [
-    { label: "Members", href: "/admin", current: false },
-    { label: "Email Log", href: "/admin/email-log", current: true },
-    { label: "Enrollments", href: "/admin/enrollments", current: false },
-  ];
-
   return (
-    <Layout title={`Email Log - Admin - ${APP_NAME}`}>
-      <Header user={user} currentPath="/admin" lang={lang} />
-      <main class="flex-1 flex flex-col items-center w-full px-4 sm:px-6 lg:px-8 py-8 max-w-5xl mx-auto">
+    <AdminLayout title={"Riwayat email"} user={user} lang={lang} section="email">
+      <div class="admin-content">
         <div class="w-full flex flex-col gap-2 mb-5">
-          <h1 class="text-text-main text-3xl font-black leading-tight tracking-[-0.033em]">Email Log</h1>
-          <p class="text-text-secondary text-sm">Record of every email send attempt — sent and failed.</p>
+          <h1 class="text-text-main text-3xl font-black leading-tight tracking-[-0.033em]">Riwayat email</h1>
+          <p class="text-text-secondary text-sm">Tinjau email yang terkirim, gagal, dan perlu dikirim ulang.</p>
         </div>
 
-        {/* Tab nav */}
-        <nav class="w-full flex items-center gap-1 mb-6 border-b border-border-light">
-          {TABS.map((tab) => (
-            <a
-              href={tab.href}
-              class={`px-4 py-2.5 text-sm font-bold rounded-t-lg border-b-2 -mb-px transition-colors ${
-                tab.current
-                  ? "border-primary text-primary bg-primary-light/60"
-                  : "border-transparent text-text-secondary hover:text-primary hover:border-border-light"
-              }`}
-            >
-              {tab.label}
-            </a>
-          ))}
-        </nav>
-
         {flashSuccess && (
-          <div class="w-full mb-4 px-4 py-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm rounded-lg">{flashSuccess}</div>
+          <div role="status" class="w-full mb-4 px-4 py-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm rounded-lg">{flashSuccess}</div>
         )}
         {flashError && (
-          <div class="w-full mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-800 text-sm rounded-lg">{flashError}</div>
+          <div role="alert" class="w-full mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-800 text-sm rounded-lg">{flashError}</div>
         )}
 
         {/* SMTP status */}
         {smtpConfigured ? (
           <div class="w-full mb-6 px-4 py-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm rounded-lg flex items-center gap-2">
-            <span class="material-symbols-outlined text-lg">check_circle</span>
-            SMTP is configured. Emails will be delivered.
+            <Icon name="check" size={18}/>
+            Pengiriman email aktif.
           </div>
         ) : (
           <div class="w-full mb-6 px-4 py-3 bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-lg flex items-center gap-2">
-            <span class="material-symbols-outlined text-lg">warning</span>
-            SMTP is not configured (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM missing). All email sends will fail.
+            <Icon name="info" size={18}/>
+            Pengiriman email belum diaktifkan. Hubungi pengelola untuk mengaktifkannya.
           </div>
         )}
 
         {/* Stats */}
-        <div class="w-full grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        <div class="w-full admin-stat-grid grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           <div class="bg-white border border-border-light rounded-xl p-4 shadow-sm">
             <div class="flex items-center gap-2 mb-1.5">
-              <span class="material-symbols-outlined text-text-secondary text-lg">inbox</span>
+              <Icon name="mail" size={18}/>
               <span class="text-xs font-bold text-text-secondary uppercase tracking-wider">Total</span>
             </div>
             <p class="text-text-main text-2xl font-black leading-none">{total}</p>
           </div>
           <div class="bg-white border border-emerald-200 rounded-xl p-4 shadow-sm">
             <div class="flex items-center gap-2 mb-1.5">
-              <span class="material-symbols-outlined text-emerald-500 text-lg">mark_email_read</span>
-              <span class="text-xs font-bold text-text-secondary uppercase tracking-wider">Sent</span>
+              <Icon name="mail" size={18}/>
+              <span class="text-xs font-bold text-text-secondary uppercase tracking-wider">Terkirim</span>
             </div>
             <p class="text-text-main text-2xl font-black leading-none">{sentTotal}</p>
           </div>
           <div class="bg-white border border-red-200 rounded-xl p-4 shadow-sm">
             <div class="flex items-center gap-2 mb-1.5">
-              <span class="material-symbols-outlined text-red-500 text-lg">error</span>
-              <span class="text-xs font-bold text-text-secondary uppercase tracking-wider">Failed</span>
+              <Icon name="info" size={18}/>
+              <span class="text-xs font-bold text-text-secondary uppercase tracking-wider">Gagal</span>
             </div>
             <p class="text-text-main text-2xl font-black leading-none">{failedTotal}</p>
           </div>
           <div class="bg-white border border-sky-200 rounded-xl p-4 shadow-sm">
             <div class="flex items-center gap-2 mb-1.5">
-              <span class="material-symbols-outlined text-sky-500 text-lg">today</span>
-              <span class="text-xs font-bold text-text-secondary uppercase tracking-wider">Today</span>
+              <Icon name="calendar" size={18}/>
+              <span class="text-xs font-bold text-text-secondary uppercase tracking-wider">Hari ini</span>
             </div>
             <p class="text-text-main text-2xl font-black leading-none">{todaySent}</p>
-            {todayFailed > 0 && <p class="text-xs text-red-500 mt-1 font-semibold">{todayFailed} failed</p>}
+            {todayFailed > 0 && <p class="text-xs text-red-500 mt-1 font-semibold">{todayFailed} gagal</p>}
           </div>
         </div>
 
         {/* Filters */}
         <div class="w-full flex flex-wrap items-center gap-3 mb-5">
           <div class="flex items-center gap-1.5 bg-white border border-border-light rounded-lg p-1">
-            {statusFilterBtn("All", "", "bg-primary text-white")}
-            {statusFilterBtn(`Sent (${sentTotal})`, "sent", "bg-emerald-600 text-white")}
-            {statusFilterBtn(`Failed (${failedTotal})`, "failed", "bg-red-600 text-white")}
+            {statusFilterBtn("Semua", "", "bg-primary text-white")}
+            {statusFilterBtn(`Terkirim (${sentTotal})`, "sent", "bg-emerald-600 text-white")}
+            {statusFilterBtn(`Gagal (${failedTotal})`, "failed", "bg-red-600 text-white")}
           </div>
           {allTypes.length > 0 && (
             <form method="get" action="/admin/email-log" class="flex items-center gap-2 text-sm">
               {filterStatus && <input type="hidden" name="status" value={filterStatus} />}
               <input type="hidden" name="page" value="1" />
               <select
-                name="type"
+                aria-label="Jenis email" name="type"
                 onchange="this.form.submit()"
                 class="border border-border-light rounded-lg px-3 py-2 text-sm text-text-main bg-white focus:outline-none focus:ring-2 focus:ring-primary/30"
               >
-                <option value="">All types</option>
+                <option value="">Semua jenis</option>
                 {allTypes.map((t) => (
                   <option value={t} selected={filterType === t}>{TYPE_LABELS[t] ?? t}</option>
                 ))}
@@ -227,27 +203,27 @@ export const AdminEmailLogPage: FC<{
             href={`/admin/email-log/export?status=${filterStatus}&type=${filterType}`}
             class="ml-auto inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold border border-border-light bg-white text-text-main rounded-lg hover:bg-slate-50 transition-colors"
           >
-            <span class="material-symbols-outlined text-base">download</span>
-            Export CSV
+            <Icon name="download" size={18}/>
+            Unduh CSV
           </a>
         </div>
 
         {rows.length === 0 ? (
           <div class="w-full bg-white border border-border-light rounded-xl p-12 text-center text-text-secondary text-sm">
-            No email log entries{filterStatus || filterType ? " matching this filter" : ""}.
+            Belum ada riwayat email{filterStatus || filterType ? " untuk filter ini" : ""}.
           </div>
         ) : (
           <div class="w-full bg-white border border-border-light rounded-xl overflow-hidden shadow-sm">
-            <div class="overflow-x-auto">
+            <div class="admin-email-table overflow-x-auto" tabindex={0} role="region" aria-label="Riwayat pengiriman email">
               <table class="min-w-full text-sm">
                 <thead class="bg-slate-50 text-text-secondary">
                   <tr>
-                    <th class="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wider">Type</th>
-                    <th class="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wider">Recipient</th>
-                    <th class="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wider">Subject</th>
-                    <th class="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wider">Status</th>
-                    <th class="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wider">Sent At (WIB)</th>
-                    <th class="px-4 py-3"></th>
+                    <th scope="col" class="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wider">Jenis</th>
+                    <th scope="col" class="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wider">Penerima</th>
+                    <th scope="col" class="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wider">Subjek</th>
+                    <th scope="col" class="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wider">Status</th>
+                    <th scope="col" class="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wider">Waktu (WIB)</th>
+                    <th scope="col" class="px-4 py-3"><span class="sr-only">Tindakan</span></th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-border-light">
@@ -259,7 +235,7 @@ export const AdminEmailLogPage: FC<{
                         </span>
                       </td>
                       <td class="px-4 py-3">
-                        <p class="text-text-main text-xs font-semibold">{row.user_name ?? "—"}</p>
+                        <p class="text-text-main text-xs font-semibold">{row.user_name ?? "-"}</p>
                         <p class="text-text-secondary text-xs">{row.recipient}</p>
                       </td>
                       <td class="px-4 py-3 text-text-secondary text-xs max-w-[220px] truncate" title={row.subject}>
@@ -268,13 +244,13 @@ export const AdminEmailLogPage: FC<{
                       <td class="px-4 py-3">
                         {row.status === "sent" ? (
                           <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 text-xs font-bold rounded">
-                            <span class="material-symbols-outlined text-xs">check_circle</span>
-                            sent
+                            <Icon name="check" size={18}/>
+                            terkirim
                           </span>
                         ) : (
                           <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-red-50 text-red-700 text-xs font-bold rounded" title={row.error ?? ""}>
-                            <span class="material-symbols-outlined text-xs">error</span>
-                            failed
+                            <Icon name="info" size={18}/>
+                            gagal
                           </span>
                         )}
                         {row.status === "failed" && row.error && (
@@ -289,7 +265,7 @@ export const AdminEmailLogPage: FC<{
                           <form method="post" action={`/admin/email-log/${row.id}/resend`}>
                             <CsrfInput />
                             <button type="submit" class="px-2.5 py-1 text-xs font-semibold border border-primary/30 text-primary rounded hover:bg-primary-light transition-colors">
-                              Resend
+                              Kirim ulang
                             </button>
                           </form>
                         )}
@@ -301,17 +277,17 @@ export const AdminEmailLogPage: FC<{
             </div>
 
             {totalPages > 1 && (
-              <div class="px-6 py-4 border-t border-border-light flex items-center justify-between text-sm">
-                <span class="text-text-secondary">Page {page} of {totalPages} · {total} entries</span>
+              <div class="admin-pagination px-6 py-4 border-t border-border-light flex items-center justify-between text-sm">
+                <span class="text-text-secondary">Halaman {page} dari {totalPages} · {total} catatan</span>
                 <div class="flex gap-2">
                   {page > 1 && (
                     <a href={buildUrl({ page: String(page - 1) })} class="px-3 py-1.5 border border-border-light rounded-lg font-semibold text-text-main hover:bg-slate-50">
-                      ← Prev
+                      ← Sebelumnya
                     </a>
                   )}
                   {page < totalPages && (
                     <a href={buildUrl({ page: String(page + 1) })} class="px-3 py-1.5 border border-border-light rounded-lg font-semibold text-text-main hover:bg-slate-50">
-                      Next →
+                      Berikutnya →
                     </a>
                   )}
                 </div>
@@ -323,11 +299,11 @@ export const AdminEmailLogPage: FC<{
         {/* Test emails */}
         <div class="w-full bg-white border border-border-light rounded-xl p-6 shadow-sm mt-6">
           <h2 class="text-text-main text-lg font-bold mb-1 flex items-center gap-2">
-            <span class="material-symbols-outlined text-primary">mail</span>
-            Test Emails
+            <Icon name="mail" size={18}/>
+            Uji pengiriman email
           </h2>
           <p class="text-text-secondary text-sm mb-4">
-            Send a test email to your own account ({user.email}).
+            Kirim email uji ke akun kamu sendiri ({user.email}).
           </p>
           <div class="flex flex-wrap gap-3">
             <form method="post" action="/admin/email/test-reminder">
@@ -336,7 +312,7 @@ export const AdminEmailLogPage: FC<{
                 type="submit"
                 class="px-4 py-2.5 bg-white text-primary border border-primary/30 rounded-lg font-bold text-sm hover:bg-primary-light transition-colors"
               >
-                Send Test Daily Reminder
+                Uji pengingat harian
               </button>
             </form>
             <form method="post" action="/admin/email/test-snapshot">
@@ -345,7 +321,7 @@ export const AdminEmailLogPage: FC<{
                 type="submit"
                 class="px-4 py-2.5 bg-white text-primary border border-primary/30 rounded-lg font-bold text-sm hover:bg-primary-light transition-colors"
               >
-                Send Test Monthly Snapshot
+                Uji arsip bulanan
               </button>
             </form>
             <form method="post" action="/admin/email/test-approval">
@@ -354,7 +330,7 @@ export const AdminEmailLogPage: FC<{
                 type="submit"
                 class="px-4 py-2.5 bg-white text-primary border border-primary/30 rounded-lg font-bold text-sm hover:bg-primary-light transition-colors"
               >
-                Send Test Approval
+                Uji persetujuan akun
               </button>
             </form>
             <form method="post" action="/admin/email/test-khatam">
@@ -363,7 +339,7 @@ export const AdminEmailLogPage: FC<{
                 type="submit"
                 class="px-4 py-2.5 bg-white text-primary border border-primary/30 rounded-lg font-bold text-sm hover:bg-primary-light transition-colors"
               >
-                Send Test Khatam (#1)
+                Uji khatam pertama
               </button>
             </form>
             <form method="post" action="/admin/email/test-streak">
@@ -372,12 +348,12 @@ export const AdminEmailLogPage: FC<{
                 type="submit"
                 class="px-4 py-2.5 bg-white text-primary border border-primary/30 rounded-lg font-bold text-sm hover:bg-primary-light transition-colors"
               >
-                Send Test Streak (7 days)
+                Uji streak 7 hari
               </button>
             </form>
           </div>
         </div>
-      </main>
-    </Layout>
+      </div>
+    </AdminLayout>
   );
 };

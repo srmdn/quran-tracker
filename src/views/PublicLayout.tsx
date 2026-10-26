@@ -3,12 +3,13 @@ import { APP_NAME, PUBLIC_BASE_URL } from "../config.ts";
 import type { Lang } from "../lib/i18n.ts";
 
 export const PublicLayout: FC<{
+  visual?: boolean;
   title?: string;
   description?: string;
   url?: string;
   lang: Lang;
   children: Child;
-}> = ({ title, description, url, lang, children }) => {
+}> = ({ title, description, url, lang, children, visual = false }) => {
   const resolvedTitle = title || APP_NAME;
   const resolvedDesc =
     description ||
@@ -36,7 +37,7 @@ export const PublicLayout: FC<{
         <meta name="twitter:image" content={ogImage} />
         <link rel="icon" type="image/png" href="/public/favicon-32.png" />
         <link rel="manifest" href="/public/manifest.json" />
-        <meta name="theme-color" content="#1f5c8b" />
+        <meta name="theme-color" content={visual ? "#2859db" : "#1f5c8b"} />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -49,16 +50,11 @@ export const PublicLayout: FC<{
           type="font/woff2"
           crossorigin="anonymous"
         />
-        <link
-          rel="preload"
-          href="/public/fonts/fraunces-latin.woff2"
-          as="font"
-          type="font/woff2"
-          crossorigin="anonymous"
-        />
+        {!visual && <link rel="preload" href="/public/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin="anonymous" />}
         <link rel="stylesheet" href="/public/redesign.css" />
+        {visual && <link rel="stylesheet" href="/public/public-visual.css" />}
       </head>
-      <body>{children}</body>
+      <body class={visual ? "visual-public" : undefined}>{children}</body>
     </html>
   );
 };

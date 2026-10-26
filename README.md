@@ -31,7 +31,7 @@ Quran Tracker is a Bun + Hono web app for community Qur'an progress tracking. Me
 - The first signed-in user becomes `super_admin`
 - Khatam bonuses use strict boundary checks and once-per-day deduplication
 - Leaderboard scoring is `Tilawah * 10 + Murojaah * 7 + Khatam * 300`
-- Public entry points include `/landing` and `/enroll`
+- Public entry points include `/landing` and `/login`. Program enrollment is no longer available.
 
 ## Local setup
 

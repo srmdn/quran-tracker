@@ -1,10 +1,11 @@
-import { Hono } from "hono";
+import { Hono, type Handler } from "hono";
 import { authMiddleware, memberMiddleware } from "../middleware/auth.ts";
 import { db } from "../db/connection.ts";
 import { getCurrentMonthUserActivityRank, getUserActivityTotals } from "../lib/activity-calc.ts";
 import { getUserTarget, getTodayTilawahTotal, getTodayMurojaahTotal, upsertUserTarget } from "../lib/targets.ts";
 import { getUserStreak, getYearActivityHeatmap, getFreezeCreditsLeft, isFrozen, applyFreeze } from "../lib/streak.ts";
 import { getWibDateYmd, getWibYearMonth } from "../lib/wib-date.ts";
+import { parsePage } from "../lib/validation.ts";
 import { PAGES_PER_JUZ } from "../lib/format-juz.ts";
 import { ACTIVE_MEMBER_ROLES } from "../lib/roles.ts";
 import { DashboardPage } from "../views/pages/DashboardPage.tsx";
@@ -22,6 +23,9 @@ export type RecentLogEntry = {
   juz_amount: number;
   log_unit: string | null;
   log_amount: number | null;
+  start_surah: number | null;
+  start_ayah: number | null;
+  updated_at: string | null;
   end_surah: number | null;
   end_ayah: number | null;
   end_juz: number | null;
@@ -35,7 +39,7 @@ export type HeatmapCell = {
   count: number;
 };
 
-dashboard.get("/", (c) => {
+const renderDashboard: Handler<Env> = (c) => {
   const user = c.get("user");
   const lang = c.get("lang");
   const todayWib = getWibDateYmd();
@@ -107,23 +111,44 @@ dashboard.get("/", (c) => {
     ...yearDays,
   ];
 
-  // Recent logs (last 8 entries across both types)
-  const recentLogs = db
-    .prepare(
-      `SELECT type, id, date_wib, juz_amount, log_unit, log_amount, end_surah, end_ayah, end_juz, repetition_count, created_at
-       FROM (
-         SELECT 'tilawah' AS type, id, date_wib, juz_amount, log_unit, log_amount, end_surah, end_ayah, end_juz,
-                NULL AS repetition_count, created_at
-         FROM tilawah_logs WHERE user_id = ?
-         UNION ALL
-         SELECT 'murojaah' AS type, id, date_wib, juz_amount, log_unit, log_amount, end_surah, end_ayah, end_juz,
-                repetition_count, created_at
-         FROM murojaah_logs WHERE user_id = ?
-       )
-       ORDER BY created_at DESC
-       LIMIT 8`
-    )
-    .all(user.id, user.id) as RecentLogEntry[];
+  const view = c.req.path.endsWith("/progress") ? "progress" : c.req.path.endsWith("/history") ? "history" : "today";
+  const kind = c.req.query("kind") === "murojaah" ? "murojaah" : "tilawah";
+  const rawFilter = c.req.query("kind");
+  const historyFilter = rawFilter === "tilawah" || rawFilter === "murojaah" ? rawFilter : "all";
+  const filter = view === "history" ? historyFilter : "all";
+  const union = `SELECT 'tilawah' AS type, id, date_wib, juz_amount, log_unit, log_amount,
+      start_surah, start_ayah, end_surah, end_ayah, end_juz, NULL AS repetition_count, created_at, updated_at
+      FROM tilawah_logs WHERE user_id = ?
+    UNION ALL
+    SELECT 'murojaah' AS type, id, date_wib, juz_amount, log_unit, log_amount,
+      start_surah, start_ayah, end_surah, end_ayah, end_juz, repetition_count, created_at, updated_at
+      FROM murojaah_logs WHERE user_id = ?`;
+  const historyCount = (db.prepare(`SELECT COUNT(*) AS count FROM (${union}) WHERE (? = 'all' OR type = ?)`)
+    .get(user.id, user.id, filter, filter) as {count:number}).count;
+  const historyPage = Math.min(parsePage(c.req.query("page")), Math.max(1,Math.ceil(historyCount/20)));
+  const recentLogs = db.prepare(`SELECT * FROM (${union}) WHERE (? = 'all' OR type = ?)
+      ORDER BY date_wib DESC, created_at DESC, type, id DESC LIMIT ? OFFSET ?`)
+    .all(user.id,user.id,filter,filter,view === "history" ? 20 : 8,view === "history" ? (historyPage-1)*20 : 0) as RecentLogEntry[];
+  const lastPositions = ["tilawah", "murojaah"].map(type => db.prepare(`SELECT * FROM (${union})
+      WHERE type = ? AND end_surah IS NOT NULL AND end_ayah IS NOT NULL
+      ORDER BY date_wib DESC, created_at DESC, id DESC LIMIT 1`).get(user.id,user.id,type))
+    .filter(Boolean) as RecentLogEntry[];
+  // Endpoint counts identify recorded juz; they do not prove complete coverage.
+  const coverageRows = db.prepare(`SELECT end_juz, COUNT(*) AS count FROM (${union})
+      WHERE type = ? AND date_wib LIKE ? AND end_juz IS NOT NULL GROUP BY end_juz`)
+    .all(user.id,user.id,kind,`${todayWib.slice(0,7)}-%`) as {end_juz:number;count:number}[];
+  const coverage = Object.fromEntries(coverageRows.map(row=>[row.end_juz,row.count]));
+  const firstDay = new Date(todayWib+"T00:00:00Z"); firstDay.setUTCDate(firstDay.getUTCDate()-6);
+  const firstYmd = firstDay.toISOString().slice(0,10);
+  const weekRows = db.prepare(`SELECT date_wib, type, SUM(juz_amount) AS total FROM (${union})
+      WHERE date_wib >= ? AND date_wib <= ? GROUP BY date_wib, type`)
+    .all(user.id,user.id,firstYmd,todayWib) as {date_wib:string;type:"tilawah"|"murojaah";total:number}[];
+  const week = Array.from({length:7},(_,i)=>{
+    const date = new Date(firstDay); date.setUTCDate(date.getUTCDate()+i);
+    const ymd=date.toISOString().slice(0,10);
+    return {date:ymd, tilawah:weekRows.find(r=>r.date_wib===ymd && r.type==="tilawah")?.total ?? 0,
+      murojaah:weekRows.find(r=>r.date_wib===ymd && r.type==="murojaah")?.total ?? 0};
+  });
 
   // Khatam count from khatam_events (position-verified)
   const khatamRow = db
@@ -141,6 +166,8 @@ dashboard.get("/", (c) => {
   return c.html(
     <DashboardPage
       user={user}
+      view={view} kind={kind} coverage={coverage} week={week} lastPositions={lastPositions}
+      historyCount={historyCount} historyPage={historyPage} historyFilter={historyFilter}
       lang={lang}
       todayWib={todayWib}
       target={target}
@@ -163,7 +190,10 @@ dashboard.get("/", (c) => {
       error={c.req.query("error")}
     />
   );
-});
+};
+dashboard.get("/", renderDashboard);
+dashboard.get("/progress", renderDashboard);
+dashboard.get("/history", renderDashboard);
 
 dashboard.post("/set-target", async (c) => {
   const user = c.get("user");

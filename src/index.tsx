@@ -11,10 +11,10 @@ import { tilawahRoutes } from "./routes/tilawah.tsx";
 import { murojaahRoutes } from "./routes/murojaah.tsx";
 import { landingRoutes } from "./routes/landing.tsx";
 import { profileRoutes } from "./routes/profile.tsx";
-import { enrollRoutes } from "./routes/enroll.tsx";
 import { LoginPage } from "./views/pages/LoginPage.tsx";
 import { PendingPage } from "./views/pages/PendingPage.tsx";
 import { SuspendedPage } from "./views/pages/SuspendedPage.tsx";
+import { PublicHeader } from "./views/components/PublicHeader.tsx";
 import { PublicLayout } from "./views/PublicLayout.tsx";
 import { authMiddleware } from "./middleware/auth.ts";
 import { csrfMiddleware } from "./middleware/csrf.ts";
@@ -89,26 +89,18 @@ app.route("/auth", authRoutes);
 app.route("/tilawah", tilawahRoutes);
 app.route("/murojaah", murojaahRoutes);
 app.get("/leaderboard", (c) => c.redirect("/activity/leaderboard", 301));
-app.get("/progress", (c) => c.redirect("/dashboard", 301));
+app.get("/progress", (c) => c.redirect("/dashboard/progress", 301));
 app.route("/activity", activityRoutes);
 app.route("/admin", adminRoutes);
 app.route("/dashboard", dashboardRoutes);
 app.route("/profile", profileRoutes);
-app.route("/enroll", enrollRoutes);
 
 // 404
 app.notFound((c) => {
   const lang = c.get("lang");
   return c.html(
-    <PublicLayout title={`${t(lang, "notFoundTitle")} | ${APP_NAME}`} lang={lang}>
-      <header class="marketing-header">
-        <div class="container">
-          <a class="brand" href="/landing" aria-label={APP_NAME}>
-            <img src="/public/logo-128.png" alt="" width="34" height="34" />
-            <span>{APP_NAME}</span>
-          </a>
-        </div>
-      </header>
+    <PublicLayout visual title={`${t(lang, "notFoundTitle")} | ${APP_NAME}`} lang={lang}>
+      <PublicHeader lang={lang}/>
       <main class="status-page" id="main">
         <div class="status-card">
           <div class="status-icon">

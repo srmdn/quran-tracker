@@ -1,10 +1,9 @@
 import { CsrfInput } from "../components/CsrfInput.tsx";
 import type { FC } from "hono/jsx";
-import { Layout } from "../Layout.tsx";
-import { Header } from "../components/Header.tsx";
+import { AdminLayout, adminRoleLabel } from "../AdminLayout.tsx";
+import { Icon } from "../components/Icon.tsx";
 import type { User } from "../../types.ts";
 import { SURAHS } from "../../data/quran-meta.ts";
-import { APP_NAME } from "../../config.ts";
 import type { UserTarget } from "../../lib/targets.ts";
 import type { UserStreak } from "../../lib/streak.ts";
 import type { ActivityTotals, UserMonthlyActivityRank } from "../../lib/activity-calc.ts";
@@ -52,17 +51,16 @@ export const AdminMemberDetailPage: FC<{
     : 0;
 
   return (
-    <Layout title={`${member.name} — ${APP_NAME}`}>
-      <Header user={adminUser} currentPath="/admin" lang={lang} />
-      <main class="flex-1 flex flex-col items-center w-full px-4 sm:px-6 lg:px-8 py-8 max-w-4xl mx-auto">
+    <AdminLayout title={member.name} user={adminUser} lang={lang}>
+      <div class="admin-content">
 
         {/* Back link */}
-        <div class="w-full flex items-center justify-between mb-6">
+        <div class="admin-header-actions w-full flex items-center justify-between mb-6">
           <a
             href="/admin"
             class="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-primary transition-colors"
           >
-            <span class="material-symbols-outlined text-base">arrow_back</span>
+            <Icon name="arrow" size={18} class="icon admin-back"/>
             {t(lang, "backToAdmin")}
           </a>
           <div class="flex items-center gap-3">
@@ -74,8 +72,8 @@ export const AdminMemberDetailPage: FC<{
                     type="submit"
                     class="inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-600 hover:text-emerald-700 transition-colors"
                   >
-                    <span class="material-symbols-outlined text-base">lock_open</span>
-                    Unsuspend
+                    <Icon name="shield" size={18}/>
+                    Pulihkan akses
                   </button>
                 </form>
               ) : (
@@ -90,8 +88,8 @@ export const AdminMemberDetailPage: FC<{
                     type="submit"
                     class="inline-flex items-center gap-1.5 text-sm font-semibold text-amber-600 hover:text-amber-700 transition-colors"
                   >
-                    <span class="material-symbols-outlined text-base">block</span>
-                    Suspend
+                    <Icon name="shield" size={18}/>
+                    Batasi akses
                   </button>
                 </form>
               )
@@ -101,7 +99,7 @@ export const AdminMemberDetailPage: FC<{
                 href={`/admin/members/${member.id}/edit`}
                 class="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary-dark transition-colors"
               >
-                <span class="material-symbols-outlined text-base">edit</span>
+                <Icon name="edit" size={18}/>
                 Edit
               </a>
             )}
@@ -109,14 +107,14 @@ export const AdminMemberDetailPage: FC<{
         </div>
 
         {success && (
-          <div class="w-full bg-emerald-50 text-emerald-700 text-sm px-4 py-3 rounded-lg mb-6 border border-emerald-200 flex items-center gap-2">
-            <span class="material-symbols-outlined text-lg">check_circle</span>
+          <div role="status" class="w-full bg-emerald-50 text-emerald-700 text-sm px-4 py-3 rounded-lg mb-6 border border-emerald-200 flex items-center gap-2">
+            <Icon name="check" size={18}/>
             {success}
           </div>
         )}
         {error && (
-          <div class="w-full bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg mb-6 border border-red-200 flex items-center gap-2">
-            <span class="material-symbols-outlined text-lg">error</span>
+          <div role="alert" class="w-full bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg mb-6 border border-red-200 flex items-center gap-2">
+            <Icon name="info" size={18}/>
             {error}
           </div>
         )}
@@ -124,13 +122,13 @@ export const AdminMemberDetailPage: FC<{
         {/* Suspended banner */}
         {member.suspended_at && (
           <div class="w-full bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg mb-4 border border-red-200 flex items-center gap-2">
-            <span class="material-symbols-outlined text-lg">block</span>
-            This account is suspended since {member.suspended_at.slice(0, 10)}.
+            <Icon name="shield" size={18}/>
+            Akses akun dibatasi sejak {member.suspended_at.slice(0, 10)}.
           </div>
         )}
 
         {/* Member header */}
-        <div class="w-full bg-white border border-border-light rounded-xl p-6 mb-6 flex items-center gap-4">
+        <div class="admin-identity w-full bg-white border border-border-light rounded-xl p-6 mb-6 flex items-center gap-4">
           {member.avatar_url ? (
             <div
               class="bg-center bg-no-repeat bg-cover rounded-full size-16 flex-shrink-0"
@@ -146,7 +144,7 @@ export const AdminMemberDetailPage: FC<{
             <p class="text-text-secondary text-sm">{member.email}</p>
             <div class="flex items-center gap-2 mt-1.5">
               <span class="text-xs font-bold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
-                {member.role}
+                {adminRoleLabel(member.role)}
               </span>
               <span class="text-xs text-text-secondary">{t(lang, "joinedLabel")} {member.created_at.slice(0, 10)}</span>
             </div>
@@ -161,22 +159,18 @@ export const AdminMemberDetailPage: FC<{
 
         {/* Email notifications */}
         {isSuperAdminRole(adminUser.role) && (
-          <div class="w-full bg-white border border-border-light rounded-xl p-6 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div class="admin-notification w-full bg-white border border-border-light rounded-xl p-6 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div class="flex items-start gap-3">
-              <span
-                class={`material-symbols-outlined text-xl mt-0.5 ${member.email_notif_enabled === 0 ? "text-slate-400" : "text-emerald-500"}`}
-              >
-                {member.email_notif_enabled === 0 ? "notifications_off" : "notifications_active"}
-              </span>
+              <Icon name="mail" size={20}/>
               <div>
-                <h2 class="text-text-main font-bold">Email Notifications</h2>
+                <h2 class="text-text-main font-bold">Notifikasi email</h2>
                 <p class="text-text-secondary text-sm">
                   {member.email_notif_enabled === 0
-                    ? "Disabled. This member will not receive automated emails (daily reminders, inactivity reminders, monthly snapshots, milestone emails)."
-                    : "Enabled. This member receives automated emails (daily reminders, inactivity reminders, monthly snapshots, milestone emails)."}
+                    ? "Nonaktif. Anggota ini tidak menerima email pengingat, arsip bulanan, dan pencapaian."
+                    : "Aktif. Anggota ini menerima email pengingat, arsip bulanan, dan pencapaian."}
                 </p>
                 <p class="text-text-secondary/60 text-xs mt-1">
-                  Transactional emails (approval, welcome, suspend notice) are always sent.
+                  Email terkait akses akun tetap dikirim.
                 </p>
               </div>
             </div>
@@ -188,8 +182,8 @@ export const AdminMemberDetailPage: FC<{
                   type="submit"
                   class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white rounded-lg font-bold text-sm hover:bg-emerald-700 transition-colors shadow-sm"
                 >
-                  <span class="material-symbols-outlined text-base">notifications_active</span>
-                  Enable
+                  <Icon name="mail" size={18}/>
+                  Aktifkan
                 </button>
               </form>
             ) : (
@@ -200,8 +194,8 @@ export const AdminMemberDetailPage: FC<{
                   type="submit"
                   class="inline-flex items-center gap-1.5 px-4 py-2 bg-white text-text-secondary border border-border-light rounded-lg font-bold text-sm hover:bg-slate-50 hover:text-text-main transition-colors"
                 >
-                  <span class="material-symbols-outlined text-base">notifications_off</span>
-                  Disable
+                  <Icon name="mail" size={18}/>
+                  Nonaktifkan
                 </button>
               </form>
             )}
@@ -211,7 +205,7 @@ export const AdminMemberDetailPage: FC<{
         {/* Today's progress */}
         <div class="w-full bg-white border border-border-light rounded-xl p-6 mb-6">
           <h2 class="text-text-main font-bold mb-4 flex items-center gap-2">
-            <span class="material-symbols-outlined text-primary text-xl">today</span>
+            <Icon name="calendar" size={18}/>
             {t(lang, "todayProgressLabel")}
             <span class="text-xs font-normal text-text-secondary ml-auto">{todayWib}</span>
           </h2>
@@ -222,7 +216,7 @@ export const AdminMemberDetailPage: FC<{
                 <div class="flex items-center justify-between mb-2">
                   <span class="text-sm font-semibold text-text-main">Tilawah</span>
                   <span class="text-sm font-semibold text-text-secondary">
-                    {formatJuz(todayTilawah, lang)} / {target.tilawah_juz_daily} juz
+                    {formatJuz(todayTilawah, lang)} / {formatJuz(target.tilawah_juz_daily, lang)}
                   </span>
                 </div>
                 <div class="w-full h-3 rounded-full bg-slate-100 border border-slate-200 overflow-hidden">
@@ -242,7 +236,7 @@ export const AdminMemberDetailPage: FC<{
                 <div class="flex items-center justify-between mb-2">
                   <span class="text-sm font-semibold text-text-main">Murojaah</span>
                   <span class="text-sm font-semibold text-text-secondary">
-                    {formatJuz(todayMurojaah, lang)} / {target.murojaah_juz_daily} juz
+                    {formatJuz(todayMurojaah, lang)} / {formatJuz(target.murojaah_juz_daily, lang)}
                   </span>
                 </div>
                 <div class="w-full h-3 rounded-full bg-slate-100 border border-slate-200 overflow-hidden">
@@ -264,7 +258,7 @@ export const AdminMemberDetailPage: FC<{
         </div>
 
         {/* Stats row */}
-        <div class="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mb-6">
+        <div class="w-full admin-stat-grid grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mb-6">
           <div class="bg-white border border-border-light rounded-xl p-4 text-center">
             <p class="text-text-secondary text-xs font-medium mb-1">{t(lang, "streakLabel")}</p>
             <p class="text-2xl font-black text-orange-500">{streak.current_streak}</p>
@@ -284,12 +278,12 @@ export const AdminMemberDetailPage: FC<{
           <div class="bg-white border border-border-light rounded-xl p-4 text-center">
             <p class="text-text-secondary text-xs font-medium mb-1">Tilawah</p>
             <p class="text-2xl font-black text-text-main">{activityTotals.tilawahJuz}</p>
-            <p class="text-xs text-text-secondary">{t(lang, "juz")} all-time</p>
+            <p class="text-xs text-text-secondary">{t(lang, "juz")} total</p>
           </div>
           <div class="bg-white border border-border-light rounded-xl p-4 text-center">
             <p class="text-text-secondary text-xs font-medium mb-1">Murojaah</p>
             <p class="text-2xl font-black text-amber-500">{activityTotals.murojaahJuz}</p>
-            <p class="text-xs text-text-secondary">{t(lang, "juz")} all-time</p>
+            <p class="text-xs text-text-secondary">{t(lang, "juz")} total</p>
           </div>
           <div class="bg-white border border-border-light rounded-xl p-4 text-center">
             <p class="text-text-secondary text-xs font-medium mb-1">Khatam</p>
@@ -301,15 +295,15 @@ export const AdminMemberDetailPage: FC<{
         {/* Daily target info */}
         {target && (
           <div class="w-full bg-slate-50 border border-border-light rounded-xl px-6 py-4 mb-6 flex items-center gap-6">
-            <span class="material-symbols-outlined text-text-secondary text-xl">tune</span>
-            <div class="flex items-center gap-8 text-sm">
+            <Icon name="target" size={18}/>
+            <div class="admin-target-info flex items-center gap-8 text-sm">
               <div>
                 <span class="text-text-secondary">{t(lang, "dailyTargetInfo")} </span>
-                <span class="font-bold text-text-main">{target.tilawah_juz_daily} {t(lang, "juz")}</span>
+                <span class="font-bold text-text-main">{formatJuz(target.tilawah_juz_daily, lang)}</span>
               </div>
               <div>
                 <span class="text-text-secondary">{t(lang, "dailyMurojaahInfo")} </span>
-                <span class="font-bold text-text-main">{target.murojaah_juz_daily} {t(lang, "juz")}</span>
+                <span class="font-bold text-text-main">{formatJuz(target.murojaah_juz_daily, lang)}</span>
               </div>
             </div>
           </div>
@@ -320,7 +314,7 @@ export const AdminMemberDetailPage: FC<{
           <div class="w-full bg-white border border-border-light rounded-xl overflow-hidden mb-6">
             <div class="px-6 py-4 border-b border-border-light bg-slate-50/50">
               <h2 class="text-text-main font-bold flex items-center gap-2">
-                <span class="material-symbols-outlined text-primary text-xl">menu_book</span>
+                <Icon name="book" size={18}/>
                 {t(lang, "khatamHistory")}
                 <span class="text-xs font-normal text-text-secondary ml-auto">{khatamEvents.length}x</span>
               </h2>
@@ -339,7 +333,7 @@ export const AdminMemberDetailPage: FC<{
         <div class="w-full bg-white border border-border-light rounded-xl overflow-hidden">
           <div class="px-6 py-4 border-b border-border-light bg-slate-50/50">
             <h2 class="text-text-main font-bold flex items-center gap-2">
-              <span class="material-symbols-outlined text-primary text-xl">history</span>
+              <Icon name="clock" size={18}/>
               {t(lang, "activityLog")}
               <span class="text-xs font-normal text-text-secondary ml-auto">{t(lang, "last30entries")}</span>
             </h2>
@@ -388,7 +382,7 @@ export const AdminMemberDetailPage: FC<{
               onclick="logChangePage(-1)"
               class="text-xs font-semibold px-3 py-1.5 rounded-lg border border-border-light bg-white text-text-secondary hover:text-primary hover:border-primary/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              ← Prev
+              ← Sebelumnya
             </button>
             <span id="log-page-info" class="text-xs text-text-secondary" />
             <button
@@ -397,7 +391,7 @@ export const AdminMemberDetailPage: FC<{
               onclick="logChangePage(1)"
               class="text-xs font-semibold px-3 py-1.5 rounded-lg border border-border-light bg-white text-text-secondary hover:text-primary hover:border-primary/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Next →
+              Berikutnya →
             </button>
           </div>
         </div>
@@ -416,8 +410,8 @@ function logApplyPagination() {
   });
   var ctrl = document.getElementById('log-page-ctrl');
   if (ctrl) {
-    ctrl.style.display = totalPages > 1 ? '' : 'none';
-    document.getElementById('log-page-info').textContent = 'Page ' + logCurrentPage + ' of ' + totalPages;
+    ctrl.style.display = totalPages > 1 ? 'flex' : 'none';
+    document.getElementById('log-page-info').textContent = 'Halaman ' + logCurrentPage + ' dari ' + totalPages;
     document.getElementById('log-prev').disabled = logCurrentPage <= 1;
     document.getElementById('log-next').disabled = logCurrentPage >= totalPages;
   }
@@ -428,16 +422,11 @@ function logChangePage(delta) {
   logApplyPagination();
 }
 
-document.addEventListener('submit', function(e) {
-  var form = e.target;
-  if (!form || !form.dataset || !form.dataset.confirm) return;
-  if (!window.confirm(form.dataset.confirm)) e.preventDefault();
-});
 
 logApplyPagination();
         `}} />
 
-      </main>
-    </Layout>
+      </div>
+    </AdminLayout>
   );
 };

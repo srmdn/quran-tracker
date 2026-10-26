@@ -18,11 +18,7 @@ import { getUserActivityTotals, getCurrentMonthUserActivityRank } from "../lib/a
 import { AdminPage } from "../views/pages/AdminPage.tsx";
 import { AdminMemberDetailPage } from "../views/pages/AdminMemberDetailPage.tsx";
 import { AdminEditMemberPage } from "../views/pages/AdminEditMemberPage.tsx";
-import { AdminEnrollmentsPage } from "../views/pages/AdminEnrollmentsPage.tsx";
-import { AdminEnrollmentDetailPage } from "../views/pages/AdminEnrollmentDetailPage.tsx";
 import { AdminEmailLogPage } from "../views/pages/AdminEmailLogPage.tsx";
-import type { EnrollmentRow } from "../views/pages/AdminEnrollmentsPage.tsx";
-import type { Enrollment } from "../views/pages/AdminEnrollmentDetailPage.tsx";
 import type { EmailLogRow } from "../views/pages/AdminEmailLogPage.tsx";
 import { toWib } from "../views/pages/AdminEmailLogPage.tsx";
 import type { RecentLogEntry } from "../routes/dashboard.tsx";
@@ -678,81 +674,6 @@ admin.post("/email-log/:id/resend", async (c) => {
   }
 
   return c.redirect("/admin/email-log?success=Email+resent+successfully.");
-});
-
-admin.get("/enrollments", (c) => {
-  const user = c.get("user");
-  const lang = c.get("lang");
-  const perPage = 20;
-  const requestedPage = parsePage(c.req.query("page"));
-  const statusFilter = c.req.query("status") || "pending";
-  const success = c.req.query("success") || "";
-  const error = c.req.query("error") || "";
-
-  const validStatuses = ["pending", "approved", "rejected", "all"];
-  const safeStatus = validStatuses.includes(statusFilter) ? statusFilter : "pending";
-
-  const where = safeStatus === "all" ? "" : "WHERE status = ?";
-  const args: (string | number)[] = safeStatus === "all" ? [] : [safeStatus];
-
-  const total = (db.prepare(`SELECT COUNT(*) AS cnt FROM enrollments ${where}`).get(...args) as { cnt: number }).cnt;
-  const totalPages = Math.max(1, Math.ceil(total / perPage));
-  const page = Math.min(requestedPage, totalPages);
-  const rows = db
-    .prepare(
-      `SELECT id, full_name, gender, whatsapp, program_type, quran_level, submitted_at, status FROM enrollments ${where} ORDER BY submitted_at DESC LIMIT ? OFFSET ?`
-    )
-    .all(...args, perPage, (page - 1) * perPage) as EnrollmentRow[];
-
-  return c.html(
-    <AdminEnrollmentsPage
-      user={user} lang={lang} rows={rows} total={total}
-      page={page} perPage={perPage} statusFilter={safeStatus}
-      success={success} error={error}
-    />
-  );
-});
-
-admin.post("/enrollments/bulk", async (c) => {
-  const fd = await c.req.formData();
-  const action = (fd.get("action") as string | null) || "";
-  const rawIds = fd.getAll("ids");
-  const ids = rawIds
-    .map((id) => parseInt(id as string, 10))
-    .filter((n) => Number.isFinite(n));
-
-  if (!["approve", "reject"].includes(action)) {
-    return c.redirect("/admin/enrollments?error=Invalid action.");
-  }
-  if (ids.length === 0) {
-    return c.redirect("/admin/enrollments?error=No enrollments selected.");
-  }
-
-  const placeholders = ids.map(() => "?").join(", ");
-  const newStatus = action === "approve" ? "approved" : "rejected";
-  db.prepare(
-    `UPDATE enrollments SET status = '${newStatus}' WHERE id IN (${placeholders}) AND status = 'pending'`
-  ).run(...ids);
-
-  const count = ids.length;
-  const verb = action === "approve" ? "approved" : "rejected";
-  return c.redirect(`/admin/enrollments?success=${count} enrollment${count !== 1 ? "s" : ""} ${verb}.&status=pending`);
-});
-
-admin.get("/enrollments/:id", (c) => {
-  const user = c.get("user");
-  const lang = c.get("lang");
-  const id = parseInt(c.req.param("id"), 10);
-  if (!Number.isInteger(id)) return c.redirect("/admin/enrollments?error=Invalid ID.");
-
-  const enrollment = db
-    .prepare("SELECT * FROM enrollments WHERE id = ?")
-    .get(id) as Enrollment | null;
-  if (!enrollment) return c.redirect("/admin/enrollments?error=Enrollment not found.");
-
-  return c.html(
-    <AdminEnrollmentDetailPage user={user} lang={lang} enrollment={enrollment} />
-  );
 });
 
 export { admin as adminRoutes };

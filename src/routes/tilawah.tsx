@@ -95,6 +95,10 @@ tilawah.get("/", (c) => {
     .prepare(`SELECT ${LOG_SELECT} FROM tilawah_logs WHERE user_id = ? ORDER BY created_at DESC LIMIT 1`)
     .get(user.id) as TilawahLog | null;
 
+  const lastPositionLog = db
+    .prepare(`SELECT ${LOG_SELECT} FROM tilawah_logs WHERE user_id = ? AND end_surah IS NOT NULL AND end_ayah IS NOT NULL ORDER BY date_wib DESC, created_at DESC, id DESC LIMIT 1`)
+    .get(user.id) as TilawahLog | null;
+
   const perPage = 15;
   const requestedPage = parsePage(c.req.query("page"));
   const totalLogs = (db.prepare("SELECT COUNT(*) AS cnt FROM tilawah_logs WHERE user_id = ?").get(user.id) as { cnt: number }).cnt;
@@ -128,7 +132,7 @@ tilawah.get("/", (c) => {
       todayWib={todayWib}
       todayTotal={todayTotal}
       target={target}
-      lastLog={lastLog}
+      lastLog={lastPositionLog ?? lastLog}
       recentLogs={recentLogs}
       allTimeJuz={allTimeTotals.tilawahJuz}
       thisMonthJuz={thisMonthJuz}

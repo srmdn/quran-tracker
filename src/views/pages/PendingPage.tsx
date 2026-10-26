@@ -1,4 +1,5 @@
 import type { FC } from "hono/jsx";
+import { PublicHeader } from "../components/PublicHeader.tsx";
 import { PublicLayout } from "../PublicLayout.tsx";
 import { CsrfInput } from "../components/CsrfInput.tsx";
 import { APP_NAME } from "../../config.ts";
@@ -8,15 +9,8 @@ import type { User } from "../../types.ts";
 
 export const PendingPage: FC<{ user: User; lang: Lang }> = ({ user, lang }) => {
   return (
-    <PublicLayout title={`${t(lang, "awaitingApproval")} | ${APP_NAME}`} lang={lang}>
-      <header class="marketing-header">
-        <div class="container">
-          <a class="brand" href="/landing" aria-label={APP_NAME}>
-            <img src="/public/logo-128.png" alt="" width="34" height="34" />
-            <span>{APP_NAME}</span>
-          </a>
-        </div>
-      </header>
+    <PublicLayout visual title={`${t(lang, "awaitingApproval")} | ${APP_NAME}`} lang={lang}>
+      <PublicHeader lang={lang} showLogin={false}/>
 
       <main class="status-page" id="main">
         <div class="status-card">

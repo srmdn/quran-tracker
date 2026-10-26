@@ -1,6 +1,7 @@
 import type { FC } from "hono/jsx";
 import { MemberLayout } from "../MemberLayout.tsx";
 import { Icon } from "./Icon.tsx";
+import { ActivityHistory } from "./ActivityHistory.tsx";
 import { LogForm } from "./LogForm.tsx";
 import { SURAHS } from "../../data/quran-meta.ts";
 import { t, type Lang } from "../../lib/i18n.ts";
@@ -113,7 +114,7 @@ export const MemberLogPage: FC<{
   const cutoff = new Date(`${todayWib}T00:00:00Z`);
   cutoff.setUTCDate(cutoff.getUTCDate() - 6);
   const cutoffYmd = cutoff.toISOString().slice(0, 10);
-  const pageTitle = isTilawah ? t(lang, "logTilawahTitle") : t(lang, "logMurojaahTitle");
+  const pageTitle = isTilawah ? t(lang, "logTilawah") : t(lang, "logMurojaah");
   const pageSubtitle = isTilawah ? t(lang, "tilawahSubtitle") : t(lang, "murojaahSubtitle");
   const listTitle = isTilawah ? t(lang, "tilawahLogs") : t(lang, "murojaahLogs");
   const emptyText = isTilawah ? t(lang, "noTilawahYet") : t(lang, "noMurojaahYet");
@@ -225,7 +226,7 @@ export const MemberLogPage: FC<{
                 </div>
               </div>
               <div class="card-body">
-                <p class="small muted" style="margin-bottom:12px">{t(lang, "logCoverageHint")}</p>
+                <p class="small muted" style="margin-bottom:12px">{t(lang, "visualCoverageHint")}</p>
                 <div data-coverage-panel="month">
                   <JuzGrid coverage={coverage.month} />
                 </div>
@@ -257,7 +258,7 @@ export const MemberLogPage: FC<{
             )}
           </section>
 
-          <section class="side-note" style="border-color: rgba(184, 134, 47, 0.45); background: rgba(234, 216, 180, 0.18)">
+          <section class="side-note">
             <h3>{t(lang, "logEditWindowTitle")}</h3>
             <p>{t(lang, "logEditWindowText")}</p>
           </section>
@@ -280,36 +281,7 @@ export const MemberLogPage: FC<{
           <div class="card-body empty-state"><p>{emptyText}</p></div>
         ) : (
           <>
-            <div class="activity-list">
-              {recentLogs.map((log) => {
-                const canEdit = log.date_wib >= cutoffYmd;
-                return (
-                  <div class="activity-row">
-                    <div class={`activity-mark${isTilawah ? "" : " teal"}`}>
-                      <Icon name={isTilawah ? "book" : "repeat"} size={17} />
-                    </div>
-                    <div class="activity-main">
-                      <strong>
-                        {formatLogAmount(log.juz_amount, log.log_unit, log.log_amount, lang)}
-                        {log.repetition_count ? ` · ${log.repetition_count}x` : ""}
-                      </strong>
-                      <span>{positionText(log)}</span>
-                    </div>
-                    <div class="activity-side">
-                      <span class="activity-date">
-                        {shortDate(log.date_wib, lang)} · {wibTime(log.created_at)} WIB
-                        {log.updated_at ? ` · ${t(lang, "editedLabel")}` : ""}
-                      </span>
-                      {canEdit && (
-                        <a class="activity-edit" href={`/${kind}/logs/${log.id}/edit`} title={t(lang, "editEntry")}>
-                          {t(lang, "editEntry")}
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            <ActivityHistory logs={recentLogs.map(log=>({...log,type:kind}))} todayWib={todayWib} lang={lang} removable />
             {totalPages > 1 && (
               <div class="pager">
                 <div>

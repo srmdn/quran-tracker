@@ -91,11 +91,13 @@
         if (oldUnit !== unit) {
           var value = Number(input.value) || 0;
           input.value = unit === 'pages'
-            ? String(Math.max(1, Math.round(value * 20)))
-            : String(Math.max(1, Math.round(value / 20)));
+            ? String(Math.max(0.01, Number((value * (604 / 30)).toFixed(2))))
+            : String(Math.max(0.01, Number((value / (604 / 30)).toFixed(2))));
         }
         hidden.value = unit;
         input.max = unit === 'pages' ? '604' : '30';
+        input.min = '0.01';
+        input.step = '0.01';
         suffix.textContent = unit === 'pages' ? pagesSuffix : juzSuffix;
         Array.prototype.forEach.call(
           modal.querySelectorAll('[data-target-field="' + field + '"]'),
@@ -178,10 +180,13 @@
     var presets = form.querySelectorAll('[data-log-preset]');
     var unitJuz = form.getAttribute('data-unit-juz') || 'juz';
     var unitPages = form.getAttribute('data-unit-pages') || 'pages';
+    var hint = form.querySelector('[data-log-hint]');
+    var defaultHint = hint ? hint.textContent : '';
     if (!mode || !amount || !pagesWhole || !summaryAmount || !summaryEquivalent) return;
 
     function formatAmount(value) {
-      return Number.isInteger(value) ? String(value) : String(value).replace('.5', '½');
+      if (value % 1 === 0.5) return String(Math.floor(value)) + '½';
+      return new Intl.NumberFormat(document.documentElement.lang || 'id', { maximumFractionDigits: 2 }).format(value);
     }
 
     function currentValue() {
@@ -199,24 +204,29 @@
         ? formatAmount(value) + ' ' + unitPages
         : formatAmount(value) + ' ' + unitJuz;
       summaryEquivalent.textContent = isPages
-        ? (value / 20).toFixed(2) + ' ' + unitJuz
-        : Math.round(value * 20) + ' ' + unitPages;
+        ? (value / (604 / 30)).toFixed(2) + ' ' + unitJuz
+        : formatAmount(value * (604 / 30)) + ' ' + unitPages;
     }
 
     function setMode(next, convert) {
       if (next !== 'pages' && next !== 'juz') return;
+      if (hint) hint.textContent = defaultHint;
       if (convert && next !== mode.value) {
+        if (hint) hint.textContent += ' ' + (form.getAttribute(next === 'pages' ? 'data-unit-conversion-note' : 'data-juz-unit-note') || '');
         if (next === 'pages') {
-          pagesWhole.value = String(Math.max(1, Math.round((Number(amount.value) || 0) * 20)));
-          if (pagesHalf) pagesHalf.checked = false;
+          var converted = Math.round((Number(amount.value) || 0) * (604 / 30) * 2) / 2;
+          pagesWhole.value = String(Math.floor(converted));
+          if (pagesHalf) pagesHalf.checked = converted % 1 >= 0.5;
         } else {
-          var pages = Number(pagesWhole.value) || 0;
-          amount.value = String(Math.max(1, Math.round(pages / 20)));
+          var pages = (Number(pagesWhole.value) || 0) + (pagesHalf && pagesHalf.checked ? 0.5 : 0);
+          amount.value = pages > 0 ? String(Number((pages / (604 / 30)).toFixed(6))) : '';
         }
       }
       mode.value = next;
       juzFields.hidden = next !== 'juz';
       pagesFields.hidden = next !== 'pages';
+      var amountLabel = form.querySelector('label[for="' + amount.id + '"], label[for="' + pagesWhole.id + '"]');
+      if (amountLabel) amountLabel.htmlFor = next === 'pages' ? pagesWhole.id : amount.id;
       Array.prototype.forEach.call(unitButtons, function (button) {
         button.setAttribute('aria-pressed', button.getAttribute('data-log-unit') === next ? 'true' : 'false');
       });
@@ -283,5 +293,45 @@
       });
     });
     show('month');
+  });
+})();
+
+/* Existing server routes remain authoritative for dates, positions and ownership. */
+(function () {
+  'use strict';
+  document.addEventListener('submit', function (event) {
+    var form = event.target;
+    if (form instanceof HTMLFormElement && form.hasAttribute('data-confirm') && !window.confirm(form.getAttribute('data-confirm'))) event.preventDefault();
+  });
+  document.querySelectorAll('[data-log-form]').forEach(function (form) {
+    function ayahLimit(prefix) {
+      var select = form.querySelector('[name="' + prefix + '_surah"]');
+      var input = form.querySelector('[name="' + prefix + '_ayah"]');
+      if (!select || !input) return;
+      var option = select.options[select.selectedIndex];
+      var limit = option && option.getAttribute('data-total-ayahs');
+      if (limit) input.max = limit; else input.removeAttribute('max');
+    }
+    ['start','end'].forEach(function (prefix) {
+      var select = form.querySelector('[name="' + prefix + '_surah"]');
+      if (select) select.addEventListener('change', function () { ayahLimit(prefix); });
+      ayahLimit(prefix);
+    });
+    var next = form.querySelector('[data-continue-surah]');
+    if (!next) return;
+    next.addEventListener('click', function () {
+      var select = form.querySelector('[name="start_surah"]');
+      var ayah = form.querySelector('[name="start_ayah"]');
+      if (!select || !ayah) return;
+      var surah = Number(next.getAttribute('data-continue-surah'));
+      var verse = Number(next.getAttribute('data-continue-ayah'));
+      var option = Array.from(select.options).find(function (item) { return Number(item.value) === surah; });
+      if (!option) return;
+      if (verse < Number(option.getAttribute('data-total-ayahs'))) verse += 1;
+      else { if (surah >= 114) return; surah += 1; verse = 1; }
+      select.value = String(surah); ayah.value = String(verse); ayahLimit('start');
+      var ending = form.querySelector('[name="end_surah"]');
+      if (ending) ending.focus();
+    });
   });
 })();

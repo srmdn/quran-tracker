@@ -1,3 +1,5 @@
+import { ActivityHistory } from "../components/ActivityHistory.tsx";
+import { JuzCoverage } from "../components/JuzCoverage.tsx";
 import { CsrfInput } from "../components/CsrfInput.tsx";
 import type { FC } from "hono/jsx";
 import { MemberLayout } from "../MemberLayout.tsx";
@@ -49,7 +51,7 @@ function targetValue(target: UserTarget | null, kind: "tilawah" | "murojaah"): {
   const juz = kind === "tilawah" ? target.tilawah_juz_daily : target.murojaah_juz_daily;
   return {
     unit,
-    value: unit === "pages" ? pagesFromJuz(juz) : Math.round(juz),
+    value: unit === "pages" ? Math.round(juz * PAGES_PER_JUZ * 100) / 100 : Math.round(juz * 100) / 100,
   };
 }
 
@@ -89,303 +91,78 @@ export const DashboardPage: FC<{
   hasTodayLog: boolean;
   success?: string;
   error?: string;
-}> = ({
-  user,
-  lang,
-  todayWib,
-  target,
-  todayTilawah,
-  todayMurojaah,
-  streak,
-  activityTotals,
-  monthlyRank,
-  heatmap,
-  heatmapYear,
-  heatmapYears,
-  recentLogs,
-  fastabiqEntry,
-  totalKhatam,
-  totalActiveUsers,
-  freezeCreditsLeft,
-  todayFrozen,
-  hasTodayLog,
-  success,
-  error,
-}) => {
-  const firstName = user.name.split(" ")[0];
+
+  view: "today" | "progress" | "history";
+  kind: "tilawah" | "murojaah";
+  coverage: Record<number, number>;
+  week: { date: string; tilawah: number; murojaah: number }[];
+  lastPositions: RecentLogEntry[];
+  historyCount: number;
+  historyPage: number;
+  historyFilter: "all" | "tilawah" | "murojaah";
+}> = (props) => {
+  const {user, lang, todayWib, target, todayTilawah, todayMurojaah, streak,
+    activityTotals, monthlyRank, heatmap, heatmapYear, heatmapYears, recentLogs,
+    fastabiqEntry, totalKhatam, totalActiveUsers, freezeCreditsLeft, todayFrozen,
+    hasTodayLog, success, error, view, kind, coverage, week, lastPositions,
+    historyCount, historyPage, historyFilter} = props;
   const needsTarget = !target;
-  const dateLabel = longDate(todayWib, lang);
-  const tilawahPercent = target
-    ? Math.min(100, Math.round((todayTilawah / target.tilawah_juz_daily) * 100))
-    : 0;
-  const murojaahPercent = target
-    ? Math.min(100, Math.round((todayMurojaah / target.murojaah_juz_daily) * 100))
-    : 0;
-  const khatamPercent = Math.min(100, Math.round((activityTotals.progressToNextKhatam / 30) * 100));
-  const khatamRemaining = Math.max(0, 30 - activityTotals.progressToNextKhatam);
-  const lastPosition = recentLogs.find((log) => log.end_surah && log.end_ayah && log.end_juz);
-  const lastSurah = lastPosition?.end_surah
-    ? SURAHS.find((surah) => surah.number === lastPosition.end_surah)
-    : null;
-  const editCutoff = new Date(`${todayWib}T00:00:00Z`);
-  editCutoff.setUTCDate(editCutoff.getUTCDate() - 6);
-  const editCutoffYmd = editCutoff.toISOString().slice(0, 10);
-  const activeDays = heatmap.filter((cell) => cell.count > 0).length;
-  const targetMetDays = heatmap.filter((cell) => cell.state === "met").length;
-  const yearJuz = heatmap.reduce((sum, cell) => sum + cell.count, 0);
-  const currentYear = Number(todayWib.slice(0, 4));
-  const focusDate = heatmapYear === currentYear ? todayWib : `${heatmapYear}-12-31`;
-  const firstFocusIndex = heatmap.findIndex((cell) => cell.date === focusDate);
-  const firstDayIndex = heatmap.findIndex((cell) => cell.state !== "filler");
-  const focusIndex = firstFocusIndex >= 0 ? firstFocusIndex : firstDayIndex;
-  const detailDays = heatmap
-    .filter((cell) => cell.state !== "filler" && cell.date <= todayWib)
-    .slice(-14);
   const tilawahTarget = targetValue(target, "tilawah");
   const murojaahTarget = targetValue(target, "murojaah");
-  const tilawahRemaining = target ? Math.max(0, target.tilawah_juz_daily - todayTilawah) : 0;
-  const murojaahRemaining = target ? Math.max(0, target.murojaah_juz_daily - todayMurojaah) : 0;
-  const tilawahOver = target ? Math.max(0, todayTilawah - target.tilawah_juz_daily) : 0;
-  const murojaahOver = target ? Math.max(0, todayMurojaah - target.murojaah_juz_daily) : 0;
-
-  function targetLabel(unit: TargetUnit, juz: number): string {
-    return unit === "pages"
-      ? `${pagesFromJuz(juz)} ${t(lang, "inputModePages")}`
-      : `${Math.round(juz)} ${t(lang, "inputModeJuz")}`;
+  const activeDays = heatmap.filter(cell => cell.count > 0).length;
+  const targetMetDays = heatmap.filter(cell => cell.state === "met").length;
+  const yearJuz = heatmap.reduce((sum,cell)=>sum+cell.count,0);
+  const focusDate = heatmapYear === Number(todayWib.slice(0,4)) ? todayWib : `${heatmapYear}-12-31`;
+  const focusIndex = Math.max(0,heatmap.findIndex(cell=>cell.date===focusDate));
+  const detailDays = heatmap.filter(cell=>cell.state!=="filler" && cell.date<=todayWib).slice(-14);
+  const khatamPercent = Math.min(100,Math.round(activityTotals.progressToNextKhatam/30*100));
+  const khatamRemaining = Math.max(0,30-activityTotals.progressToNextKhatam);
+  const total = kind === "tilawah" ? todayTilawah : todayMurojaah;
+  const goal = target ? (kind === "tilawah" ? target.tilawah_juz_daily : target.murojaah_juz_daily) : 0;
+  const unit = kind === "tilawah" ? tilawahTarget.unit : murojaahTarget.unit;
+  const percent = goal > 0 ? Math.min(100,Math.round(total/goal*100)) : 0;
+  const other = kind === "tilawah" ? "murojaah" : "tilawah";
+  const otherTotal = other === "tilawah" ? todayTilawah : todayMurojaah;
+  const otherGoal = target ? (other === "tilawah" ? target.tilawah_juz_daily : target.murojaah_juz_daily) : 0;
+  const otherUnit = other === "tilawah" ? tilawahTarget.unit : murojaahTarget.unit;
+  const position = lastPositions.find(log=>log.type===kind);
+  const lastSurah = SURAHS.find(s=>s.number===position?.end_surah);
+  const currentPath = view === "today" ? "/dashboard" : `/dashboard/${view}`;
+  const title = t(lang,view === "today" ? "visualTodayTitle" : view === "progress" ? "visualNavProgress" : "visualHistoryTitle");
+  function amount(juz:number, selected:TargetUnit) {
+    return new Intl.NumberFormat("id-ID",{maximumFractionDigits:2}).format(selected === "pages" ? juz*PAGES_PER_JUZ : juz);
   }
-
-  function progressLeft(juz: number): string {
-    return `${t(lang, "memberLogged")} ${formatJuz(juz, lang)}`;
-  }
-
-  function progressRight(juz: number, over: number): string {
-    if (juz <= 0 && over <= 0) return t(lang, "targetMet");
-    if (juz <= 0) return `${t(lang, "memberTargetExceeded")} ${formatJuz(over, lang)}`;
-    return `${formatJuz(juz, lang)} ${t(lang, "toGo")}`;
-  }
-
-  return (
-    <MemberLayout
-      title={t(lang, "memberNavToday")}
-      description={t(lang, "memberDashboardLead")}
-      user={user}
-      lang={lang}
-      currentPath="/dashboard"
-      showTargetButton
-    >
-      <div class="page-head reveal">
-        <div>
-          <p class="eyebrow">Markaz Talaqqi</p>
-          <h1>Assalamu'alaikum, {firstName}.</h1>
-          <p>{t(lang, "memberDashboardLead")}</p>
+  const historyUrl=(filter:string,page=1)=>`/dashboard/history?kind=${filter}&page=${page}`;
+  return <MemberLayout title={title} user={user} lang={lang} currentPath={currentPath} showTargetButton>
+    <div class="page-head"><div><p class="eyebrow">{longDate(todayWib,lang)}</p><h1>{title}</h1><p>{user.name.split(" ")[0]} · {t(lang,"visualDashboardLead")}</p></div></div>
+    {success && <div class="alert alert-success" role="status">{success}</div>}
+    {error && <div class="alert alert-error" role="alert">{error}</div>}
+    {view === "today" && <div class="visual-dashboard">
+      <section class="visual-hero" aria-label={t(lang,"todayProgress")}>
+        <div class="hero-types" aria-label={t(lang,"logPageEyebrow")}>
+          <a href="/dashboard?kind=tilawah" aria-current={kind==="tilawah"?"true":undefined}><Icon name="book" size={15}/>Tilawah</a>
+          <a href="/dashboard?kind=murojaah" aria-current={kind==="murojaah"?"true":undefined}><Icon name="repeat" size={15}/>Murojaah</a>
         </div>
-        <span class="date-chip">
-          <Icon name="calendar" size={14} />
-          {dateLabel}
-        </span>
-      </div>
-
-      {success && <div class="alert alert-success" role="status">{success}</div>}
-      {error && <div class="alert alert-error" role="alert">{error}</div>}
-
-      <div class="dash-grid">
-        <div class="stack">
-          <section class="today-card reveal reveal-delay-1" aria-labelledby="today-title">
-            <div class="today-head">
-              <div>
-                <h2 id="today-title">{t(lang, "memberTodayTitle")}</h2>
-                <p>{t(lang, "memberTodayLead")}</p>
-              </div>
-              {freezeCreditsLeft > 0 && !todayFrozen && (
-                <span class="freeze-pill">
-                  <Icon name="snow" size={14} />
-                  {freezeCreditsLeft} {t(lang, "freezeCreditsLeft")}
-                </span>
-              )}
-              {todayFrozen && (
-                <span class="freeze-pill">
-                  <Icon name="snow" size={14} />
-                  {t(lang, "memberFrozenToday")}
-                </span>
-              )}
-            </div>
-
-            {target ? (
-              <>
-                <div class="progress-grid">
-                  <div class="progress-item">
-                    <div class="progress-label">
-                      <span>Tilawah</span>
-                      <span class="tabular">
-                        {formatJuz(todayTilawah, lang)} / {targetLabel(tilawahTarget.unit, target.tilawah_juz_daily)}
-                      </span>
-                    </div>
-                    <div
-                      class="progress-track"
-                      role="progressbar"
-                      aria-label={`Tilawah ${t(lang, "todayProgress")}`}
-                      aria-valuemin="0"
-                      aria-valuemax="100"
-                      aria-valuenow={String(tilawahPercent)}
-                    >
-                      <div
-                        class={`progress-fill${tilawahPercent >= 100 ? " teal" : ""}`}
-                        style={`width:${tilawahPercent}%`}
-                      />
-                    </div>
-                    <div class="progress-meta">
-                      <span>{progressLeft(todayTilawah)}</span>
-                      <span>{progressRight(tilawahRemaining, tilawahOver)}</span>
-                    </div>
-                  </div>
-
-                  <div class="progress-item">
-                    <div class="progress-label">
-                      <span>Murojaah</span>
-                      <span class="tabular">
-                        {formatJuz(todayMurojaah, lang)} / {targetLabel(murojaahTarget.unit, target.murojaah_juz_daily)}
-                      </span>
-                    </div>
-                    <div
-                      class="progress-track"
-                      role="progressbar"
-                      aria-label={`Murojaah ${t(lang, "todayProgress")}`}
-                      aria-valuemin="0"
-                      aria-valuemax="100"
-                      aria-valuenow={String(murojaahPercent)}
-                    >
-                      <div
-                        class={`progress-fill${murojaahPercent >= 100 ? " teal" : ""}`}
-                        style={`width:${murojaahPercent}%`}
-                      />
-                    </div>
-                    <div class="progress-meta">
-                      <span>{progressLeft(todayMurojaah)}</span>
-                      <span>{progressRight(murojaahRemaining, murojaahOver)}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="today-actions">
-                  <a class="btn btn-primary" href="/tilawah">
-                    <Icon name="book" size={17} />
-                    {t(lang, "memberContinueTilawah")}
-                  </a>
-                  <a class="btn btn-secondary" href="/murojaah">
-                    <Icon name="repeat" size={17} />
-                    {t(lang, "memberRecordMurojaah")}
-                  </a>
-                </div>
-              </>
-            ) : (
-              <div class="today-empty">
-                <p>{t(lang, "memberNoTarget")}</p>
-                <button class="btn btn-primary" type="button" data-target-open>
-                  <Icon name="target" size={17} />
-                  {t(lang, "memberSetTarget")}
-                </button>
-              </div>
-            )}
-          </section>
-
-          <div class="last-position reveal reveal-delay-2">
-            <div class="icon-wrap">
-              <Icon name="book" size={18} />
-            </div>
-            <div>
-              <h3>{t(lang, "memberLastPosition")}</h3>
-              {lastPosition && lastSurah ? (
-                <>
-                  <p>
-                    <strong>Juz {lastPosition.end_juz}</strong> · {lastSurah.name} ayat {lastPosition.end_ayah}
-                  </p>
-                  <p class="small">{t(lang, "loggedOn")} {longDate(lastPosition.date_wib, lang)}</p>
-                </>
-              ) : (
-                <p class="small">{t(lang, "memberNoPositionYet")}</p>
-              )}
-            </div>
+        {target ? <>
+          <div class="hero-progress-row"><div><div class={`hero-number${amount(total,unit).length>4?" is-long":""}`}>{amount(total,unit)}<small>/ {amount(goal,unit)}</small></div><p class="hero-caption">{t(lang,unit==="pages"?"inputModePages":"inputModeJuz")} {kind} · {t(lang,"memberNavToday")}</p><p class="hero-note">{total>=goal ? t(lang,"targetMet") : `${amount(goal-total,unit)} ${t(lang,unit==="pages"?"inputModePages":"inputModeJuz")} ${t(lang,"toGo")}`}</p></div>
+            <div class="visual-ring" role="img" aria-label={`${kind}: ${percent}%`}><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="40"/><circle cx="50" cy="50" r="40" class="ring-amount" stroke-dasharray={`${percent*2.513} 251.3`}/></svg><strong>{percent}%</strong></div>
           </div>
-
-          <div class="stats-grid reveal reveal-delay-2">
-            <a class="stat-card" href="/activity/leaderboard">
-              <span>{t(lang, "monthRank")}</span>
-              <strong class="tabular">{monthlyRank ? `#${monthlyRank.rank}` : "-"}</strong>
-              <small>{t(lang, "of")} {totalActiveUsers}</small>
-            </a>
-            <div class="stat-card">
-              <span>{t(lang, "monthScore")}</span>
-              <strong class="tabular">{monthlyRank?.score ?? 0}</strong>
-              <small>{t(lang, "ptsLabel")}</small>
-            </div>
-            <div class="stat-card">
-              <span>{t(lang, "totalKhatam")}</span>
-              <strong class="tabular">{totalKhatam}</strong>
-              <small>{t(lang, "times")}</small>
-            </div>
-            <div class="stat-card">
-              <span>{t(lang, "bestStreakLabel")}</span>
-              <strong class="tabular">{streak.longest_streak}</strong>
-              <small>{t(lang, "days")}</small>
-            </div>
-          </div>
-
-          <section class="card reveal reveal-delay-3" aria-labelledby="activity-title">
-            <div class="card-head">
-              <h2 id="activity-title">{t(lang, "recentActivity")}</h2>
-              <div class="card-links">
-                <a href="/tilawah">{t(lang, "allTilawah")}</a>
-                <a href="/murojaah">{t(lang, "allMurojaah")}</a>
-              </div>
-            </div>
-            {recentLogs.length === 0 ? (
-              <div class="card-body empty-state">
-                <p>{t(lang, "memberRecentEmpty")}</p>
-                <a class="btn btn-primary btn-sm" href="/tilawah">{t(lang, "logTilawah")}</a>
-              </div>
-            ) : (
-              <div class="activity-list">
-                {recentLogs.map((log) => {
-                  const surahName = log.end_surah
-                    ? SURAHS.find((surah) => surah.number === log.end_surah)?.name
-                    : null;
-                  const isTilawah = log.type === "tilawah";
-                  const canEdit = log.date_wib >= editCutoffYmd;
-                  return (
-                    <div class="activity-row">
-                      <div class={`activity-mark${isTilawah ? "" : " teal"}`}>
-                        <Icon name={isTilawah ? "book" : "repeat"} size={17} />
-                      </div>
-                      <div class="activity-main">
-                        <strong>
-                          {formatLogAmount(log.juz_amount, log.log_unit, log.log_amount, lang)}
-                          {log.repetition_count ? ` · ${log.repetition_count}x` : ""}
-                        </strong>
-                        <span>
-                          {surahName && log.end_juz && log.end_ayah
-                            ? `${t(lang, "endedAt")} Juz ${log.end_juz} · ${surahName}: ${log.end_ayah}`
-                            : t(lang, "memberLogged")}
-                        </span>
-                      </div>
-                      <div class="activity-side">
-                        <span class="activity-date">{shortDate(log.date_wib, lang)}</span>
-                        {canEdit && (
-                          <a class="activity-edit" href={`/${log.type}/logs/${log.id}/edit`}>
-                            {t(lang, "memberEdit")}
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </section>
-
+          <div class="hero-secondary"><div><strong>{other === "tilawah"?"Tilawah":"Murojaah"}</strong><span>{amount(otherTotal,otherUnit)} / {amount(otherGoal,otherUnit)} {t(lang,otherUnit==="pages"?"inputModePages":"inputModeJuz")}</span></div><a class="btn hero-secondary-action" href={`/${other}`}><Icon name="plus" size={14}/>{t(lang,"visualNavLog")}</a></div>
+          <a class="btn hero-action" href={`/${kind}`}><Icon name="plus" size={17}/>{t(lang,kind==="tilawah"?"logTilawah":"logMurojaah")}</a>
+        </> : <div class="hero-empty"><h2>{t(lang,"memberNoTarget")}</h2><button class="btn hero-action" type="button" data-target-open>{t(lang,"memberSetTarget")}</button></div>}
+      </section>
+      <section class="visual-position"><Icon name="book" size={18}/><div><span>{t(lang,"memberLastPosition")} · {kind}</span><strong>{position && lastSurah ? `${lastSurah.name} · ayat ${position.end_ayah}` : t(lang,"memberNoPositionYet")}</strong>{position && <small>Juz {position.end_juz} · {shortDate(position.date_wib,lang)}</small>}</div></section>
+      <section class="card visual-coverage"><div class="card-head"><h2>{t(lang,"visualCoverageTitle")} · {kind}</h2><span class="small muted">{new Intl.DateTimeFormat("id-ID",{month:"long",timeZone:"UTC"}).format(new Date(todayWib+"T00:00:00Z"))}</span></div><div class="card-body"><JuzCoverage coverage={coverage} lang={lang}/></div></section>
+      <section class="card visual-week"><div class="card-head"><h2>{t(lang,"visualWeekTitle")}</h2><span class="small muted">{week.filter(d=>d.tilawah+d.murojaah>0).length} / 7 {t(lang,"days")}</span></div><div class="card-body"><div class="week-days">{week.map(day=><div><span>{new Intl.DateTimeFormat("id-ID",{weekday:"short",timeZone:"UTC"}).format(new Date(day.date+"T00:00:00Z"))}</span><span class={`week-day ${day.date===todayWib?"is-today":""} ${day.tilawah+day.murojaah>0?"has-log":""}`} role="img" aria-label={`${longDate(day.date,lang)}: ${formatJuz(day.tilawah+day.murojaah,lang)}`}>{day.tilawah+day.murojaah>0?<Icon name="check" size={15}/>:Number(day.date.slice(-2))}</span></div>)}</div><a class="week-detail" href="/dashboard/progress">{t(lang,"visualOpenProgress")} <Icon name="arrow" size={13}/></a></div></section>
+      <section class="card visual-recent"><div class="card-head"><h2>{t(lang,"recentActivity")}</h2><a class="text-link" href="/dashboard/history">{t(lang,"visualAllRecords")}</a></div><ActivityHistory logs={recentLogs.slice(0,4)} todayWib={todayWib} lang={lang}/></section>
+    </div>}
+    {view === "progress" && <div class="visual-progress-page">
+      <div class="stats-grid"><div class="stat-card"><span>{t(lang,"allTimeTilawah")}</span><strong>{formatJuz(activityTotals.tilawahJuz,lang)}</strong></div><div class="stat-card"><span>{t(lang,"allTimeMurojaah")}</span><strong>{formatJuz(activityTotals.murojaahJuz,lang)}</strong></div><div class="stat-card"><span>{t(lang,"totalKhatam")}</span><strong>{totalKhatam}</strong><small>{t(lang,"verifiedCompletions")}</small></div><a class="stat-card" href="/activity/leaderboard"><span>{t(lang,"monthRank")}</span><strong>{monthlyRank?`#${monthlyRank.rank}`:"-"}</strong><small>{t(lang,"of")} {totalActiveUsers}</small><small>{t(lang,"monthScore")}: {monthlyRank?.score ?? 0} {t(lang,"ptsLabel")}</small></a></div>
+      <div class="progress-layout"><div class="stack">
           <section class="card heatmap-card reveal reveal-delay-3" aria-labelledby="heatmap-title">
             <div class="card-head">
               <h2 id="heatmap-title">{t(lang, "memberYearRhythm")}</h2>
-              <form method="get" action="/dashboard" class="year-form">
+              <form method="get" action="/dashboard/progress" class="year-form">
                 <label class="sr-only" for="heatmap-year">{t(lang, "memberYear")}</label>
                 <select id="heatmap-year" name="year" onchange="this.form.submit()">
                   {heatmapYears.map((year) => (
@@ -455,9 +232,7 @@ export const DashboardPage: FC<{
               </div>
             </div>
           </section>
-        </div>
-
-        <aside class="side-stack">
+      </div><aside class="side-stack">
           <section class="streak-card reveal reveal-delay-2" aria-labelledby="streak-title">
             <div class="streak-top">
               <div class="streak-seal">
@@ -528,9 +303,10 @@ export const DashboardPage: FC<{
               </p>
             </div>
           </section>
-        </aside>
-      </div>
 
+      </aside></div>
+    </div>}
+    {view === "history" && <section class="card visual-history-page"><div class="card-head"><h2>{t(lang,"visualHistoryTitle")}</h2><span class="small muted">{historyCount} {t(lang,"entries")}</span></div><nav class="history-filters" aria-label={t(lang,"visualFilterRecords")}>{(["all","tilawah","murojaah"] as const).map(filter=><a href={historyUrl(filter)} aria-current={filter===historyFilter?"true":undefined}>{filter==="all"?t(lang,"visualAllKinds"):filter==="tilawah"?"Tilawah":"Murojaah"}</a>)}</nav><ActivityHistory logs={recentLogs} todayWib={todayWib} lang={lang} removable/>{historyCount>20 && <nav class="pager" aria-label={t(lang,"page")}>{historyPage>1?<a href={historyUrl(historyFilter,historyPage-1)}>{t(lang,"prev")}</a>:<span/>}<span>{t(lang,"page")} {historyPage} / {Math.ceil(historyCount/20)}</span>{historyPage<Math.ceil(historyCount/20)?<a href={historyUrl(historyFilter,historyPage+1)}>{t(lang,"next")}</a>:<span/>}</nav>}</section>}
       <div
         class="modal-backdrop"
         data-target-modal
@@ -581,8 +357,8 @@ export const DashboardPage: FC<{
                   type="number"
                   name="tilawah_juz_daily"
                   id="target-tilawah-input"
-                  min="1"
-                  step="1"
+                  min="0.01"
+                  step="0.01"
                   max={tilawahTarget.unit === "pages" ? 604 : 30}
                   value={tilawahTarget.value}
                   required
@@ -621,8 +397,8 @@ export const DashboardPage: FC<{
                   type="number"
                   name="murojaah_juz_daily"
                   id="target-murojaah-input"
-                  min="1"
-                  step="1"
+                  min="0.01"
+                  step="0.01"
                   max={murojaahTarget.unit === "pages" ? 604 : 30}
                   value={murojaahTarget.value}
                   required
@@ -646,6 +422,6 @@ export const DashboardPage: FC<{
           </form>
         </div>
       </div>
-    </MemberLayout>
-  );
+
+  </MemberLayout>;
 };

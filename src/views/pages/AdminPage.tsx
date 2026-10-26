@@ -1,9 +1,8 @@
 import { CsrfInput } from "../components/CsrfInput.tsx";
 import type { FC } from "hono/jsx";
-import { Layout } from "../Layout.tsx";
-import { Header } from "../components/Header.tsx";
+import { AdminLayout, adminRoleLabel } from "../AdminLayout.tsx";
+import { Icon } from "../components/Icon.tsx";
 import type { User } from "../../types.ts";
-import { APP_NAME } from "../../config.ts";
 import { isAdminRole, isSuperAdminRole } from "../../lib/roles.ts";
 import type { Lang } from "../../lib/i18n.ts";
 
@@ -13,12 +12,6 @@ const roleBadgeClass = (role: string) =>
     : ["member", "santri", "alumni", "asatidz"].includes(role)
       ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
       : "bg-amber-50 text-amber-600 border border-amber-200";
-
-const TABS = [
-  { label: "Members", href: "/admin", current: true },
-  { label: "Email Log", href: "/admin/email-log", current: false },
-  { label: "Enrollments", href: "/admin/enrollments", current: false },
-];
 
 export const AdminPage: FC<{
   user: User;
@@ -32,76 +25,59 @@ export const AdminPage: FC<{
   error?: string;
 }> = ({ user, lang, pendingUsers, allUsers, suspendedCount, emailsSentToday, emailsFailedToday, success, error }) => {
   return (
-    <Layout title={`Admin Panel - ${APP_NAME}`}>
-      <Header user={user} currentPath="/admin" lang={lang} />
-      <main class="flex-1 flex flex-col items-center w-full px-4 sm:px-6 lg:px-8 py-8 max-w-5xl mx-auto">
+    <AdminLayout title={"Anggota"} user={user} lang={lang}>
+      <div class="admin-content">
         <div class="w-full flex flex-col gap-2 mb-5">
-          <h1 class="text-text-main text-3xl font-black leading-tight tracking-[-0.033em]">Admin Panel</h1>
+          <h1 class="text-text-main text-3xl font-black leading-tight tracking-[-0.033em]">Anggota komunitas</h1>
           <p class="text-text-secondary text-base font-normal leading-normal">
-            Manage community members. Approve or reject new registrations.
+            Kelola akun, akses, dan aktivitas anggota komunitas.
           </p>
         </div>
 
-        {/* Tab nav */}
-        <nav class="w-full flex items-center gap-1 mb-6 border-b border-border-light">
-          {TABS.map((tab) => (
-            <a
-              href={tab.href}
-              class={`px-4 py-2.5 text-sm font-bold rounded-t-lg border-b-2 -mb-px transition-colors ${
-                tab.current
-                  ? "border-primary text-primary bg-primary-light/60"
-                  : "border-transparent text-text-secondary hover:text-primary hover:border-border-light"
-              }`}
-            >
-              {tab.label}
-            </a>
-          ))}
-        </nav>
-
         {success && (
-          <div class="w-full bg-emerald-50 text-emerald-700 text-sm px-4 py-3 rounded-lg mb-6 border border-emerald-200 flex items-center gap-2">
-            <span class="material-symbols-outlined text-lg">check_circle</span>
+          <div role="status" class="w-full bg-emerald-50 text-emerald-700 text-sm px-4 py-3 rounded-lg mb-6 border border-emerald-200 flex items-center gap-2">
+            <Icon name="check" size={18}/>
             {success}
           </div>
         )}
 
         {error && (
-          <div class="w-full bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg mb-6 border border-red-200 flex items-center gap-2">
-            <span class="material-symbols-outlined text-lg">error</span>
+          <div role="alert" class="w-full bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg mb-6 border border-red-200 flex items-center gap-2">
+            <Icon name="info" size={18}/>
             {error}
           </div>
         )}
 
         {/* Stats */}
-        <div class="w-full grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        <div class="w-full admin-stat-grid grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           <a href="#members" class="bg-white border border-border-light rounded-xl p-4 shadow-sm hover:border-primary/40 hover:shadow transition-shadow">
             <div class="flex items-center gap-2 mb-1.5">
-              <span class="material-symbols-outlined text-primary text-lg">group</span>
-              <span class="text-xs font-bold text-text-secondary uppercase tracking-wider">Members</span>
+              <Icon name="users" size={18}/>
+              <span class="text-xs font-bold text-text-secondary uppercase tracking-wider">Anggota</span>
             </div>
             <p class="text-text-main text-2xl font-black leading-none">{allUsers.length}</p>
           </a>
           <a href="#pending" class="bg-white border border-amber-200 rounded-xl p-4 shadow-sm hover:border-amber-400/60 hover:shadow transition-shadow">
             <div class="flex items-center gap-2 mb-1.5">
-              <span class="material-symbols-outlined text-amber-500 text-lg">hourglass_top</span>
-              <span class="text-xs font-bold text-text-secondary uppercase tracking-wider">Pending</span>
+              <Icon name="clock" size={18}/>
+              <span class="text-xs font-bold text-text-secondary uppercase tracking-wider">Menunggu</span>
             </div>
             <p class="text-text-main text-2xl font-black leading-none">{pendingUsers.length}</p>
           </a>
           <a href="#members" class="bg-white border border-red-200 rounded-xl p-4 shadow-sm hover:border-red-400/60 hover:shadow transition-shadow">
             <div class="flex items-center gap-2 mb-1.5">
-              <span class="material-symbols-outlined text-red-500 text-lg">block</span>
-              <span class="text-xs font-bold text-text-secondary uppercase tracking-wider">Suspended</span>
+              <Icon name="shield" size={18}/>
+              <span class="text-xs font-bold text-text-secondary uppercase tracking-wider">Dibatasi</span>
             </div>
             <p class="text-text-main text-2xl font-black leading-none">{suspendedCount}</p>
           </a>
           <a href="/admin/email-log" class="bg-white border border-emerald-200 rounded-xl p-4 shadow-sm hover:border-emerald-400/60 hover:shadow transition-shadow">
             <div class="flex items-center gap-2 mb-1.5">
-              <span class="material-symbols-outlined text-emerald-500 text-lg">mail</span>
-              <span class="text-xs font-bold text-text-secondary uppercase tracking-wider">Emails Today</span>
+              <Icon name="mail" size={18}/>
+              <span class="text-xs font-bold text-text-secondary uppercase tracking-wider">Email hari ini</span>
             </div>
             <p class="text-text-main text-2xl font-black leading-none">{emailsSentToday}</p>
-            {emailsFailedToday > 0 && <p class="text-xs text-red-500 mt-1 font-semibold">{emailsFailedToday} failed</p>}
+            {emailsFailedToday > 0 && <p class="text-xs text-red-500 mt-1 font-semibold">{emailsFailedToday} gagal</p>}
           </a>
         </div>
 
@@ -109,16 +85,16 @@ export const AdminPage: FC<{
         <div id="pending" class="w-full bg-white border border-amber-200 rounded-xl overflow-hidden shadow-sm mb-6">
           <div class="px-6 py-4 border-b border-amber-200 bg-amber-50/50">
             <h2 class="text-text-main text-lg font-bold flex items-center gap-2">
-              <span class="material-symbols-outlined text-amber-500">hourglass_top</span>
-              Pending Approvals ({pendingUsers.length})
+              <Icon name="clock" size={18}/>
+              Menunggu persetujuan ({pendingUsers.length})
             </h2>
           </div>
           {pendingUsers.length === 0 ? (
-            <p class="px-6 py-5 text-sm text-text-secondary">No pending registrations. All clear.</p>
+            <p class="px-6 py-5 text-sm text-text-secondary">Tidak ada akun yang menunggu persetujuan.</p>
           ) : (
             <div class="divide-y divide-border-light">
               {pendingUsers.map((u) => (
-                <div class="flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors">
+                <div class="admin-member-row flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors">
                   <div class="flex items-center gap-3 min-w-0">
                     {u.avatar_url ? (
                       <div
@@ -150,7 +126,7 @@ export const AdminPage: FC<{
                         type="submit"
                         class="px-4 py-2 bg-primary text-white rounded-lg font-bold text-sm hover:bg-primary-dark transition-colors shadow-sm"
                       >
-                        Approve
+                        Setujui
                       </button>
                     </form>
                     <form method="post" action={`/admin/users/${u.id}/reject`}>
@@ -159,7 +135,7 @@ export const AdminPage: FC<{
                         type="submit"
                         class="px-4 py-2 bg-white text-red-500 border border-red-200 rounded-lg font-bold text-sm hover:bg-red-50 transition-colors"
                       >
-                        Reject
+                        Tolak
                       </button>
                     </form>
                   </div>
@@ -173,37 +149,37 @@ export const AdminPage: FC<{
         <div id="members" class="w-full bg-white border border-border-light rounded-xl shadow-sm">
           <div class="px-6 py-4 border-b border-border-light bg-slate-50/50 rounded-t-xl flex flex-col sm:flex-row sm:items-center gap-3">
             <h2 class="text-text-main text-lg font-bold flex items-center gap-2 shrink-0">
-              <span class="material-symbols-outlined text-primary">group</span>
-              All Members ({allUsers.length})
+              <Icon name="users" size={18}/>
+              Semua anggota ({allUsers.length})
             </h2>
-            <div class="flex items-center gap-2 sm:ml-auto">
+            <div class="admin-filters flex items-center gap-2 sm:ml-auto">
               <input
-                id="member-search"
+                id="member-search" aria-label="Cari nama atau email"
                 type="search"
-                placeholder="Search name or email..."
+                placeholder="Cari nama atau email..."
                 oninput="filterMembers()"
                 class="rounded-lg border-slate-200 bg-slate-50 text-xs h-8 px-3 w-44"
               />
               <select
-                id="role-filter"
+                id="role-filter" aria-label="Filter peran"
                 onchange="filterMembers()"
                 class="rounded-lg border-slate-200 bg-slate-50 text-xs h-8 px-2"
               >
-                <option value="">All roles</option>
-                <option value="santri">santri</option>
-                <option value="alumni">alumni</option>
-                <option value="asatidz">asatidz</option>
-                <option value="member">member</option>
-                <option value="admin">admin</option>
-                <option value="super_admin">super_admin</option>
-                <option value="__suspended">suspended</option>
+                <option value="">Semua peran</option>
+                <option value="santri">Santri</option>
+                <option value="alumni">Alumni</option>
+                <option value="asatidz">Asatidz</option>
+                <option value="member">Anggota</option>
+                <option value="admin">Admin</option>
+                <option value="super_admin">Super admin</option>
+                <option value="__suspended">akses dibatasi</option>
               </select>
             </div>
           </div>
           <div id="member-list" class="divide-y divide-border-light">
             {allUsers.map((u) => (
               <div
-                class="flex items-center justify-between gap-3 px-6 py-4 hover:bg-slate-50 transition-colors"
+                class="admin-member-row flex items-center justify-between gap-3 px-6 py-4 hover:bg-slate-50 transition-colors"
                 data-name={u.name.toLowerCase()}
                 data-email={u.email.toLowerCase()}
                 data-role={u.role}
@@ -230,42 +206,42 @@ export const AdminPage: FC<{
                       {u.name}
                       {u.id === user.id && (
                         <span class="text-[10px] bg-primary text-white px-1.5 py-0.5 rounded uppercase tracking-wider font-black flex-shrink-0">
-                          You
+                          Kamu
                         </span>
                       )}
                     </p>
                     <p class="text-text-secondary text-xs truncate">{u.email}</p>
-                    <p class="text-text-secondary/60 text-xs">Joined {u.created_at.slice(0, 10)}</p>
+                    <p class="text-text-secondary/60 text-xs">Bergabung {u.created_at.slice(0, 10)}</p>
                   </div>
                 </div>
                 <div class="flex items-center gap-2 flex-shrink-0">
                   <span class={`hidden sm:inline text-xs font-bold px-2 py-1 rounded ${roleBadgeClass(u.role)}`}>
-                    {u.role}
+                    {adminRoleLabel(u.role)}
                   </span>
                   {u.suspended_at && (
                     <span class="text-xs font-bold px-2 py-1 rounded bg-red-50 text-red-600 border border-red-200">
-                      suspended
+                      akses dibatasi
                     </span>
                   )}
                   {u.email_notif_enabled === 0 && (
                     <span
                       class="hidden sm:inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded bg-slate-100 text-text-secondary border border-slate-200"
-                      title="Email notifications disabled"
+                      title="Notifikasi email nonaktif"
                     >
-                      <span class="material-symbols-outlined text-xs">notifications_off</span>
-                      email off
+                      <Icon name="mail" size={18}/>
+                      email nonaktif
                     </span>
                   )}
                   <details class="relative">
-                    <summary class="list-none cursor-pointer flex items-center justify-center size-8 rounded-lg text-text-secondary hover:bg-slate-100 hover:text-primary transition-colors">
-                      <span class="material-symbols-outlined text-lg">more_vert</span>
+                    <summary aria-label={`Tindakan untuk ${u.name}`} class="list-none cursor-pointer flex items-center justify-center size-8 rounded-lg text-text-secondary hover:bg-slate-100 hover:text-primary transition-colors">
+                      <Icon name="more" size={18}/>
                     </summary>
                     <div class="absolute right-0 top-9 z-20 w-44 bg-white border border-border-light rounded-lg shadow-lg py-1.5">
                       <a
                         href={`/admin/members/${u.id}`}
                         class="block px-3 py-1.5 text-sm text-text-main hover:bg-slate-50 hover:text-primary transition-colors"
                       >
-                        View
+                        Lihat detail
                       </a>
                       {isSuperAdminRole(user.role) && u.id !== user.id && (
                         <a
@@ -279,7 +255,7 @@ export const AdminPage: FC<{
                         <form method="post" action={`/admin/users/${u.id}/role`} data-confirm={`Make ${u.name} an admin? This grants full admin access.`}>
                           <CsrfInput />
                           <button type="submit" class="w-full text-left px-3 py-1.5 text-sm text-text-main hover:bg-slate-50 hover:text-primary transition-colors">
-                            Make Admin
+                            Jadikan admin
                           </button>
                         </form>
                       )}
@@ -288,14 +264,14 @@ export const AdminPage: FC<{
                           <form method="post" action={`/admin/users/${u.id}/unsuspend`}>
                             <CsrfInput />
                             <button type="submit" class="w-full text-left px-3 py-1.5 text-sm text-emerald-600 hover:bg-emerald-50 transition-colors">
-                              Unsuspend
+                              Pulihkan akses
                             </button>
                           </form>
                         ) : (
                           <form method="post" action={`/admin/users/${u.id}/suspend`} data-confirm={`Suspend ${u.name}? They will not be able to access the app.`}>
                             <CsrfInput />
                             <button type="submit" class="w-full text-left px-3 py-1.5 text-sm text-amber-600 hover:bg-amber-50 transition-colors">
-                              Suspend
+                              Batasi akses
                             </button>
                           </form>
                         )
@@ -304,7 +280,7 @@ export const AdminPage: FC<{
                         <form method="post" action={`/admin/users/${u.id}/delete`} data-confirm={`Permanently delete ${u.name}? All their logs and data will be removed.`}>
                           <CsrfInput />
                           <button type="submit" class="w-full text-left px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 transition-colors">
-                            Remove
+                            Hapus anggota
                           </button>
                         </form>
                       )}
@@ -321,7 +297,7 @@ export const AdminPage: FC<{
               onclick="changePage(-1)"
               class="text-xs font-semibold px-3 py-1.5 rounded-lg border border-border-light bg-white text-text-secondary hover:text-primary hover:border-primary/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              ← Prev
+              ← Sebelumnya
             </button>
             <span id="page-info" class="text-xs text-text-secondary" />
             <button
@@ -330,7 +306,7 @@ export const AdminPage: FC<{
               onclick="changePage(1)"
               class="text-xs font-semibold px-3 py-1.5 rounded-lg border border-border-light bg-white text-text-secondary hover:text-primary hover:border-primary/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Next →
+              Berikutnya →
             </button>
           </div>
         </div>
@@ -338,31 +314,31 @@ export const AdminPage: FC<{
         {isSuperAdminRole(user.role) && (
           <div class="w-full bg-white border border-border-light rounded-xl p-6 shadow-sm mt-6">
             <h2 class="text-text-main text-lg font-bold mb-4 flex items-center gap-2">
-              <span class="material-symbols-outlined text-primary">build</span>
-              Tools
+              <Icon name="edit" size={18}/>
+              Pengaturan admin
             </h2>
 
             {/* Create user */}
             <div class="mb-6">
-              <h3 class="text-text-main text-sm font-bold mb-2">Create User</h3>
-              <form method="post" action="/admin/users/create" class="grid md:grid-cols-4 gap-3">
+              <h3 class="text-text-main text-sm font-bold mb-2">Tambah anggota</h3>
+              <form method="post" action="/admin/users/create" class="admin-create grid md:grid-cols-4 gap-3">
                 <CsrfInput />
-                <input
+                <div class="admin-field"><label for="create-name">Nama lengkap</label><input id="create-name"
                   name="name"
-                  placeholder="Full name"
+                  placeholder="Nama lengkap"
                   maxlength={100}
                   class="rounded-lg border-slate-200 bg-slate-50 text-sm"
                   required
-                />
-                <input
+                /></div>
+                <div class="admin-field"><label for="create-email">Email</label><input id="create-email"
                   type="email"
                   name="email"
                   placeholder="Email"
                   maxlength={254}
                   class="rounded-lg border-slate-200 bg-slate-50 text-sm"
                   required
-                />
-                <input
+                /></div>
+                <div class="admin-field"><label for="create-password">Password awal</label><input id="create-password"
                   type="password"
                   name="password"
                   placeholder="Password"
@@ -370,19 +346,19 @@ export const AdminPage: FC<{
                   autocomplete="new-password"
                   class="rounded-lg border-slate-200 bg-slate-50 text-sm"
                   required
-                />
-                <select name="role" class="rounded-lg border-slate-200 bg-slate-50 text-sm" required>
-                  <option value="santri">santri</option>
-                  <option value="alumni">alumni</option>
-                  <option value="asatidz">asatidz</option>
-                  <option value="admin">admin</option>
-                  <option value="super_admin">super_admin</option>
-                </select>
+                /></div>
+                <div class="admin-field"><label for="create-role">Peran</label><select id="create-role" name="role" class="rounded-lg border-slate-200 bg-slate-50 text-sm" required>
+                  <option value="santri">Santri</option>
+                  <option value="alumni">Alumni</option>
+                  <option value="asatidz">Asatidz</option>
+                  <option value="admin">Admin</option>
+                  <option value="super_admin">Super admin</option>
+                </select></div>
                 <button
                   type="submit"
                   class="px-4 py-2.5 bg-primary text-white rounded-lg font-bold text-sm hover:bg-primary-dark transition-colors shadow-sm md:col-span-4"
                 >
-                  Create User
+                  Tambah anggota
                 </button>
               </form>
             </div>
@@ -391,9 +367,9 @@ export const AdminPage: FC<{
             <div class="border-t border-border-light pt-6">
               <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div>
-                  <h3 class="text-text-main text-sm font-bold">Monthly Snapshot Job</h3>
+                  <h3 class="text-text-main text-sm font-bold">Arsip peringkat bulanan</h3>
                   <p class="text-text-secondary text-xs">
-                    Runs previous month activity snapshot (idempotent, safe to re-run).
+                    Simpan peringkat bulan sebelumnya. Arsip yang sudah tersimpan tidak ditimpa.
                   </p>
                 </div>
                 <form method="post" action="/admin/snapshots/run">
@@ -402,14 +378,14 @@ export const AdminPage: FC<{
                     type="submit"
                     class="px-4 py-2.5 bg-primary text-white rounded-lg font-bold text-sm hover:bg-primary-dark transition-colors shadow-sm"
                   >
-                    Run Previous Month Snapshot
+                    Simpan arsip bulan sebelumnya
                   </button>
                 </form>
               </div>
             </div>
           </div>
         )}
-      </main>
+      </div>
       <script dangerouslySetInnerHTML={{ __html: `
 var PAGE_SIZE = 20;
 var currentPage = 1;
@@ -432,7 +408,12 @@ function filterMembers() {
 function applyPagination(visibleRows) {
   if (!visibleRows) {
     visibleRows = Array.from(document.querySelectorAll('#member-list > div[data-name]'))
-      .filter(function(r) { return r.style.display !== 'none'; });
+      .filter(function(r) {
+        var q = (document.getElementById('member-search').value || '').toLowerCase();
+        var role = document.getElementById('role-filter').value;
+        var roleMatch = !role || (role === '__suspended' ? r.dataset.suspended === '1' : r.dataset.role === role);
+        return (!q || r.dataset.name.includes(q) || r.dataset.email.includes(q)) && roleMatch;
+      });
   }
   var total = visibleRows.length;
   var totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -443,8 +424,8 @@ function applyPagination(visibleRows) {
   });
   var ctrl = document.getElementById('page-ctrl');
   if (ctrl) {
-    ctrl.style.display = totalPages > 1 ? '' : 'none';
-    document.getElementById('page-info').textContent = 'Page ' + currentPage + ' of ' + totalPages;
+    ctrl.style.display = totalPages > 1 ? 'flex' : 'none';
+    document.getElementById('page-info').textContent = 'Halaman ' + currentPage + ' dari ' + totalPages;
     document.getElementById('page-prev').disabled = currentPage <= 1;
     document.getElementById('page-next').disabled = currentPage >= totalPages;
   }
@@ -461,14 +442,9 @@ document.addEventListener('click', function(e) {
   });
 });
 
-document.addEventListener('submit', function(e) {
-  var form = e.target;
-  if (!form || !form.dataset || !form.dataset.confirm) return;
-  if (!window.confirm(form.dataset.confirm)) e.preventDefault();
-});
 
 applyPagination();
       `}} />
-    </Layout>
+    </AdminLayout>
   );
 };

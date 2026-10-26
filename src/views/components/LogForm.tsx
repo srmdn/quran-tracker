@@ -1,4 +1,5 @@
 import type { FC } from "hono/jsx";
+import { Icon } from "./Icon.tsx";
 import { CsrfInput } from "./CsrfInput.tsx";
 import { SURAHS } from "../../data/quran-meta.ts";
 import { t, type Lang } from "../../lib/i18n.ts";
@@ -67,7 +68,7 @@ export const LogForm: FC<{
   const title = titleProp ?? (kind === "tilawah" ? t(lang, "logTilawah") : t(lang, "logMurojaah"));
   const saveLabel = submitLabel ?? (kind === "tilawah" ? t(lang, "saveTilawah") : t(lang, "saveMurojaah"));
   const resolvedDate = dateValue ?? todayWib;
-  const initialUnit = initial?.logUnit === "pages" ? "pages" : "juz";
+  const initialUnit = initial ? (initial.logUnit === "pages" ? "pages" : "juz") : "pages";
   const initialJuzAmount = initial
     ? Math.max(1, Math.round(initial.logAmount ?? initial.juzAmount ?? 1))
     : 1;
@@ -77,8 +78,10 @@ export const LogForm: FC<{
   const initialSummaryValue = initialUnit === "pages" ? initialPagesAmount : initialJuzAmount;
   const initialSummaryAmount = `${initialSummaryValue} ${initialUnit === "pages" ? t(lang, "inputModePages") : t(lang, "inputModeJuz")}`;
   const initialSummaryEquivalent = initialUnit === "pages"
-    ? `${(initialSummaryValue / 20).toFixed(2)} ${t(lang, "inputModeJuz")}`
-    : `${Math.round(initialSummaryValue * 20)} ${t(lang, "inputModePages")}`;
+    ? `${(initialSummaryValue / (604 / 30)).toFixed(2)} ${t(lang, "inputModeJuz")}`
+    : `${Math.round(initialSummaryValue * (604 / 30) * 100) / 100} ${t(lang, "inputModePages")}`;
+  const minDate = new Date(`${todayWib}T00:00:00Z`); minDate.setUTCDate(minDate.getUTCDate()-1);
+  const minDateYmd = minDate.toISOString().slice(0,10);
   const lastSurah = lastLog?.end_surah
     ? SURAHS.find((surah) => surah.number === lastLog.end_surah)
     : null;
@@ -91,6 +94,8 @@ export const LogForm: FC<{
       data-log-form
       data-unit-juz={t(lang, "inputModeJuz")}
       data-unit-pages={t(lang, "inputModePages")}
+      data-unit-conversion-note={t(lang,"visualPageConversion")}
+      data-juz-unit-note={t(lang,"visualWholeJuz")}
     >
       <CsrfInput />
       <h2>{title}</h2>
@@ -124,6 +129,10 @@ export const LogForm: FC<{
         </div>
       )}
 
+      {lastSurah && lastLog?.end_ayah && !dateDisabled && (lastSurah.number < 114 || lastLog.end_ayah < lastSurah.totalAyahs) && (
+        <button class="continue-position" type="button" data-continue-surah={lastSurah.number}
+          data-continue-ayah={lastLog.end_ayah}>{t(lang,"visualContinue")} <Icon name="arrow" size={14}/></button>
+      )}
       <div class="form-grid-2">
         <div class="field">
           <label for={`${prefix}-date`}>{t(lang, "dateWib")}</label>
@@ -132,6 +141,7 @@ export const LogForm: FC<{
             type="date"
             name="date_wib"
             value={resolvedDate}
+            min={dateDisabled ? resolvedDate : minDateYmd}
             max={todayWib}
             disabled={dateDisabled}
             required
@@ -148,7 +158,7 @@ export const LogForm: FC<{
       </div>
 
       <div class="field">
-        <label for={`${prefix}-amount`}>{t(lang, "logAmountLabel")}</label>
+        <label for={initialUnit === "pages" ? `${prefix}-pages` : `${prefix}-amount`}>{t(lang, "logAmountLabel")}</label>
         <div class="amount-row" aria-label={t(lang, "logQuickAmount")}>
           <button class="amount-chip" type="button" data-log-preset data-unit="juz" data-amount="1">1 juz</button>
           <button class="amount-chip" type="button" data-log-preset data-unit="juz" data-amount="2">2 juz</button>
@@ -158,6 +168,7 @@ export const LogForm: FC<{
             <input
               class="amount-input"
               id={`${prefix}-amount`}
+              aria-label={t(lang,"visualAmountJuz")}
               type="number"
               name="amount"
               min="1"
@@ -172,6 +183,7 @@ export const LogForm: FC<{
             <input
               class="amount-input"
               id={`${prefix}-pages`}
+              aria-label={t(lang,"visualAmountPages")}
               type="number"
               name="pages_whole"
               min="0"
@@ -188,7 +200,7 @@ export const LogForm: FC<{
             </label>
           </div>
         </div>
-        <p class="field-hint">{t(lang, "logAmountHint")}</p>
+        <p class="field-hint" data-log-hint>{t(lang, "logAmountHint")}</p>
       </div>
 
       <div class="summary-box" aria-live="polite">
@@ -215,42 +227,42 @@ export const LogForm: FC<{
             value={initial?.repetitionCount ?? ""}
             inputmode="numeric"
           />
-          <p class="field-hint">{t(lang, "repetitionCountHint")}</p>
+          <p class="field-hint">{t(lang, "repetitionCountHint")} {t(lang,"visualRepeatHint")}</p>
         </div>
       )}
 
-      <details class="detail-drawer">
-        <summary>{t(lang, "logDetailTitle")}</summary>
+      <section class="detail-drawer reading-position" aria-labelledby={`${prefix}-position-title`}>
+        <div class="position-head"><h3 id={`${prefix}-position-title`}>{t(lang,"visualPositionTitle")}</h3><span>{t(lang,"visualOptional")}</span></div>
         <div class="detail-grid">
           <div class="field">
-            <label for={`${prefix}-start-surah`}>{t(lang, "startingPosition")}</label>
+            <label for={`${prefix}-start-surah`}>{t(lang,"visualStartSurah")}</label>
             <select id={`${prefix}-start-surah`} name="start_surah">
               <option value="">{lang === "id" ? "Pilih surah..." : "Select surah..."}</option>
               {SURAHS.map((surah) => (
-                <option value={String(surah.number)} selected={initial?.startSurah === surah.number}>{surah.number}. {surah.name}</option>
+                <option value={String(surah.number)} data-total-ayahs={surah.totalAyahs} selected={initial?.startSurah === surah.number}>{surah.number}. {surah.name}</option>
               ))}
             </select>
           </div>
           <div class="field">
-            <label for={`${prefix}-start-ayah`}>{lang === "id" ? "Ayah awal" : "Start ayah"}</label>
-            <input id={`${prefix}-start-ayah`} type="number" name="start_ayah" min="1" step="1" value={initial?.startAyah ?? ""} inputmode="numeric" />
+            <label for={`${prefix}-start-ayah`}>{t(lang,"visualStartAyah")}</label>
+            <input id={`${prefix}-start-ayah`} type="number" name="start_ayah" min="1" max={SURAHS.find(s=>s.number===initial?.startSurah)?.totalAyahs} step="1" value={initial?.startAyah ?? ""} inputmode="numeric" />
           </div>
           <div class="field">
-            <label for={`${prefix}-end-surah`}>{t(lang, "endingPosition")}</label>
+            <label for={`${prefix}-end-surah`}>{t(lang,"visualEndSurah")}</label>
             <select id={`${prefix}-end-surah`} name="end_surah">
               <option value="">{lang === "id" ? "Pilih surah..." : "Select surah..."}</option>
               {SURAHS.map((surah) => (
-                <option value={String(surah.number)} selected={initial?.endSurah === surah.number}>{surah.number}. {surah.name}</option>
+                <option value={String(surah.number)} data-total-ayahs={surah.totalAyahs} selected={initial?.endSurah === surah.number}>{surah.number}. {surah.name}</option>
               ))}
             </select>
           </div>
           <div class="field">
-            <label for={`${prefix}-end-ayah`}>{lang === "id" ? "Ayah akhir" : "End ayah"}</label>
-            <input id={`${prefix}-end-ayah`} type="number" name="end_ayah" min="1" step="1" value={initial?.endAyah ?? ""} inputmode="numeric" />
+            <label for={`${prefix}-end-ayah`}>{t(lang,"visualEndAyah")}</label>
+            <input id={`${prefix}-end-ayah`} type="number" name="end_ayah" min="1" max={SURAHS.find(s=>s.number===initial?.endSurah)?.totalAyahs} step="1" value={initial?.endAyah ?? ""} inputmode="numeric" />
           </div>
         </div>
         <p class="field-hint">{t(lang, "logDetailHint")}</p>
-      </details>
+      </section>
 
       <div class="form-actions">
         <button class="btn btn-primary" type="submit" style="flex:1">{saveLabel}</button>

@@ -78,7 +78,7 @@ export const EditLogPage: FC<{
         />
 
         <aside class="side-stack">
-          <section class="side-note" style="border-color: rgba(184, 134, 47, 0.45); background: rgba(234, 216, 180, 0.18)">
+          <section class="side-note">
             <h3>{t(lang, "logEditWindowTitle")}</h3>
             <p>{t(lang, "logEditWindowText")}</p>
           </section>
