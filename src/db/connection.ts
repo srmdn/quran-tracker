@@ -1,7 +1,9 @@
 import { Database } from "bun:sqlite";
-import { join } from "path";
+import { mkdirSync } from "node:fs";
+import { dirname, join } from "path";
 
 const dbPath = join(import.meta.dir, "../../data/ngaji.db");
+mkdirSync(dirname(dbPath), { recursive: true });
 
 export const db = new Database(dbPath, { create: true });
 
