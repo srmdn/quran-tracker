@@ -2,7 +2,11 @@
 
 Quran Tracker is a Bun + Hono web app for community Qur'an progress tracking. Members log daily tilawah and murojaah, follow streaks and targets, and compare progress on a monthly leaderboard.
 
-![Quran Tracker logo](public/logo.png)
+![Quran Tracker landing page, populated with demo data](docs/screenshots/landing.png)
+
+*Screenshot uses demo data. Member names and activity numbers are generated.*
+
+> Started from [mgilank/Quran-Tahfiz-Tracker](https://github.com/mgilank/Quran-Tahfiz-Tracker) and rewritten since. See [NOTICE](NOTICE).
 
 ## What it does
 
@@ -135,8 +139,15 @@ public/
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). License: [MIT](LICENSE).
+See [CONTRIBUTING.md](CONTRIBUTING.md). License: [MIT](LICENSE) for original
+contributions; see [NOTICE](NOTICE) for inherited material.
 
 ## Attribution
 
-Forked from: https://github.com/mgilank/Quran-Tahfiz-Tracker
+This project started as a copy of
+[mgilank/Quran-Tahfiz-Tracker](https://github.com/mgilank/Quran-Tahfiz-Tracker),
+which did not include a license file. The original author keeps all rights to
+the code they wrote. Everything added or rewritten since is MIT licensed under
+this repository.
+
+See [NOTICE](NOTICE) for the full statement.

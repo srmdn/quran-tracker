@@ -1,0 +1,19 @@
+NOTICE
+======
+
+This project started from a copy of
+https://github.com/mgilank/Quran-Tahfiz-Tracker
+
+At the time that copy was made, the upstream repository did not include a
+license file. Public availability of source code does not by itself grant a
+license. The original author therefore retains all rights to the code they
+wrote, and this repository does not claim to relicense that inherited portion.
+
+Everything added, rewritten, or reorganized since that starting point is
+Copyright (c) 2026 srmdn and is licensed under the MIT License in LICENSE.
+
+If the original author grants permission for this derivative work, this notice
+should be updated to record that permission.
+
+If you are the original author and want this repository changed or removed,
+open an issue at https://github.com/srmdn/quran-tracker/issues
