@@ -33,6 +33,12 @@ All notable changes to this project are documented here.
 - Added a Bun unit test suite, a CI workflow for typecheck, tests, and the Tailwind artifact, and a production dependency audit script
 - Fixed the translation dictionary typing and form attribute types so `bunx tsc --noEmit` passes
 
+### Documentation
+
+- Added NOTICE documenting the project origin and the license status of inherited code
+- Render the community name from `ORG_NAME` in UI copy instead of hardcoding it
+- Refreshed README with a dashboard screenshot and current setup notes
+
 ---
 
 ## [1.4.0] — 2026-05-05
