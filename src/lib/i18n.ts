@@ -1071,6 +1071,11 @@ const id: Record<keyof typeof en, string> = {
 
 export type TranslationKey = keyof typeof en;
 
+// Community name is baked into several strings. When ORG_NAME is set, render it
+// instead, so self-hosted instances do not display another community's name.
+const orgNameOverride = process.env.ORG_NAME;
+
 export function t(lang: Lang, key: TranslationKey): string {
-  return id[key] !== undefined && lang === "id" ? id[key] : en[key];
+  const raw = id[key] !== undefined && lang === "id" ? id[key] : en[key];
+  return orgNameOverride ? raw.replaceAll("Markaz Talaqqi", orgNameOverride) : raw;
 }
