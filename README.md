@@ -2,9 +2,9 @@
 
 Quran Tracker is a Bun + Hono web app for community Qur'an progress tracking. Members log daily tilawah and murojaah, follow streaks and targets, and compare progress on a monthly leaderboard.
 
-![Quran Tracker landing page, populated with demo data](docs/screenshots/landing.png)
-
-*Screenshot uses demo data. Member names and activity numbers are generated.*
+<p align="center">
+  <img src="docs/screenshots/dashboard.png" width="420" alt="Daily dashboard showing tilawah and murojaah progress, last reading position, and juz trail">
+</p>
 
 > Started from [mgilank/Quran-Tahfiz-Tracker](https://github.com/mgilank/Quran-Tahfiz-Tracker) and rewritten since. See [NOTICE](NOTICE).
 
@@ -17,7 +17,7 @@ Quran Tracker is a Bun + Hono web app for community Qur'an progress tracking. Me
 - Rank members on a monthly leaderboard with archived snapshots
 - Support admin approval, suspension, and role management
 - Send email notifications for approvals, reminders, streaks, khatam, and snapshots
-- Offer English and Indonesian UI
+- Indonesian-language interface
 
 ## Stack
 
